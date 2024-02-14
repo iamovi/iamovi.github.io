@@ -48,7 +48,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: #000; /* Choose your preloader background color */
+    background: #000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -59,7 +59,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(45deg, #fff, #fff) padding-box, #fff; /* Emoji as background */
+    background: linear-gradient(45deg, #fff, #fff) padding-box, #fff;
     background-clip: content-box, border-box;
     animation: pulse 1.5s infinite;
 }
@@ -79,6 +79,13 @@
       display: block;
       margin: auto;
       margin-top: 25px;
+    }
+    
+    @media only screen and (min-width: 600px) {
+      img {
+        width: 30%;
+        margin: 0;
+      }
     }
   </style>
   <script>
