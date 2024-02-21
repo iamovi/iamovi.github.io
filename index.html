@@ -63,7 +63,7 @@
     background-clip: content-box, border-box;
     animation: pulse 1.5s infinite;
 }
-    img {
+    .mainn {
       display: block;
       width: 95%;
       margin: auto;
@@ -81,10 +81,22 @@
       margin-top: 25px;
     }
     
+    .joker {
+            display: none;
+            width: 40%;
+
+            position: fixed;
+            bottom: 0;
+            right: 0;
+        }
+
     @media only screen and (min-width: 600px) {
-      img {
+      .mainn {
         width: 30%;
         margin: 0;
+      }
+      .joker {
+        display: block;
       }
     }
   </style>
@@ -109,55 +121,16 @@
     </div>
 
 <div class="container">
-  <img alt="iamOVi" src="./ovi.jpg">
+  <img alt="iamOVi" src="./ovi.jpg" class="mainn">
  <div id="particles-js"></div>
   <h5>> my name is <a href="https://oviportfo.netlify.app/">Maruf OVi</a>.</h5>
   <h5>> i write about code...</h5>
   <h4>> check me on <a href="https://github.com/iamovi">gh</a></h4>
   <h5>> or send mail on <span>fornet.ovi@gmail.com</span></h5>
 </div>
+<img src="./joker.jpg" alt="joker" class="joker">
 
 <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-<script>
-  particlesJS('particles-js', {
-    particles: {
-      number: { value: 150, density: { enable: true, value_area: 1000 } },
-      color: { value: '#fff' },
-      shape: {
-        type: 'circle',
-        stroke: { width: 0, color: '#000000' },
-      },
-      opacity: { value: 0.8, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false } },
-      size: { value: 3, random: true, anim: { enable: false, speed: 40, size_min: 0.1, sync: false } },
-      line_linked: { enable: true, distance: 150, color: '#ffffff', opacity: 0.4, width: 1 },
-      move: {
-        enable: true,
-        speed: 2,
-        direction: 'bottom-right',
-        random: true,
-        straight: false,
-        out_mode: 'out',
-        bounce: false,
-      },
-    },
-    interactivity: {
-      detect_on: 'canvas',
-      events: {
-        onhover: { enable: true, mode: 'bubble' },
-        onclick: { enable: true, mode: 'repulse' },
-        resize: true,
-      },
-      modes: {
-        grab: { distance: 200, line_linked: { opacity: 1 } },
-        bubble: { distance: 250, size: 10, duration: 2, opacity: 1, speed: 3 },
-        repulse: { distance: 100, duration: 0.4 },
-        push: { particles_nb: 4 },
-        remove: { particles_nb: 2 },
-      },
-    },
-    retina_detect: true,
-  });
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
