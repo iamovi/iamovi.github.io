@@ -82,6 +82,9 @@ a {
   color: green;
 }
 
+.icons_p {
+  cursor: default;
+}
 /* Icon styling */
 p a i {
   font-size: 1.15rem;
@@ -91,14 +94,14 @@ p a i {
 }
 
 /* Individual icon colors */
-p a .bi-github { color: #000; }
-p a .bi-linkedin { color: #0a66c2; }
-p a .bi-twitter-x { color: #000; }
-p a .bi-envelope { color: #d44638; } /* Gmail red */
+p a .fa-github { color: #181717; }     
+p a .fa-itch-io { color: #f15f5f; }     
+p a .fa-instagram { color: #E1306C; }    
+p a .fa-envelope-open { color: #D44638; } 
+p a .fa-youtube { color: red; } 
 
 /* Hover effects */
 p a:hover i {
-  transform: translateY(-3px) scale(1.15);
   background: rgba(0,0,0,0.05);
 }
 
