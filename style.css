@@ -1,7 +1,7 @@
 body {
   font-family: "Overlock SC", sans-serif;
   background: #ffffff;
-  padding-top: 45px;
+  padding-top: 55px;
 }
 
 .avatar {
@@ -98,10 +98,6 @@ p a .fa-itch-io { color: #f15f5f; }
 p a .fa-instagram { color: #E1306C; }    
 p a .fa-envelope-open { color: #D44638; } 
 p a .fa-youtube { color: red; } 
-p a .fa-discord { color: #5865F2; } 
-p a .fa-telegram { 
-  color: #0088cc;
-}
 
 /* Hover effects */
 p a:hover i {
