@@ -14,14 +14,25 @@ body {
 .container h1 {
   position: relative;
   font-family: "Shadows Into Light", cursive;
-  animation: glitch-skew 3s infinite linear alternate-reverse;
+  animation: glitch-skew 3s infinite linear alternate-reverse,
+             glitch-flicker 4s infinite steps(30);
+}
+
+/* base text flicker */
+@keyframes glitch-flicker {
+  0% { opacity: 1; }
+  95% { opacity: 1; }
+  96% { opacity: 0.6; }
+  98% { opacity: 1; }
+  99% { opacity: 0.8; }
+  100% { opacity: 1; }
 }
 
 p {
-      font-family: "Reddit Mono", monospace;
+  font-family: "Reddit Mono", monospace;
 }
 
-/* Red layer */
+/* ====== RGB Layers ====== */
 .container h1::before,
 .container h1::after {
   content: attr(data-text);
@@ -29,52 +40,60 @@ p {
   top: 0;
   left: 0;
   pointer-events: none;
+  mix-blend-mode: difference;
 }
 
+/* Red layer */
 .container h1::before {
-  color: #ff004c; /* red glitch */
+  color: #ff004c;
   z-index: -1;
-  animation: glitch-before 2.5s infinite linear alternate-reverse;
+  animation: glitch-before 2.3s infinite linear alternate-reverse;
 }
 
+/* Cyan layer */
 .container h1::after {
-  color: #00eaff; /* cyan glitch */
+  color: #00eaff;
   z-index: -1;
-  animation: glitch-after 2.5s infinite linear alternate-reverse;
+  animation: glitch-after 2.2s infinite linear alternate-reverse;
 }
 
-/* Slight skew movement */
+/* ====== RANDOM SKEW ====== */
 @keyframes glitch-skew {
-  0% { transform: skew(0deg); }
-  40% { transform: skew(1deg); }
-  41% { transform: skew(-2deg); }
-  42% { transform: skew(1deg); }
+  0%   { transform: skew(0deg); }
+  25%  { transform: skew(1deg); }
+  26%  { transform: skew(-3deg); }
+  27%  { transform: skew(2deg); }
+  60%  { transform: skew(0deg); }
+  61%  { transform: skew(-1deg); }
+  62%  { transform: skew(3deg); }
   100% { transform: skew(0deg); }
 }
 
-/* Red channel glitch */
+/* ====== RED LAYER NOISE ====== */
 @keyframes glitch-before {
-  0% { transform: translate(0, 0); opacity: 0; }
-  10% { transform: translate(-2px, -1px); opacity: 0.7; }
-  11% { transform: translate(0, 0); opacity: 0; }
-  60% { transform: translate(0, 0); opacity: 0; }
-  61% { transform: translate(-3px, 1px); opacity: 0.7; }
-  62% { transform: translate(0, 0); opacity: 0; }
-  100% { transform: translate(0, 0); opacity: 0; }
+  0%, 5% { transform: translate(0); opacity: 0; }
+  6%  { transform: translate(-3px, -1px) skew(-2deg); opacity: 0.8; }
+  7%  { transform: translate(0); opacity: 0; }
+  45% { transform: translate(0); opacity: 0; }
+  46% { transform: translate(-4px, 2px) skew(1deg); opacity: 0.7; }
+  47% { transform: translate(0); opacity: 0; }
+  90% { transform: translate(0); opacity: 0; }
+  91% { transform: translate(-2px, -3px) skew(-1deg); opacity: 0.8; }
+  92% { transform: translate(0); opacity: 0; }
 }
 
-/* Cyan channel glitch */
+/* ====== CYAN LAYER NOISE ====== */
 @keyframes glitch-after {
-  0% { transform: translate(0, 0); opacity: 0; }
-  10% { transform: translate(2px, 1px); opacity: 0.7; }
-  11% { transform: translate(0, 0); opacity: 0; }
-  70% { transform: translate(0, 0); opacity: 0; }
-  71% { transform: translate(3px, -1px); opacity: 0.7; }
-  72% { transform: translate(0, 0); opacity: 0; }
-  100% { transform: translate(0, 0); opacity: 0; }
+  0%, 10% { transform: translate(0); opacity: 0; }
+  11% { transform: translate(2px, 1px) skew(2deg); opacity: 0.8; }
+  12% { transform: translate(0); opacity: 0; }
+  55% { transform: translate(0); opacity: 0; }
+  56% { transform: translate(4px, -2px) skew(-1deg); opacity: 0.7; }
+  57% { transform: translate(0); opacity: 0; }
+  85% { transform: translate(0); opacity: 0; }
+  86% { transform: translate(3px, 2px) skew(1deg); opacity: 0.8; }
+  87% { transform: translate(0); opacity: 0; }
 }
-
-
 
 a {
   text-decoration: none;
@@ -83,9 +102,6 @@ a {
 
 .icons_p {
   cursor: default;
-}
-.icons_pi {
-  cursor: auto;
 }
 
 /* Icon styling */
