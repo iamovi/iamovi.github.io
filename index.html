@@ -5,6 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>init | Ovi</title>
 
+  
+<!-- Description for search engines -->
+<meta name="description" content="get to know Ovi ren.">
+
+  <!-- Author -->
+<meta name="author" content="Ovi ren">
+
+<!-- Keywords (not very important for SEO today, but still valid) -->
+<meta name="keywords" content="Ovi, ren, github, portfolio, Oviren, hasanovi, hasan, ovi">
+
+  <!-- Robots (controls search engine indexing) -->
+<meta name="robots" content="index, follow">
+
+  <!-- Open Graph (for social media previews) -->
+<meta property="og:title" content="Ovi ren Info">
+<meta property="og:description" content="here you can connect to me, on any social platform.">
+<meta property="og:image" content="./ovi.jpg">
+<meta property="og:url" content="https://iamovi.github.io">
+<meta property="og:type" content="website">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="get to know Ovi ren">
+<meta name="twitter:title" content="Ovi ren">
+<meta name="twitter:description" content="here you can connect to me, on any social platform.">
+<meta name="twitter:image" content="./ovi.jpg">
+
+<!-- Favicon -->
+<!-- <link rel="icon" href="/favicon.ico" type="image/x-icon"> -->
+
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -28,19 +57,20 @@
   <div class="container">
     <div class="d-flex align-items-center mb-3">
       <img src="./main.jpg" class="avatar me-3" alt="Profile" />
-      <h1 class="m-0" data-text="Hasan Ovi.">Hasan Ovi.</h1>
+      <h1 class="m-0" data-text="Ovi ren.">Ovi ren.</h1>
     </div>
 
     <nav class="mb-4">
-      <a href="#" class="me-3" onclick="showSection('home')">Home</a>
-      <a href="#" onclick="showSection('about')">About</a>
+      <a href="#" class="me-3" onclick="showSection('home'); return false;">Home</a>
+      <a href="#" onclick="showSection('about'); return false;">About</a>
+
     </nav>
 
     <!-- Home Section -->
     <div id="home" class="section">
-<p class="icons_p">Find me on
+<p class="icons_p"><span class="icons_pi">Find me on</span>
   <a href="https://github.com/iamovi" target="_blank" class="ms-2"><i class="fab fa-github"></i></a>
-  <a href="https://iamovi.itch.io/animewaifu" target="_blank" class="ms-2"><i class="fa-brands fa-itch-io"></i></a>
+  <a href="https://iamovi.itch.io" target="_blank" class="ms-2"><i class="fa-brands fa-itch-io"></i></a>
   <a href="https://www.instagram.com/hahahaovi" target="_blank" class="ms-2"><i class="fa-brands fa-instagram"></i></a>
 <a href="mailto:fornet.ovi@gmail.com"class="ms-2">
   <i class="fa-solid fa-envelope-open"></i>
@@ -53,9 +83,9 @@
 
       <h4 class="mt-4">Projects</h4>
 
-      <p><a href="https://github.com/iamovi/button-will-react" target="_blank">button-will-react</a> : is a button that playfully moves away from your cursor when you hover over it, or do something that you didn't expect. It's a lighthearted experiment to showcase a interactive element can be used as a prank.</p>
+      <p><a href="https://github.com/iamovi/button-will-react" target="_blank" class="text-decoration-underline">button-will-react</a> : is a button that playfully moves away from your cursor when you hover over it, or do something that you didn't expect. It's a lighthearted experiment to showcase a interactive element can be used as a prank.</p>
 
-      <p><a href="https://github.com/iamovi/AnimeWaifu" target="_blank">AnimeWaifu</a> : An Anime based project where you can play with anime pictures and connect to others, engage in group chat and etc etc. <a href="https://iamovi.itch.io/animewaifu">Install it</a> from <span class="text-danger">Itch.io.</span></p>
+      <p><a href="https://github.com/iamovi/AnimeWaifu" target="_blank" class="text-decoration-underline">AnimeWaifu</a> : An Anime based project where you can play with anime pictures and connect to others, engage in group chat and etc etc. <a href="https://iamovi.itch.io/animewaifu" class="text-decoration-underline">Install it</a> from <span class="text-danger">Itch.io.</span></p>
 
       <p><a href="https://github.com/iamovi?tab=repositories" target="_blank" class="text-decoration-underline">all other Necessary Projects.</a></p>
     </div>
@@ -64,20 +94,12 @@
     <div id="about" class="section" style="display:none;">
       <h4>About Me</h4>
       <p>Hello! I'm Hasan Ovi, a passionate developer who loves building clean and interactive web experiences. I enjoy working on both front-end and back-end projects and experimenting with creative UI effects like the glitch header above, lol.</p>
-      <p><a href="" class="text-decoration-underline">check out my full Portfolio.</a></p>
-      <img src="./fullportfo.png" alt="" class="img-fluid fullport d-block">
+      <p><a href="https://oviportfo.netlify.app" class="text-decoration-underline">check out my full Portfolio.</a></p>
+      <!-- <img src="./fullportfo.png" alt="" class="img-fluid fullport d-block"> -->
     </div>
   </div>
 
-  <script>
-    function showSection(sectionId) {
-      const sections = document.querySelectorAll('.section');
-      sections.forEach(section => {
-        section.style.display = 'none'; // hide all sections
-      });
-      document.getElementById(sectionId).style.display = 'block'; // show selected
-    }
-  </script>
+  <script src="./script.js"></script>
 </body>
 
 </html>

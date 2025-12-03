@@ -84,6 +84,10 @@ a {
 .icons_p {
   cursor: default;
 }
+.icons_pi {
+  cursor: auto;
+}
+
 /* Icon styling */
 p a i {
   font-size: 1.15rem;
@@ -95,7 +99,7 @@ p a i {
 /* Individual icon colors */
 p a .fa-github { color: #181717; }     
 p a .fa-itch-io { color: #f15f5f; }     
-p a .fa-instagram { color: #E1306C; }    
+p a .fa-instagram { color: #E4405F; }    
 p a .fa-envelope-open { color: #D44638; } 
 p a .fa-youtube { color: red; } 
 
