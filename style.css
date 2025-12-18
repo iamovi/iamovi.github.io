@@ -142,3 +142,9 @@ p a:hover i {
     width: 90%;
 }
 }
+
+  /* Remove focus border when clicked or focused */
+  .modal-body .btn-close:focus {
+    outline: none;
+    box-shadow: none;
+  }
