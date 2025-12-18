@@ -1,0 +1,81 @@
+/* Starfield container */
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  background: radial-gradient(ellipse at bottom, #0d1117 0%, #020409 100%);
+}
+
+/* Show stars in dark mode */
+body.dark-mode .stars {
+  opacity: 1;
+}
+
+/* Base star */
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  animation: twinkle ease-in-out infinite;
+}
+
+/* Distant stars */
+.star.far {
+  width: 1px;
+  height: 1px;
+  opacity: 0.4;
+}
+
+/* Mid stars */
+.star.mid {
+  width: 2px;
+  height: 2px;
+  opacity: 0.7;
+}
+
+/* Near stars */
+.star.near {
+  width: 3px;
+  height: 3px;
+  opacity: 0.9;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+  transition: box-shadow 0.6s ease;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Moon */
+.moon {
+  position: fixed;
+  top: 15%;
+  right: 10%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #ccc 70%, #999 100%);
+  box-shadow: 0 0 60px 20px rgba(255, 255, 255, 0.4);
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  opacity: 0;
+}
+
+/* Show moon in dark mode */
+body.dark-mode .moon {
+  opacity: 1;
+}
+
+/* Optional: make near stars glow more near moon */
+body.dark-mode .moon ~ .stars .star.near {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}

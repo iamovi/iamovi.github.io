@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>init | Ovi</title>
-
   
 <!-- Description for search engines -->
 <meta name="description" content="get to know Ovi ren.">
@@ -51,6 +50,9 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./dark-mode.css">
+  <link rel="stylesheet" href="./stars.css">
+
 </head>
 
 <body>
@@ -63,12 +65,13 @@
     <nav class="mb-4">
       <a href="#" class="me-3" onclick="showSection('home'); return false;">Home</a>
       <a href="#" onclick="showSection('about'); return false;">About</a>
+      <button class="mode ms-3"><i class="fa-solid fa-moon"></i></button>
 
     </nav>
 
     <!-- Home Section -->
     <div id="home" class="section">
-<p class="icons_p">Find me on
+<p class="icons_p"><span style="cursor: text;">Find me on</span>
   <a href="https://github.com/iamovi" target="_blank" class="ms-2"><i class="fab fa-github"></i></a>
   <a href="https://iamovi.itch.io" target="_blank" class="ms-2"><i class="fa-brands fa-itch-io"></i></a>
   <a href="https://www.instagram.com/hahahaovi" target="_blank" class="ms-2"><i class="fa-brands fa-instagram"></i></a>
@@ -100,6 +103,9 @@
   </div>
 
   <script src="./script.js"></script>
+  <script src="./dark-mode.js"></script>
+  <script src="./stars.js"></script>
+
 </body>
 
 </html>

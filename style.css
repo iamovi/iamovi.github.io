@@ -10,6 +10,15 @@ body {
   object-fit: cover;
 }
 
+.mode {
+  background: none;     
+  border: none;          
+  box-shadow: none;   
+  padding: 0;       
+  outline: none;          
+  cursor: pointer;
+}
+
 /* EXTRAORDINARY GLITCH EFFECT */
 .container h1 {
   position: relative;
