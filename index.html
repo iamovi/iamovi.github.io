@@ -57,10 +57,16 @@
 
 <body>
   <div class="container">
-    <div class="d-flex align-items-center mb-3">
-      <img src="./main.jpg" class="avatar me-3" alt="Profile" />
-      <h1 class="m-0" data-text="Ovi ren.">Ovi ren.</h1>
-    </div>
+<div class="d-flex align-items-center mb-3">
+<img 
+  src="./main.jpg" 
+  class="avatar me-3"
+  alt="Profile"
+  onclick="openImage(this.src)"
+/>
+
+  <h1 class="m-0" data-text="Ovi ren.">Ovi ren.</h1>
+</div>
 
     <nav class="mb-4">
       <a href="#" class="me-3" onclick="showSection('home'); return false;">Home</a>
@@ -88,7 +94,7 @@
 
       <p><a href="https://github.com/iamovi/button-will-react" target="_blank" class="text-decoration-underline">button-will-react</a> : is a button that playfully moves away from your cursor when you hover over it, or do something that you didn't expect. It's a lighthearted experiment to showcase a interactive element can be used as a prank.</p>
 
-      <p><a href="https://github.com/iamovi/AnimeWaifu" target="_blank" class="text-decoration-underline">AnimeWaifu</a> : An Anime based project where you can play with anime pictures and connect to others, engage in group chat and etc etc. <a href="https://iamovi.itch.io/animewaifu" class="text-decoration-underline">Install it</a> from <span class="text-danger">Itch.io.</span></p>
+      <p><a href="https://github.com/iamovi/AnimeWaifu" target="_blank" class="text-decoration-underline">AnimeWaifu</a> : An Anime based project where you can play with anime pictures and connect to others, engage in group chat and etc etc. <a href="https://iamovi.itch.io/animewaifu" class="text-decoration-underline" target="_blank">Install it</a> from <span class="text-danger">Itch.io.</span></p>
 
       <p><a href="https://github.com/iamovi?tab=repositories" target="_blank" class="text-decoration-underline">all other Necessary Projects.</a></p>
     </div>
@@ -122,6 +128,13 @@
 </div>
 
   </div>
+
+  <!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+  <span class="close-btn">&times;</span>
+  <img id="modalImage" />
+</div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
   <script src="./script.js"></script>
