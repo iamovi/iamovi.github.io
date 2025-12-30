@@ -1,2 +1,1 @@
-# iamovi.github.io
-> about OVi.
+This repository is mainly for [https://iamovi.github.io](https://iamovi.github.io)

@@ -124,8 +124,11 @@ p a i {
 /* Individual icon colors */
 p a .fa-github { color: #181717; }     
 p a .fa-itch-io { color: #f15f5f; }     
-p a .fa-instagram { color: #E4405F; }    
+p a .fa-x-twitter { color: black; }    
 p a .fa-envelope-open { color: #D44638; } 
+p a .fa-border-none {
+  color: black;
+}
 p a .fa-youtube { color: red; } 
 
 /* Hover effects */
