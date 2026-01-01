@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>init | Ovi</title>
+
+  <link rel="canonical" href="https://iamovi.github.io/">
+
+  <!-- preload -->
+   <link rel="stylesheet" href="./preload.css">
   
 <!-- Description for search engines -->
 <meta name="description" content="get to know Ovi ren.">
@@ -25,7 +30,7 @@
 <meta property="og:type" content="website">
 
 <!-- Twitter Card -->
-<meta name="twitter:card" content="get to know Ovi ren">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ovi ren">
 <meta name="twitter:description" content="here you can connect to me, on any social platform.">
 <meta name="twitter:image" content="./ovi.jpg">
@@ -56,6 +61,16 @@
 </head>
 
 <body>
+<!-- Preloader -->
+<div id="preloader">
+  <div class="loader">
+    <span>Loading</span>
+    <div class="dots">
+      <span>.</span><span>.</span><span>.</span>
+    </div>
+  </div>
+</div>
+
   <div class="container">
 <div class="d-flex align-items-center mb-3">
 <img 
@@ -143,6 +158,27 @@
   <script src="./script.js"></script>
   <script src="./dark-mode.js"></script>
   <script src="./stars.js"></script>
+
+  <!-- Preload -->
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const preloader = document.getElementById("preloader");
+
+  preloader.classList.add("hide");
+
+  preloader.addEventListener("transitionend", () => {
+    preloader.remove();
+  });
+});
+
+// window.addEventListener("load", () => {
+//   setTimeout(() => {
+//     const preloader = document.getElementById("preloader");
+//     preloader.classList.add("hide");
+//     preloader.addEventListener("transitionend", () => preloader.remove());
+//   }, 1000);
+// });
+</script>
 
 </body>
 
