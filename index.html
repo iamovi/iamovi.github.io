@@ -64,7 +64,17 @@
         />
 
         <div class="header-content">
-            <h1>Ovi ren</h1>
+            <div class="title-row">
+                <h1>Ovi ren</h1>
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                    <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor"/>
+                        <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3"/>
+                        <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3"/>
+                        <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)"/>
+                    </svg>
+                </button>
+            </div>
             <nav>
                 <a href="mailto:fornet.ovi@email.com">Email</a>
                 <a href="https://github.com/iamovi" target="_blank">GitHub</a>
@@ -72,15 +82,6 @@
                 <a href="https://iamovi.itch.io" target="_blank">Itch.io</a>
             </nav>
         </div>
-
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-            <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor"/>
-                <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3"/>
-                <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3"/>
-                <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)"/>
-            </svg>
-        </button>
     </div>
 
     <ul>
