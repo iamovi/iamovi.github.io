@@ -1,0 +1,102 @@
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        #ff6b6b 0%, 
+        #ee5a6f 25%, 
+        #c44569 50%, 
+        #a8357d 75%, 
+        #4a148c 100%);
+    border-radius: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        #ff8787 0%, 
+        #ff6b9d 25%, 
+        #d35c7e 50%, 
+        #b84592 75%, 
+        #5e35b1 100%);
+    border-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, 
+        #ff5252 0%, 
+        #f50057 25%, 
+        #c2185b 50%, 
+        #9c27b0 75%, 
+        #673ab7 100%);
+}
+
+::-webkit-scrollbar-corner {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Light mode scrollbar */
+.light ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        #64b5f6 0%, 
+        #42a5f5 25%, 
+        #2196f3 50%, 
+        #1e88e5 75%, 
+        #1976d2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        #90caf9 0%, 
+        #64b5f6 25%, 
+        #42a5f5 50%, 
+        #2196f3 75%, 
+        #1e88e5 100%);
+    border-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.3);
+}
+
+.light ::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, 
+        #42a5f5 0%, 
+        #2196f3 25%, 
+        #1e88e5 50%, 
+        #1976d2 75%, 
+        #1565c0 100%);
+}
+
+.light ::-webkit-scrollbar-corner {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #c44569 rgba(255, 255, 255, 0.02);
+}
+
+.light * {
+    scrollbar-color: #2196f3 rgba(0, 0, 0, 0.02);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    body {
+        padding: 22px 14px;
+    }
+}
