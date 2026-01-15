@@ -533,6 +533,18 @@ h2 a:hover {
     color: #000;
 }
 
+.closing {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  text-align: start;
+  font-size: 1.1rem;
+}
+
+.closing a {
+  text-decoration: underline;
+  color: inherit;
+}
+
 /* MOBILE */
 @media (max-width: 600px) {
     body {
