@@ -6,9 +6,8 @@
   let isPlaying = false;
   
   window.initMusicPlayer = function() {
-    // Replace 'your-song.mp3' with the path to your audio file
     audio = new Audio('https://ik.imagekit.io/iamovi/portfo/highanddry.mp3?updatedAt=1705702443879');
-    audio.loop = true; // Enable looping
+    audio.loop = true;
     
     audio.addEventListener('ended', function() {
       isPlaying = false;
@@ -55,8 +54,31 @@
   window.toggleMenu = function () {
     const menu = document.querySelector('.slide-menu');
     const overlay = document.querySelector('.menu-overlay');
+    const body = document.body;
+    const html = document.documentElement;
+    
     menu.classList.toggle('open');
     overlay.classList.toggle('show');
+    
+    // Prevent body scroll when menu is open
+    if (menu.classList.contains('open')) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+    } else {
+      // Restore scroll position
+      const scrollY = body.style.top;
+      body.style.position = '';
+      body.style.top = '';
+      body.style.width = '';
+      body.style.overflow = '';
+      html.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
   };
   
   window.showSection = function (sectionName) {
