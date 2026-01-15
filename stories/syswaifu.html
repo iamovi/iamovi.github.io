@@ -29,6 +29,7 @@
   --text-muted: #999;
   --accent: #4a9eff;
   --border: #333;
+  --bg-color: #0a0a0a;
 }
 
 .light {
@@ -37,6 +38,7 @@
   --text-muted: #666;
   --accent: #0066cc;
   --border: #ddd;
+  --bg-color: #fafafa;
 }
 
 * {
@@ -55,7 +57,7 @@ body {
 }
 
 .container {
-  max-width: 680px;
+  max-width: 740px;
   margin: 0 auto;
 }
 
@@ -80,24 +82,67 @@ body {
 }
 
 .theme-toggle {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text);
-  transition: opacity 0.2s;
+  color: #d4d4d4;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .theme-toggle:hover {
-  opacity: 0.7;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
-.theme-toggle svg {
-  width: 20px;
-  height: 20px;
+.light .theme-toggle {
+  color: #666;
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light .theme-toggle:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.moon-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.moon-body {
+  transition: all 0.4s ease;
+}
+
+.moon-crater {
+  transition: opacity 0.4s ease;
+}
+
+.moon-shadow {
+  transition: all 0.4s ease;
+}
+
+.moon-shadow {
+  transform: translateX(10px);
+}
+
+.light .moon-shadow {
+  transform: translateX(0px);
+}
+
+.light .moon-crater {
+  opacity: 0;
 }
 
 .story h1 {
@@ -177,22 +222,19 @@ body {
 <div class="container">
     <div class="story-header">
         <a href="../index.html" class="back-link">← Back</a>
-        <button class="theme-toggle" onclick="toggleTheme()">
-            <svg class="moon" viewBox="0 0 24 24">
-                <defs>
-                    <mask id="moon-mask">
-                        <rect width="24" height="24" fill="white"/>
-                        <circle class="mask" cx="14" cy="12" r="9" fill="black"/>
-                    </mask>
-                </defs>
-                <circle cx="12" cy="12" r="9" fill="currentColor" mask="url(#moon-mask)" />
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+            <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor"/>
+                <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3"/>
+                <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3"/>
+                <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)"/>
             </svg>
         </button>
     </div>
 
     <article class="story">
         <h1>Building syswaifu: When System Tools Meet Anime</h1>
-        <div class="date">December 2024</div>
+        <div class="date">January 10, 2026</div>
 
         <p>I've always been fascinated by terminal tools like <code>neofetch</code>. There's something satisfying about seeing your system information displayed in a clean, aesthetic way right in your terminal. But I wanted to add my own twist to it.</p>
 

@@ -13,6 +13,7 @@ body {
     background: #000;
     color: #9a9a9a;
     padding: 28px 16px;
+    --bg-color: #000;
 }
 
 .container {
@@ -29,26 +30,15 @@ body {
 }
 
 .profile-image {
-    width: 96px;
+    width: 76px;
     flex-shrink: 0;
 }
 
-/* RIGHT SIDE FLOAT */
-.header-right {
+/* HEADER CONTENT */
+.header-content {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    margin-left: auto;
-    text-align: right;
-    margin-right: 10%;
-}
-
-.name-row {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
     gap: 8px;
-    margin-bottom: 8px;
 }
 
 h1 {
@@ -60,31 +50,66 @@ h1 {
 
 /* THEME TOGGLE */
 .theme-toggle {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     display: flex;
     align-items: center;
-    color: #8a8a8a;
+    justify-content: center;
+    color: #d4d4d4;
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-left: auto;
 }
 
-.moon {
-    width: 18px;
-    height: 18px;
+.theme-toggle:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
-.moon .mask {
-    transition: transform 0.25s ease;
+.moon-icon {
+    width: 24px;
+    height: 24px;
 }
 
-.light .moon .mask {
-    transform: translateX(6px);
+.moon-body {
+    transition: all 0.4s ease;
+}
+
+.moon-crater {
+    transition: opacity 0.4s ease;
+}
+
+.moon-shadow {
+    transition: all 0.4s ease;
+}
+
+/* Dark mode: Full moon with craters visible */
+.moon-shadow {
+    transform: translateX(10px);
+}
+
+/* Light mode: Crescent moon (shadow covers moon, craters hidden) */
+.light .moon-shadow {
+    transform: translateX(0px);
+}
+
+.light .moon-crater {
+    opacity: 0;
+}
+
+.light body {
+    --bg-color: #fff;
 }
 
 /* NAV */
 nav {
     display: flex;
-    justify-content: flex-end;
     gap: 18px;
     font-size: 15px;
 }
@@ -153,6 +178,15 @@ h2 a:hover {
 
 .light .theme-toggle {
     color: #666;
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light .theme-toggle:hover {
+    color: #333;
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* MOBILE */
@@ -167,7 +201,7 @@ h2 a:hover {
     }
 
     .profile-image {
-        width: 80px;
+        width: 70px;
         
     }
 
