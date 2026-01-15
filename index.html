@@ -10,7 +10,7 @@
     <link rel="canonical" href="https://iamovi.github.io/">
     <meta name="description" content="get to know Ovi ren.">
     <meta name="author" content="Ovi ren">
-    <meta name="keywords" content="Ovi, ren, github, portfolio, Oviren, hasanovi, hasan, ovi">
+    <meta name="keywords" content="Ovi, ren, github, portfolio, Oviren, hobby programmer, developer, nodejs, python, open source">
     <meta name="robots" content="index, follow">
 
     <meta property="og:title" content="Ovi ren Info">
@@ -41,16 +41,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inconsolata&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
     <link rel="stylesheet" href="./assets/style.css">
-    <link rel="stylesheet" href="./assets/bar.css">
+    <link rel="stylesheet" href="https://iamovi.github.io/assets/bar.css">
 
 </head>
 
 <body>
 
     <div class="menu-overlay" onclick="toggleMenu()"></div>
+    
+<div class="avatar-lightbox" id="avatarLightbox" onclick="closeAvatarLightbox()">
+    <button class="lightbox-close" onclick="closeAvatarLightbox()" aria-label="Close">×</button>
+    <img src="./ov.webp" alt="Ovi ren" class="lightbox-image" onclick="event.stopPropagation()" />
+</div>
 
     <div class="slide-menu">
         <div class="menu-header">
@@ -109,7 +112,7 @@
             </div>
 
             <div class="menu-section">
-                <div class="menu-section-title">Find Me On</div>
+                <div class="menu-section-title">Find Me On (Other ways)</div>
                 <div style="display: flex; gap: 12px;">
                     <a href="https://instagram.com/hahahaovi" target="_blank" class="menu-link"
                         style="flex: 1; justify-content: center;">
@@ -154,7 +157,7 @@
 
         <div class="header">
             <div class="avatar-section">
-                <img class="profile-image" alt="ren preview" src="./ov.webp" />
+                <img class="profile-image" alt="ren preview" src="./ov.webp" onclick="openAvatarLightbox()" style="cursor: pointer;" />
                 <button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
                     <div class="menu-icon">
                         <div class="menu-line"></div>
@@ -218,42 +221,42 @@
                     <h2><a href="./stories/syswaifu.html">
                             syswaifu: A Cross-Platform Neofetch-style system info with waifu images in terminal.
                         </a></h2>
-                    <div class="date">First Commit on 2026-01-10</div>
+                    <div class="date">First Commit on 2026-01-10 (Project/ System Tools)</div>
                 </li>
 
                 <li>
                     <h2><a href="./stories/AnimeWaifu.html">
                             My first Anime related Apps/ Ecosystem.
                         </a></h2>
-                    <div class="date">First Commit on 2024-02-02</div>
+                    <div class="date">First Commit on 2024-02-02 (Project/ Anime)</div>
                 </li>
 
                 <li>
                     <h2><a href="./stories/ButtonWillReact.html">
                             Button Will React: A Collection of Playful Pranks.
                         </a></h2>
-                    <div class="date">First Commit on 2023-10-16</div>
+                    <div class="date">First Commit on 2023-10-16 (Project/ Pranks)</div>
                 </li>
 
                 <li>
                     <h2><a href="./stories/AniCss.html">
                             A CSS Library for Button and Text Animations & Effects, (AniCss).
                         </a></h2>
-                    <div class="date">First Commit on 2023-11-29</div>
+                    <div class="date">First Commit on 2023-11-29 (Project/ Library)</div>
                 </li>
 
                 <li>
                     <h2><a href="./stories/notAcursor.html">
                             A library for giving cursor cool looks in web pages..
                         </a></h2>
-                    <div class="date">First Commit on 2023-11-24</div>
+                    <div class="date">First Commit on 2023-11-24 (Project/ Library/ Cursor)</div>
                 </li>
 
                 <li>
                     <h2><a href="./stories/MyWebJourney.html">
                             I made my first website when I was in high school.
                         </a></h2>
-                    <div class="date">2023-08-23</div>
+                    <div class="date">2023-08-23 (Project/ Memories)</div>
                 </li>
             </ul>
         </div>

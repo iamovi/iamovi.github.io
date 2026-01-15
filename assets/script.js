@@ -170,4 +170,38 @@
       activeLink.classList.add('active');
     }
   };
+
+  // Avatar Lightbox Functions
+window.openAvatarLightbox = function() {
+  const lightbox = document.getElementById('avatarLightbox');
+  const body = document.body;
+  const html = document.documentElement;
+  
+  lightbox.classList.add('show');
+  
+  // Prevent body scroll
+  const scrollY = window.scrollY;
+  body.style.position = 'fixed';
+  body.style.top = `-${scrollY}px`;
+  body.style.width = '100%';
+  body.style.overflow = 'hidden';
+  html.style.overflow = 'hidden';
+};
+
+window.closeAvatarLightbox = function() {
+  const lightbox = document.getElementById('avatarLightbox');
+  const body = document.body;
+  const html = document.documentElement;
+  
+  lightbox.classList.remove('show');
+  
+  // Restore scroll position
+  const scrollY = body.style.top;
+  body.style.position = '';
+  body.style.top = '';
+  body.style.width = '';
+  body.style.overflow = '';
+  html.style.overflow = '';
+  window.scrollTo(0, parseInt(scrollY || '0') * -1);
+};
 })();
