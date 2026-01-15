@@ -1,216 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>init_ovi</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>init_ovi</title>
 
-<meta name="color-scheme" content="dark light">
-<link rel="canonical" href="https://iamovi.github.io/">
-<meta name="description" content="get to know Ovi ren.">
-<meta name="author" content="Ovi ren">
-<meta name="keywords" content="Ovi, ren, github, portfolio, Oviren, hasanovi, hasan, ovi">
-<meta name="robots" content="index, follow">
+    <meta name="color-scheme" content="dark light">
+    <link rel="canonical" href="https://iamovi.github.io/">
+    <meta name="description" content="get to know Ovi ren.">
+    <meta name="author" content="Ovi ren">
+    <meta name="keywords" content="Ovi, ren, github, portfolio, Oviren, hasanovi, hasan, ovi">
+    <meta name="robots" content="index, follow">
 
-<meta property="og:title" content="Ovi ren Info">
-<meta property="og:description" content="here you can connect to me, on any social platform.">
-<meta property="og:image" content="./ov.webp">
-<meta property="og:url" content="https://iamovi.github.io">
-<meta property="og:type" content="website">
+    <meta property="og:title" content="Ovi ren Info">
+    <meta property="og:description" content="here you can connect to me, on any social platform.">
+    <meta property="og:image" content="./ov.webp">
+    <meta property="og:url" content="https://iamovi.github.io">
+    <meta property="og:type" content="website">
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ovi ren">
-<meta name="twitter:description" content="here you can connect to me, on any social platform.">
-<meta name="twitter:image" content="./ov.webp">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ovi ren">
+    <meta name="twitter:description" content="here you can connect to me, on any social platform.">
+    <meta name="twitter:image" content="./ov.webp">
 
-<link rel="icon" href="./samurai-jack.png">
+    <link rel="icon" href="./samurai-jack.png">
 
-<script>
-(function () {
-  try {
-    const theme = localStorage.getItem("theme");
-    if (theme === "light") {
-      document.documentElement.classList.add("light");
-    }
-  } catch (e) {}
-})();
-</script>
+    <script>
+        (function () {
+            try {
+                const theme = localStorage.getItem("theme");
+                if (theme === "light") {
+                    document.documentElement.classList.add("light");
+                }
+            } catch (e) { }
+        })();
+    </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inconsolata&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="./assets/style.css">
-<link rel="stylesheet" href="./assets/bar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="./assets/style.css">
+    <link rel="stylesheet" href="./assets/bar.css">
 
 </head>
 
 <body>
 
-<div class="menu-overlay" onclick="toggleMenu()"></div>
+    <div class="menu-overlay" onclick="toggleMenu()"></div>
 
-<div class="slide-menu">
-    <div class="menu-header">
-        <div class="menu-title">init.Menu</div>
-        <button class="close-button" onclick="toggleMenu()">&times;</button>
-    </div>
-    
-    <div class="menu-content">
-        <div class="menu-section">
-            <div class="menu-section-title">Navigation</div>
-            <a href="#" class="menu-link" id="about-link" onclick="showSection('about'); toggleMenu(); return false;">
-                <span class="menu-link-text">About</span>
-            </a>
-            <a href="#" class="menu-link active" id="blog-link" onclick="showSection('blog'); toggleMenu(); return false;">
-                <span class="menu-link-text">Blog</span>
-            </a>
-        </div>
-        
-        <div class="menu-section">
-            <div class="menu-section-title">Music</div>
-            <button class="music-button" onclick="toggleMusic()">
-                <div class="music-info">
-                    <svg class="play-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 5v14l11-7z" fill="currentColor"/>
-                    </svg>
-                    <svg class="pause-icon" style="display: none;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" fill="currentColor"/>
-                    </svg>
-                    <span class="music-label">Listen to my fav song</span>
-                </div>
-            </button>
-        </div>
-        
-        <div class="menu-section">
-            <div class="menu-section-title">Appearance</div>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span class="theme-label">Toggle Theme</span>
-                <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor"/>
-                    <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3"/>
-                    <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3"/>
-                    <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-
-    <div class="header">
-        <div class="avatar-section">
-            <img
-                class="profile-image"
-                alt="ren preview"
-                src="./ov.webp"
-            />
-            <button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
-                <div class="menu-icon">
-                    <div class="menu-line"></div>
-                    <div class="menu-line"></div>
-                    <div class="menu-line"></div>
-                </div>
-            </button>
+    <div class="slide-menu">
+        <div class="menu-header">
+            <div class="menu-title">init.Menu</div>
+            <button class="close-button" onclick="toggleMenu()">&times;</button>
         </div>
 
-        <div class="header-content">
-            <h1>Ovi ren</h1>
-            <nav>
-                <a href="mailto:fornet.ovi@email.com">Email</a>
-                <a href="https://github.com/iamovi" target="_blank">GitHub</a>
-                <a href="https://x.com/hahahaovi" target="_blank">Twitter</a>
-                <a href="https://iamovi.itch.io" target="_blank">Itch.io</a>
-            </nav>
-        </div>
-    </div>
-
-    <!-- ABOUT SECTION -->
-    <div id="about-section" class="section">
-        <div class="about-content">
-            <p>Hey there! I'm <span class="highlight">Ovi ren</span>, a hobby programmer who loves building things and exploring the intersection of code and creativity.</p>
-            
-            <p> i started programming as a hobby when i was in high school then how it started...</p>
-            <img src="./assets/sword.jpg" alt="Sword!!!">
-
-            <h3>What I Do</h3>
-            <p>As a hobby programmer, I'm passionate about creating open-source projects that are both functional and fun. I'm mainly a <span class="highlight">Node.js developer</span>, diving deep into backend development, APIs, and full-stack applications. I also work extensively with <span class="highlight">Python</span> for various projects and love exploring other programming languages to expand my toolkit.</p>
-            
-            <p>From anime-themed applications to playful UI libraries, I like to add a touch of personality to everything I build. My work spans across backend development, frontend experiences, and experimenting with new technologies just for the joy of learning.</p>
-
-            <div class="skills-list">
-                <div class="skill-tag">Node.js</div>
-                <div class="skill-tag">Python</div>
-                <div class="skill-tag">JavaScript</div>
-                <div class="skill-tag">Git/Github</div>
-                <div class="skill-tag">Linux/Cli</div>
-                <div class="skill-tag">Open Source</div>
-                <div class="skill-tag">Language Explorer</div>
+        <div class="menu-content">
+            <div class="menu-section">
+                <div class="menu-section-title">Navigation</div>
+                <a href="#" class="menu-link" id="about-link"
+                    onclick="showSection('about'); toggleMenu(); return false;">
+                    <span class="menu-link-text">About</span>
+                </a>
+                <a href="#" class="menu-link active" id="blog-link"
+                    onclick="showSection('blog'); toggleMenu(); return false;">
+                    <span class="menu-link-text">Blog</span>
+                </a>
             </div>
 
-            <h3>Get in Touch</h3>
-            <p>I'm always open to collaborating on interesting projects or just chatting about code, anime, or whatever's on your mind. Feel free to reach out through any of the links above!</p>
+            <div class="menu-section">
+                <div class="menu-section-title">Music</div>
+                <button class="music-button" onclick="toggleMusic()">
+                    <div class="music-info">
+                        <svg class="play-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5v14l11-7z" fill="currentColor" />
+                        </svg>
+                        <svg class="pause-icon" style="display: none;" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" fill="currentColor" />
+                        </svg>
+                        <span class="music-label">Listen to my fav song</span>
+                    </div>
+                </button>
+                <div class="progress-bar" onclick="seekMusic(event)">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="music-timer" style="font-size: 13px; color: #666; margin-top: 8px; text-align: center;">0:00
+                    / 0:00</div>
+                <div class="song-title"
+                    style="font-size: 12px; color: #888; margin-top: 4px; text-align: center; font-style: italic;">Never
+                    Satisfied - Corpse</div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Appearance</div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-label">Toggle Theme</span>
+                    <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor" />
+                        <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3" />
+                        <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3" />
+                        <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Find Me On</div>
+                <div style="display: flex; gap: 12px;">
+                    <a href="https://instagram.com/hahahaovi" target="_blank" class="menu-link"
+                        style="flex: 1; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2" />
+                            <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" />
+                            <circle cx="18" cy="6" r="1" fill="currentColor" />
+                        </svg>
+                    </a>
+                    <a href="https://medium.com/@iamovi" target="_blank" class="menu-link"
+                        style="flex: 1; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z" />
+                        </svg>
+                    </a>
+                    <a href="https://t.me/ren_ontg" target="_blank" class="menu-link"
+                        style="flex: 1; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                        </svg>
+                    </a>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                    <a href="https://discord.gg/JY5CAuX8" target="_blank" class="menu-link"
+                        style="flex: 1; justify-content: center;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- BLOG SECTION -->
-    <div id="blog-section" class="section active">
-        <ul>
-            <li>
-                <h2><a href="./stories/syswaifu.html">
-                    syswaifu: A Cross-Platform Neofetch-style system info with waifu images in terminal.
-                </a></h2>
-                <div class="date">First Commit on 2026-01-10</div>
-            </li>
+    <div class="container">
 
-            <li>
-                <h2><a href="./stories/AnimeWaifu.html">
-                    My first Anime related Apps/ Ecosystem.
-                </a></h2>
-                <div class="date">First Commit on 2024-02-02</div>
-            </li>
+        <div class="header">
+            <div class="avatar-section">
+                <img class="profile-image" alt="ren preview" src="./ov.webp" />
+                <button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
+                    <div class="menu-icon">
+                        <div class="menu-line"></div>
+                        <div class="menu-line"></div>
+                        <div class="menu-line"></div>
+                    </div>
+                </button>
+            </div>
 
-            <li>
-                <h2><a href="./stories/ButtonWillReact.html">
-                    Button Will React: A Collection of Playful Pranks.
-                </a></h2>
-                <div class="date">First Commit on 2023-10-16</div>
-            </li>
+            <div class="header-content">
+                <h1>Ovi ren</h1>
+                <nav>
+                    <a href="mailto:fornet.ovi@email.com">Email</a>
+                    <a href="https://github.com/iamovi" target="_blank">GitHub</a>
+                    <a href="https://x.com/hahahaovi" target="_blank">Twitter</a>
+                    <a href="https://iamovi.itch.io" target="_blank">Itch.io</a>
+                </nav>
+            </div>
+        </div>
 
-            <li>
-                <h2><a href="./stories/AniCss.html">
-                    A CSS Library for Button and Text Animations & Effects, (AniCss).
-                </a></h2>
-                <div class="date">First Commit on 2023-11-29</div>
-            </li>
+        <!-- ABOUT SECTION -->
+        <div id="about-section" class="section">
+            <div class="about-content">
+                <p>Hey there! I'm <span class="highlight">Ovi ren</span>, a hobby programmer who loves building things
+                    and exploring the intersection of code and creativity.</p>
 
-            <li>
-                <h2><a href="./stories/notAcursor.html">
-                    A library for giving cursor cool looks in web pages..
-                </a></h2>
-                <div class="date">First Commit on 2023-11-24</div>
-            </li>
+                <p> i started programming as a hobby when i was in high school then how it started...</p>
+                <img src="./assets/sword.jpg" alt="Sword!!!">
 
-            <li>
-                <h2><a href="./stories/MyWebJourney.html">
-                    I made my first website when I was in high school.
-                </a></h2>
-                <div class="date">2023-08-23</div>
-            </li>
-        </ul>
-    </div>
+                <h3>What I Do</h3>
+                <p>As a hobby programmer, I'm passionate about creating open-source projects that are both functional
+                    and fun. I'm mainly a <span class="highlight">Node.js developer</span>, diving deep into backend
+                    development, APIs, and full-stack applications. I also work extensively with <span
+                        class="highlight">Python</span> for various projects and love exploring other programming
+                    languages to expand my toolkit.</p>
 
-<div class="closing">
-    <p style="font-size: 0.85rem;">Created by Ovi ren</p>
-    <p style="font-size: 0.85rem;">
-        <a href="mailto:fornet.ovi@gmail.com">
-            fornet.ovi@gmail.com
-        </a>
-    </p>
-</div>
+                <p>From anime-themed applications to playful UI libraries, I like to add a touch of personality to
+                    everything I build. My work spans across backend development, frontend experiences, and
+                    experimenting with new technologies just for the joy of learning.</p>
+
+                <div class="skills-list">
+                    <div class="skill-tag">Node.js</div>
+                    <div class="skill-tag">Python</div>
+                    <div class="skill-tag">JavaScript</div>
+                    <div class="skill-tag">Git/Github</div>
+                    <div class="skill-tag">Linux/Cli</div>
+                    <div class="skill-tag">Open Source</div>
+                    <div class="skill-tag">Language Explorer</div>
+                </div>
+
+                <h3>Get in Touch</h3>
+                <p>I'm always open to collaborating on interesting projects or just chatting about code, anime, or
+                    whatever's on your mind. Feel free to reach out through any of the links above!</p>
+            </div>
+        </div>
+
+        <!-- BLOG SECTION -->
+        <div id="blog-section" class="section active">
+            <ul>
+                <li>
+                    <h2><a href="./stories/syswaifu.html">
+                            syswaifu: A Cross-Platform Neofetch-style system info with waifu images in terminal.
+                        </a></h2>
+                    <div class="date">First Commit on 2026-01-10</div>
+                </li>
+
+                <li>
+                    <h2><a href="./stories/AnimeWaifu.html">
+                            My first Anime related Apps/ Ecosystem.
+                        </a></h2>
+                    <div class="date">First Commit on 2024-02-02</div>
+                </li>
+
+                <li>
+                    <h2><a href="./stories/ButtonWillReact.html">
+                            Button Will React: A Collection of Playful Pranks.
+                        </a></h2>
+                    <div class="date">First Commit on 2023-10-16</div>
+                </li>
+
+                <li>
+                    <h2><a href="./stories/AniCss.html">
+                            A CSS Library for Button and Text Animations & Effects, (AniCss).
+                        </a></h2>
+                    <div class="date">First Commit on 2023-11-29</div>
+                </li>
+
+                <li>
+                    <h2><a href="./stories/notAcursor.html">
+                            A library for giving cursor cool looks in web pages..
+                        </a></h2>
+                    <div class="date">First Commit on 2023-11-24</div>
+                </li>
+
+                <li>
+                    <h2><a href="./stories/MyWebJourney.html">
+                            I made my first website when I was in high school.
+                        </a></h2>
+                    <div class="date">2023-08-23</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="closing">
+            <p style="font-size: 0.85rem;">Created by Ovi ren,</p>
+            <p style="font-size: 0.85rem;">i'm a writer, i write scripts.</p>
+            <br>
+            <p style="font-size: 0.85rem;">
+                <a href="mailto:fornet.ovi@gmail.com">
+                    fornet.ovi@gmail.com
+                </a>
+            </p>
+        </div>
 
 
-<script src="./assets/script.js"></script>
+        <script src="./assets/script.js"></script>
 
 </body>
+
 </html>

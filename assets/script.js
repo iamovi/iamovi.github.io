@@ -4,16 +4,81 @@
   // Music Player
   let audio = null;
   let isPlaying = false;
+  let timerInterval = null;
   
   window.initMusicPlayer = function() {
-    audio = new Audio('https://ik.imagekit.io/iamovi/portfo/highanddry.mp3?updatedAt=1705702443879');
+    audio = new Audio('https://ik.imagekit.io/iamovi/init_ovi/NEVER_SATISFIED.mp3');
     audio.loop = true;
+    audio.preload = 'metadata';
     
     audio.addEventListener('ended', function() {
       isPlaying = false;
       updatePlayButton();
+      stopTimer();
+    });
+    
+    audio.addEventListener('loadedmetadata', function() {
+      updateTimer();
+    });
+    
+    audio.addEventListener('timeupdate', function() {
+      updateTimer();
     });
   };
+  
+  // Initialize audio on page load to preload metadata
+  document.addEventListener('DOMContentLoaded', function() {
+    initMusicPlayer();
+  });
+  
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  function updateTimer() {
+    const timerElement = document.querySelector('.music-timer');
+    const progressBar = document.querySelector('.progress-fill');
+    
+    if (timerElement && audio) {
+      const currentTime = formatTime(audio.currentTime);
+      const duration = formatTime(audio.duration);
+      timerElement.textContent = `${currentTime} / ${duration}`;
+      
+      // Update progress bar
+      if (progressBar && audio.duration) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = `${progress}%`;
+      }
+    }
+  }
+  
+  window.seekMusic = function(e) {
+    if (!audio || !audio.duration) return;
+    
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const percentage = clickX / width;
+    
+    audio.currentTime = percentage * audio.duration;
+    updateTimer();
+  };
+  
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(updateTimer, 100);
+  }
+  
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
   
   window.toggleMusic = function() {
     if (!audio) {
@@ -23,9 +88,11 @@
     if (isPlaying) {
       audio.pause();
       isPlaying = false;
+      stopTimer();
     } else {
       audio.play();
       isPlaying = true;
+      startTimer();
     }
     
     updatePlayButton();
