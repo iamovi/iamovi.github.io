@@ -1,0 +1,194 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inconsolata", monospace;
+}
+
+html, body {
+    overflow-x: hidden;
+}
+
+body {
+    background: #000;
+    color: #9a9a9a;
+    padding: 28px 16px;
+}
+
+.container {
+    max-width: 740px;
+    margin: 0 auto;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 56px;
+}
+
+.profile-image {
+    width: 96px;
+    flex-shrink: 0;
+}
+
+/* RIGHT SIDE FLOAT */
+.header-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: auto;
+    text-align: right;
+    margin-right: 10%;
+}
+
+.name-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+h1 {
+    font-size: 35px;
+    font-weight: 700;
+    color: orange;
+    line-height: 1.1;
+}
+
+/* THEME TOGGLE */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #8a8a8a;
+}
+
+.moon {
+    width: 18px;
+    height: 18px;
+}
+
+.moon .mask {
+    transition: transform 0.25s ease;
+}
+
+.light .moon .mask {
+    transform: translateX(6px);
+}
+
+/* NAV */
+nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    font-size: 15px;
+}
+
+nav a {
+    color: #9a9a9a;
+    text-decoration: none;
+}
+
+nav a:hover {
+    color: #fff;
+}
+
+/* POSTS */
+ul {
+    list-style: none;
+}
+
+li {
+    margin-bottom: 48px;
+}
+
+ul li:first-child {
+    margin-top: 150px;
+}
+
+h2 a {
+    font-size: 26px;
+    font-weight: 700;
+    color: #6aa9ff;
+    text-decoration: none;
+    line-height: 1.3;
+}
+
+h2 a:hover {
+    text-decoration: underline;
+}
+
+.date {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #8a8a8a;
+}
+
+/* LIGHT MODE */
+.light body {
+    background: #fff;
+    color: #444;
+}
+
+.light h1 {
+    color: orange;
+}
+
+.light nav a {
+    color: #555;
+}
+
+.light h2 a {
+    color: #0066cc;
+}
+
+.light .date {
+    color: #666;
+}
+
+.light .theme-toggle {
+    color: #666;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    body {
+        padding: 22px 14px;
+    }
+
+    .header {
+        gap: 16px;
+        margin-bottom: 44px;
+    }
+
+    .profile-image {
+        width: 80px;
+        
+    }
+
+    h1 {
+        font-size: 25px;
+    }
+
+    nav {
+        font-size: 13px;
+        gap: 14px;
+    }
+
+    li {
+        margin-bottom: 36px;
+    }
+
+    h2 a {
+        font-size: 22px;
+    }
+
+    .date {
+        font-size: 13px;
+    }
+}
