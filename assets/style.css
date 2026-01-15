@@ -5,7 +5,8 @@
     font-family: "Inconsolata", monospace;
 }
 
-html, body {
+html,
+body {
     overflow-x: hidden;
 }
 
@@ -81,8 +82,8 @@ h1 {
 }
 
 .lightbox-image {
-    max-width: 80%;
-    max-height: 80vh;
+    max-width: 85%;
+    max-height: 85vh;
     object-fit: contain;
     border-radius: 3px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -257,7 +258,8 @@ h1 {
     color: #888;
 }
 
-.play-icon, .pause-icon {
+.play-icon,
+.pause-icon {
     width: 18px;
     height: 18px;
     flex-shrink: 0;
@@ -649,19 +651,23 @@ h2 a:hover {
 }
 
 .closing {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  text-align: start;
-  font-size: 1.1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    text-align: start;
+    font-size: 1.1rem;
 }
 
 .closing a {
-  text-decoration: underline;
-  color: inherit;
+    text-decoration: underline;
+    color: inherit;
 }
 
 /* MOBILE */
 @media (max-width: 600px) {
+    * {
+        cursor: default;
+    }
+
     body {
         padding: 22px 14px;
     }

@@ -1,0 +1,43 @@
+:root {
+    --scroll-hue: 340;
+}
+
+/* WebKit scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        hsl(calc(var(--scroll-hue) + 0), 85%, 65%),
+        hsl(calc(var(--scroll-hue) + 30), 80%, 60%),
+        hsl(calc(var(--scroll-hue) + 60), 75%, 55%),
+        hsl(calc(var(--scroll-hue) + 90), 70%, 50%),
+        hsl(calc(var(--scroll-hue) + 120), 75%, 45%)
+    );
+    border-radius: 8px;
+    border: 2px solid rgba(0, 0, 0, 0.35);
+    transition: box-shadow 0.25s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    box-shadow: 0 0 18px hsla(var(--scroll-hue), 90%, 60%, 0.5);
+}
+
+::-webkit-scrollbar-thumb:active {
+    box-shadow: 0 0 25px hsla(var(--scroll-hue), 100%, 65%, 0.7);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color:
+        hsl(var(--scroll-hue), 75%, 55%)
+        rgba(255, 255, 255, 0.03);
+}
