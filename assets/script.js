@@ -1,6 +1,50 @@
 (function () {
   const THEME_KEY = "theme";
   
+  // Music Player
+  let audio = null;
+  let isPlaying = false;
+  
+  window.initMusicPlayer = function() {
+    // Replace 'your-song.mp3' with the path to your audio file
+    audio = new Audio('https://ik.imagekit.io/iamovi/portfo/highanddry.mp3?updatedAt=1705702443879');
+    audio.loop = true; // Enable looping
+    
+    audio.addEventListener('ended', function() {
+      isPlaying = false;
+      updatePlayButton();
+    });
+  };
+  
+  window.toggleMusic = function() {
+    if (!audio) {
+      initMusicPlayer();
+    }
+    
+    if (isPlaying) {
+      audio.pause();
+      isPlaying = false;
+    } else {
+      audio.play();
+      isPlaying = true;
+    }
+    
+    updatePlayButton();
+  };
+  
+  function updatePlayButton() {
+    const playIcon = document.querySelector('.play-icon');
+    const pauseIcon = document.querySelector('.pause-icon');
+    
+    if (isPlaying) {
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    } else {
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+  }
+  
   window.toggleTheme = function () {
     const isLight = document.documentElement.classList.toggle("light");
     try {
