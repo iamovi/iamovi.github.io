@@ -7,34 +7,24 @@
 
 <meta name="color-scheme" content="dark light">
 <link rel="canonical" href="https://iamovi.github.io/">
-<!-- Description for search engines -->
 <meta name="description" content="get to know Ovi ren.">
-  <!-- Author -->
 <meta name="author" content="Ovi ren">
-
-<!-- Keywords (not very important for SEO today, but still valid) -->
 <meta name="keywords" content="Ovi, ren, github, portfolio, Oviren, hasanovi, hasan, ovi">
-
-  <!-- Robots (controls search engine indexing) -->
 <meta name="robots" content="index, follow">
 
-  <!-- Open Graph (for social media previews) -->
-   <meta property="og:title" content="Ovi ren Info">
+<meta property="og:title" content="Ovi ren Info">
 <meta property="og:description" content="here you can connect to me, on any social platform.">
 <meta property="og:image" content="./ov.webp">
 <meta property="og:url" content="https://iamovi.github.io">
 <meta property="og:type" content="website">
 
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ovi ren">
 <meta name="twitter:description" content="here you can connect to me, on any social platform.">
 <meta name="twitter:image" content="./ov.webp">
 
-<!-- Favicon -->
 <link rel="icon" href="./samurai-jack.png">
 
-<!-- FOUC-FREE THEME INIT -->
 <script>
 (function () {
   try {
@@ -49,10 +39,46 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inconsolata&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="./assets/style.css">
+
 </head>
 
 <body>
+
+<div class="menu-overlay" onclick="toggleMenu()"></div>
+
+<div class="slide-menu">
+    <div class="menu-header">
+        <div class="menu-title">init.Menu</div>
+        <button class="close-button" onclick="toggleMenu()">&times;</button>
+    </div>
+    
+    <div class="menu-content">
+        <div class="menu-section">
+            <div class="menu-section-title">Navigation</div>
+            <a href="#" class="menu-link" id="about-link" onclick="showSection('about'); toggleMenu(); return false;">
+                <span class="menu-link-text">About</span>
+            </a>
+            <a href="#" class="menu-link active" id="blog-link" onclick="showSection('blog'); toggleMenu(); return false;">
+                <span class="menu-link-text">Blog</span>
+            </a>
+        </div>
+        
+        <div class="menu-section">
+            <div class="menu-section-title">Appearance</div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="theme-label">Toggle Theme</span>
+                <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor"/>
+                    <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3"/>
+                    <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3"/>
+                    <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
 
 <div class="container">
 
@@ -63,13 +89,12 @@
                 alt="ren preview"
                 src="./ov.webp"
             />
-            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-                <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor"/>
-                    <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3"/>
-                    <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3"/>
-                    <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)"/>
-                </svg>
+            <button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
+                <div class="menu-icon">
+                    <div class="menu-line"></div>
+                    <div class="menu-line"></div>
+                    <div class="menu-line"></div>
+                </div>
             </button>
         </div>
 
@@ -84,61 +109,84 @@
         </div>
     </div>
 
-    <ul>
-                <li>
-            <h2><a href="./stories/syswaifu.html">
-                syswaifu: A Cross-Platform Neofetch-style system info with waifu images in terminal.
-            </a></h2>
-            <div class="date">First Commit on 2026-01-10</div>
-        </li>
+    <!-- ABOUT SECTION -->
+    <div id="about-section" class="section">
+        <div class="about-content">
+            <p>Hey there! I'm <span class="highlight">Ovi ren</span>, a hobby programmer who loves building things and exploring the intersection of code and creativity.</p>
+            
+            <p> i started programming as a hobby when i was in high school then how it started...</p>
+            <img src="./assets/sword.jpg" alt="Sword!!!">
 
-        <li>
-            <h2><a href="./stories/AnimeWaifu.html">
-                My first Anime related Apps/ Ecosystem.
-            </a></h2>
-            <div class="date">First Commit on 2024-02-02</div>
-        </li>
+            <h3>What I Do</h3>
+            <p>As a hobby programmer, I'm passionate about creating open-source projects that are both functional and fun. I'm mainly a <span class="highlight">Node.js developer</span>, diving deep into backend development, APIs, and full-stack applications. I also work extensively with <span class="highlight">Python</span> for various projects and love exploring other programming languages to expand my toolkit.</p>
+            
+            <p>From anime-themed applications to playful UI libraries, I like to add a touch of personality to everything I build. My work spans across backend development, frontend experiences, and experimenting with new technologies just for the joy of learning.</p>
 
-        <li>
-            <h2><a href="./stories/ButtonWillReact.html">
-                Button Will React: A Collection of Playful Pranks.
-            </a></h2>
-            <div class="date">First Commit on 2023-10-16</div>
-        </li>
+            <div class="skills-list">
+                <div class="skill-tag">Node.js</div>
+                <div class="skill-tag">Python</div>
+                <div class="skill-tag">JavaScript</div>
+                <div class="skill-tag">Git/Github</div>
+                <div class="skill-tag">Linux/Cli</div>
+                <div class="skill-tag">Open Source</div>
+                <div class="skill-tag">Language Explorer</div>
+            </div>
 
-        <li>
-            <h2><a href="./stories/AniCss.html">
-                A CSS Library for Button and Text Animations & Effects, (AniCss).
-            </a></h2>
-            <div class="date">First Commit on 2023-11-29</div>
-        </li>
+            <h3>Get in Touch</h3>
+            <p>I'm always open to collaborating on interesting projects or just chatting about code, anime, or whatever's on your mind. Feel free to reach out through any of the links above!</p>
+        </div>
+    </div>
 
-        <li>
-            <h2><a href="./stories/notAcursor.html">
-                A library for giving cursor cool looks in web pages..
-            </a></h2>
-            <div class="date">First Commit on 2023-11-24</div>
-        </li>
+    <!-- BLOG SECTION -->
+    <div id="blog-section" class="section active">
+        <ul>
+            <li>
+                <h2><a href="./stories/syswaifu.html">
+                    syswaifu: A Cross-Platform Neofetch-style system info with waifu images in terminal.
+                </a></h2>
+                <div class="date">First Commit on 2026-01-10</div>
+            </li>
 
-        <li>
-            <h2><a href="./stories/MyWebJourney.html">
-                I made my first website when I was in high school.
-            </a></h2>
-            <div class="date">2023-08-23</div>
-        </li>
-    </ul>
+            <li>
+                <h2><a href="./stories/AnimeWaifu.html">
+                    My first Anime related Apps/ Ecosystem.
+                </a></h2>
+                <div class="date">First Commit on 2024-02-02</div>
+            </li>
+
+            <li>
+                <h2><a href="./stories/ButtonWillReact.html">
+                    Button Will React: A Collection of Playful Pranks.
+                </a></h2>
+                <div class="date">First Commit on 2023-10-16</div>
+            </li>
+
+            <li>
+                <h2><a href="./stories/AniCss.html">
+                    A CSS Library for Button and Text Animations & Effects, (AniCss).
+                </a></h2>
+                <div class="date">First Commit on 2023-11-29</div>
+            </li>
+
+            <li>
+                <h2><a href="./stories/notAcursor.html">
+                    A library for giving cursor cool looks in web pages..
+                </a></h2>
+                <div class="date">First Commit on 2023-11-24</div>
+            </li>
+
+            <li>
+                <h2><a href="./stories/MyWebJourney.html">
+                    I made my first website when I was in high school.
+                </a></h2>
+                <div class="date">2023-08-23</div>
+            </li>
+        </ul>
+    </div>
 
 </div>
 
-<script>
-(function () {
-  const THEME_KEY = "theme";
-  window.toggleTheme = function () {
-    const isLight = document.documentElement.classList.toggle("light");
-    localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
-  };
-})();
-</script>
+<script src="./assets/script.js"></script>
 
 </body>
 </html>
