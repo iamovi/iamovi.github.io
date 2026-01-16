@@ -120,7 +120,6 @@ h1 {
 .lightbox-close:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
-    /* transform: rotate(90deg); */
 }
 
 /* MENU BUTTON */
@@ -228,7 +227,6 @@ h1 {
     overflow: hidden;
 }
 
-
 .progress-fill {
     height: 100%;
     background: orange;
@@ -269,7 +267,7 @@ h1 {
     font-size: 15px;
 }
 
-/* SLIDE MENU */
+/* SLIDE MENU - OPTIMIZED FOR MOBILE */
 .slide-menu {
     position: fixed;
     top: 0;
@@ -281,15 +279,17 @@ h1 {
     -webkit-backdrop-filter: blur(20px);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     padding: 24px;
-    transition: right 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(0);
     z-index: 1000;
     display: flex;
     flex-direction: column;
     gap: 24px;
+    will-change: transform;
 }
 
 .slide-menu.open {
-    right: 0;
+    transform: translateX(-280px);
 }
 
 .menu-header {
@@ -426,7 +426,7 @@ h1 {
     --bg-color: #fff;
 }
 
-/* OVERLAY */
+/* OVERLAY - OPTIMIZED */
 .menu-overlay {
     position: fixed;
     top: 0;
@@ -436,8 +436,9 @@ h1 {
     background: rgba(0, 0, 0, 0.5);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 999;
+    will-change: opacity;
 }
 
 .menu-overlay.show {
@@ -662,7 +663,7 @@ h2 a:hover {
     color: inherit;
 }
 
-/* MOBILE */
+/* MOBILE - PERFORMANCE OPTIMIZED */
 @media (max-width: 600px) {
     * {
         cursor: default;
@@ -715,8 +716,21 @@ h2 a:hover {
         max-width: 90%;
     }
 
+    /* Remove backdrop-filter on mobile for better performance */
     .slide-menu {
         width: 100%;
         right: -100%;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgb(20, 20, 20);
+    }
+    
+    .slide-menu.open {
+        transform: translateX(-100%);
+    }
+    
+    .light .slide-menu {
+        background: rgb(255, 255, 255);
+        border-left: 1px solid rgba(0, 0, 0, 0.1);
     }
 }
