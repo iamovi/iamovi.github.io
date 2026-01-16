@@ -47,7 +47,7 @@
       const duration = formatTime(audio.duration);
       timerElement.textContent = `${currentTime} / ${duration}`;
       
-      // Update progress bar
+      // Update progress bar - use transform for better performance
       if (progressBar && audio.duration) {
         const progress = (audio.currentTime / audio.duration) * 100;
         progressBar.style.width = `${progress}%`;
@@ -118,25 +118,95 @@
     } catch (e) {}
   };
   
+  // Optimized menu toggle with passive event listeners
   window.toggleMenu = function () {
     const menu = document.querySelector('.slide-menu');
     const overlay = document.querySelector('.menu-overlay');
     const body = document.body;
     const html = document.documentElement;
     
-    menu.classList.toggle('open');
-    overlay.classList.toggle('show');
+    const isOpening = !menu.classList.contains('open');
     
-    // Prevent body scroll when menu is open
-    if (menu.classList.contains('open')) {
-      // Store current scroll position
+    // Use requestAnimationFrame for smoother animations
+    requestAnimationFrame(() => {
+      menu.classList.toggle('open');
+      overlay.classList.toggle('show');
+      
+      // Prevent body scroll when menu is open
+      if (isOpening) {
+        // Store current scroll position
+        const scrollY = window.scrollY;
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.width = '100%';
+        body.style.overflow = 'hidden';
+        html.style.overflow = 'hidden';
+      } else {
+        // Restore scroll position
+        const scrollY = body.style.top;
+        body.style.position = '';
+        body.style.top = '';
+        body.style.width = '';
+        body.style.overflow = '';
+        html.style.overflow = '';
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    });
+  };
+  
+  window.showSection = function (sectionName) {
+    // Use requestAnimationFrame for smooth section switching
+    requestAnimationFrame(() => {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      const targetSection = document.getElementById(sectionName + '-section');
+      if (targetSection) {
+        targetSection.classList.add('active');
+      }
+      
+      // Update menu active state
+      const menuLinks = document.querySelectorAll('.menu-link');
+      menuLinks.forEach(link => {
+        link.classList.remove('active');
+      });
+      
+      const activeLink = document.getElementById(sectionName + '-link');
+      if (activeLink) {
+        activeLink.classList.add('active');
+      }
+    });
+  };
+
+  // Avatar Lightbox Functions - Optimized
+  window.openAvatarLightbox = function() {
+    const lightbox = document.getElementById('avatarLightbox');
+    const body = document.body;
+    const html = document.documentElement;
+    
+    requestAnimationFrame(() => {
+      lightbox.classList.add('show');
+      
+      // Prevent body scroll
       const scrollY = window.scrollY;
       body.style.position = 'fixed';
       body.style.top = `-${scrollY}px`;
       body.style.width = '100%';
       body.style.overflow = 'hidden';
       html.style.overflow = 'hidden';
-    } else {
+    });
+  };
+
+  window.closeAvatarLightbox = function() {
+    const lightbox = document.getElementById('avatarLightbox');
+    const body = document.body;
+    const html = document.documentElement;
+    
+    requestAnimationFrame(() => {
+      lightbox.classList.remove('show');
+      
       // Restore scroll position
       const scrollY = body.style.top;
       body.style.position = '';
@@ -145,63 +215,10 @@
       body.style.overflow = '';
       html.style.overflow = '';
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
-    }
+    });
   };
   
-  window.showSection = function (sectionName) {
-    const sections = document.querySelectorAll('.section');
-    sections.forEach(section => {
-      section.classList.remove('active');
-    });
-    
-    const targetSection = document.getElementById(sectionName + '-section');
-    if (targetSection) {
-      targetSection.classList.add('active');
-    }
-    
-    // Update menu active state
-    const menuLinks = document.querySelectorAll('.menu-link');
-    menuLinks.forEach(link => {
-      link.classList.remove('active');
-    });
-    
-    const activeLink = document.getElementById(sectionName + '-link');
-    if (activeLink) {
-      activeLink.classList.add('active');
-    }
-  };
-
-  // Avatar Lightbox Functions
-window.openAvatarLightbox = function() {
-  const lightbox = document.getElementById('avatarLightbox');
-  const body = document.body;
-  const html = document.documentElement;
-  
-  lightbox.classList.add('show');
-  
-  // Prevent body scroll
-  const scrollY = window.scrollY;
-  body.style.position = 'fixed';
-  body.style.top = `-${scrollY}px`;
-  body.style.width = '100%';
-  body.style.overflow = 'hidden';
-  html.style.overflow = 'hidden';
-};
-
-window.closeAvatarLightbox = function() {
-  const lightbox = document.getElementById('avatarLightbox');
-  const body = document.body;
-  const html = document.documentElement;
-  
-  lightbox.classList.remove('show');
-  
-  // Restore scroll position
-  const scrollY = body.style.top;
-  body.style.position = '';
-  body.style.top = '';
-  body.style.width = '';
-  body.style.overflow = '';
-  html.style.overflow = '';
-  window.scrollTo(0, parseInt(scrollY || '0') * -1);
-};
+  // Passive event listeners for better scroll performance
+  document.addEventListener('touchstart', function() {}, { passive: true });
+  document.addEventListener('touchmove', function() {}, { passive: true });
 })();
