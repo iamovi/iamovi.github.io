@@ -701,17 +701,17 @@ h2 a:hover {
     * {
         cursor: default;
         /* Remove tap highlight on mobile */
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        user-select: none;
+  /*       -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none; */
     }
     
     /* Allow text selection for content */
-    p, h1, h2, h3, .about-content, .date, .menu-link-text {
-        -webkit-user-select: text;
-        user-select: text;
-    }
+   /*  p, h1, h2, h3, .about-content, .date, .menu-link-text {
+       -webkit-user-select: text;
+       user-select: text;
+   } */
 
     body {
         padding: 22px 14px;
