@@ -44,8 +44,11 @@
     <link rel="stylesheet" href="./assets/style.css">
     
 <!-- init.Ovi Custom Scrollbar Implementation -->
-<link rel="stylesheet" href="https://iamovi.github.io/bar/bar.css">
-<script src="https://iamovi.github.io/bar/bar.js"></script>
+
+<link rel="stylesheet" href="https://iamovi.github.io/assets/bar.css">
+
+<!-- <link rel="stylesheet" href="https://iamovi.github.io/bar/bar.css">
+<script src="https://iamovi.github.io/bar/bar.js"></script> -->
 
 </head>
 
@@ -160,24 +163,30 @@
 
         <div class="header">
             <div class="avatar-section">
-                <img class="profile-image" alt="plants preview" src="./assets/plants.png" onclick="openAvatarLightbox()" style="cursor: pointer;" />
-                <button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
-                    <div class="menu-icon">
-                        <div class="menu-line"></div>
-                        <div class="menu-line"></div>
-                        <div class="menu-line"></div>
-                    </div>
-                </button>
-            </div>
-
-            <div class="header-content">
+                <div>
+                    <img class="profile-image" alt="plants preview" src="./assets/plants.png" onclick="openAvatarLightbox()" />
+                    <!-- Menu button next to avatar -->
+                    <button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
+                        <div class="menu-icon">
+                            <div class="menu-line"></div>
+                            <div class="menu-line"></div>
+                            <div class="menu-line"></div>
+                        </div>
+                    </button>
+                </div>
+                <!-- Name below avatar -->
                 <h1>Ovi ren</h1>
+                <!-- Nav links below name -->
                 <nav>
                     <a href="mailto:fornet.ovi@email.com">Email</a>
                     <a href="https://github.com/iamovi" target="_blank">GitHub</a>
                     <a href="https://x.com/hahahaovi" target="_blank">Twitter</a>
                     <a href="https://iamovi.itch.io" target="_blank">Itch.io</a>
                 </nav>
+            </div>
+
+            <div class="header-content">
+                <!-- Everything moved to avatar-section, this is now hidden -->
             </div>
         </div>
 
@@ -265,8 +274,8 @@
         </div>
 
         <div class="closing">
-            <p style="font-size: 0.85rem;">Wants to use this scroll bar in your webpage? <a href="./bar.html">Click here</a></p>
-            <br>
+<!--             <p style="font-size: 0.85rem;">Wants to use this scroll bar in your webpage? <a href="./bar.html">Click here</a></p>
+<br> -->
             <p style="font-size: 0.85rem;">Created by Ovi ren,</p>
             <p style="font-size: 0.85rem;">i'm a writer, i write scripts.</p>
             <br>
