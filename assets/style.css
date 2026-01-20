@@ -38,7 +38,7 @@ body {
 }
 
 /* Avatar and menu button on same row */
-.avatar-section > div:first-child {
+.avatar-section>div:first-child {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -701,14 +701,14 @@ h2 a:hover {
     * {
         cursor: default;
         /* Remove tap highlight on mobile */
-  /*       -webkit-tap-highlight-color: transparent;
+        /*       -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none; */
     }
-    
+
     /* Allow text selection for content */
-   /*  p, h1, h2, h3, .about-content, .date, .menu-link-text {
+    /*  p, h1, h2, h3, .about-content, .date, .menu-link-text {
        -webkit-user-select: text;
        user-select: text;
    } */
@@ -769,12 +769,12 @@ h2 a:hover {
         /* Solid background on mobile - no transparency overhead */
         background: rgb(20, 20, 20);
     }
-    
+
     .slide-menu.open {
         transform: translate3d(0, 0, 0);
         -webkit-transform: translate3d(0, 0, 0);
     }
-    
+
     .light .slide-menu {
         background: rgb(255, 255, 255);
         border-left: 1px solid rgba(0, 0, 0, 0.1);
