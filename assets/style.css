@@ -981,6 +981,37 @@ li::after {
     color: #000;
 }
 
+/* LIGHT MODE: JOKE / WAIFU SECTION */
+.light .waifu-panel {
+    background: #f5f5f5;
+    border-color: #ddd;
+    box-shadow: 4px 4px 0px #d0d0d0;
+}
+
+.light .waifu-text {
+    color: #888;
+}
+
+.light .joke-skeleton {
+    background: linear-gradient(90deg, #e0e0e0 25%, #ececec 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+}
+
+.light .joke-setup {
+    color: #333;
+}
+
+.light .waifu-reload {
+    border-color: #ccc;
+    box-shadow: 2px 2px 0 #ccc;
+    color: darkorange;
+}
+
+.light .waifu-reload:hover {
+    border-color: darkorange;
+    background: rgba(255,140,0,0.06);
+}
+
 /* CLAUDE SAID SECTION */
 .claude-said {
     display: flex;
