@@ -304,34 +304,86 @@
   const waifuSection = document.getElementById('waifu-section');
   if (waifuSection) waifuObserver.observe(waifuSection);
 
-  // PROJECTS — loaded from projects.json
+  // CLICK SOUND — tiny terminal beep via Web Audio API
+  function playClick() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.08);
+    } catch(e) {}
+  }
+
+  // Attach click sound to pagination and menu buttons
+  document.addEventListener('click', function(e) {
+    if (
+      e.target.closest('.page-btn') ||
+      e.target.closest('.menu-link') ||
+      e.target.closest('.menu-button') ||
+      e.target.closest('.waifu-reload')
+    ) {
+      playClick();
+    }
+  });
+
+  // PROJECTS variables — declared early so search can use them
   const PER_PAGE = 3;
   let currentPage = 1;
   let totalPages = 1;
   let projects = [];
+  let searchQuery = '';
 
+  // SEARCH
+  window.filterProjects = function(query) {
+    searchQuery = query.toLowerCase().trim();
+    currentPage = 1;
+    renderProjects(0);
+  };
+
+  function getFilteredProjects() {
+    if (!searchQuery) return projects;
+    return projects.filter(p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.description.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // PROJECTS — loaded from projects.json
   function renderProjects(direction = 0) {
     const list = document.getElementById('projects-list');
     if (!list) return;
 
-    const outX = direction > 0 ? '-60px' : '60px';
-    const inX = direction > 0 ? '60px' : '-60px';
+    const filtered = getFilteredProjects();
+    totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
 
     list.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
     list.style.opacity = '0';
-    list.style.transform = `translateX(${outX})`;
+    list.style.transform = `translateX(${direction > 0 ? '-60px' : direction < 0 ? '60px' : '0'})`;
 
     setTimeout(() => {
       const start = (currentPage - 1) * PER_PAGE;
-      const slice = projects.slice(start, start + PER_PAGE);
+      const slice = filtered.slice(start, start + PER_PAGE);
 
-      list.innerHTML = slice.map(p => `
-        <li>
-          <h2><a href="${p.url}" target="_blank">${p.name}</a></h2>
-          <p>${p.description}</p>
-          <div class="date">${p.date}</div>
-        </li>
-      `).join('');
+      if (slice.length === 0) {
+        list.innerHTML = `<p class="no-results">[ no projects found ]</p>`;
+      } else {
+        list.innerHTML = slice.map(p => `
+          <li>
+            <h2><a href="${p.url}" target="_blank">${p.name}</a></h2>
+            <p>${p.description}</p>
+            <div class="date">${p.date}</div>
+          </li>
+        `).join('');
+      }
 
       document.getElementById('page-indicator').textContent = currentPage + ' / ' + totalPages;
       document.getElementById('prev-btn').disabled = currentPage === 1;
@@ -339,7 +391,7 @@
 
       list.style.transition = 'none';
       list.style.opacity = '0';
-      list.style.transform = `translateX(${inX})`;
+      list.style.transform = `translateX(${direction > 0 ? '60px' : direction < 0 ? '-60px' : '0'})`;
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -359,9 +411,9 @@
   fetch('./projects.json')
     .then(r => r.json())
     .then(data => {
-      projects = data.reverse(); // newest last in JSON = first on page
+      projects = data.reverse();
       totalPages = Math.ceil(projects.length / PER_PAGE);
-      renderProjects();
+      renderProjects(0);
     })
     .catch(err => console.error('Failed to load projects.json', err));
 

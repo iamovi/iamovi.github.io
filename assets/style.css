@@ -566,7 +566,6 @@ nav a:hover {
 /* POSTS */
 ul {
     list-style: none;
-    padding-top: 48px;
 }
 
 
@@ -1160,6 +1159,54 @@ li::after {
 .waifu-reload:hover {
     border-color: orange;
     background: rgba(255,165,0,0.06);
+}
+
+/* SEARCH */
+.search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 48px;
+    margin-bottom: 40px;
+}
+
+.search-bracket {
+    color: orange;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: #c8c8c8;
+    font-family: "Inconsolata", monospace;
+    font-size: 15px;
+    padding: 4px 0;
+    outline: none;
+    width: 100%;
+    caret-color: orange;
+    transition: border-color 0.2s;
+}
+
+.search-input::placeholder {
+    color: #333;
+    letter-spacing: 0.05em;
+}
+
+.search-input:focus {
+    border-bottom-color: orange;
+}
+
+.no-results {
+    color: #444;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    padding: 32px 0;
+    text-align: center;
+    font-style: italic;
 }
 
 /* PAGINATION */

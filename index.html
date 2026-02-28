@@ -214,6 +214,11 @@
 
         <!-- PROJECTS SECTION -->
         <div id="blog-section" class="section active">
+            <div class="search-wrap">
+                <span class="search-bracket">[</span>
+                <input type="text" id="project-search" class="search-input" placeholder="search projects..." oninput="filterProjects(this.value)" autocomplete="off" />
+                <span class="search-bracket">]</span>
+            </div>
             <ul id="projects-list"></ul>
 
             <div class="pagination">
