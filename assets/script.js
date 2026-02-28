@@ -218,7 +218,187 @@
     });
   };
   
+  // LOADER
+  const loader = document.getElementById('site-loader');
+  const loaderBar = document.getElementById('loader-bar');
+  const loaderStatus = document.getElementById('loader-status');
+  const loaderGlitch = document.getElementById('loader-glitch');
+
+  if (loaderGlitch) loaderGlitch.setAttribute('data-text', loaderGlitch.textContent);
+
+  let progress = 0;
+  const statuses = ['loading...', 'fetching assets...', 'rendering...', 'almost there...'];
+  let statusIdx = 0;
+
+  const progressInterval = setInterval(() => {
+    progress = Math.min(progress + Math.random() * 18, 85);
+    if (loaderBar) loaderBar.style.width = progress + '%';
+    if (loaderStatus && statusIdx < statuses.length - 1) {
+      statusIdx = Math.floor(progress / 30);
+      loaderStatus.textContent = statuses[Math.min(statusIdx, statuses.length - 1)];
+    }
+  }, 200);
+
+  function finishLoader() {
+    clearInterval(progressInterval);
+    if (loaderBar) loaderBar.style.width = '100%';
+    if (loaderStatus) loaderStatus.textContent = 'done.';
+    setTimeout(() => {
+      if (loader) loader.classList.add('hide');
+      setTimeout(() => { if (loader) loader.remove(); }, 500);
+    }, 400);
+  }
+
+  if (document.readyState === 'complete') {
+    finishLoader();
+  } else {
+    window.addEventListener('load', finishLoader);
+  }
+
+  // JOKE — lazy load when section is visible
+  let jokeLoaded = false;
+
+  window.fetchJoke = function() {
+    const skeleton = document.getElementById('waifu-skeleton');
+    const content = document.getElementById('joke-content');
+    const setup = document.getElementById('joke-setup');
+    const delivery = document.getElementById('joke-delivery');
+    if (!skeleton || !content) return;
+
+    skeleton.classList.remove('hide');
+    content.style.display = 'none';
+
+    fetch('https://v2.jokeapi.dev/joke/Any?safe-mode')
+      .then(r => r.json())
+      .then(data => {
+        skeleton.classList.add('hide');
+        content.style.display = 'block';
+        if (data.type === 'single') {
+          setup.textContent = data.joke;
+          delivery.textContent = '';
+          delivery.style.display = 'none';
+        } else {
+          setup.textContent = data.setup;
+          delivery.textContent = data.delivery;
+          delivery.style.display = 'block';
+        }
+      })
+      .catch(() => {
+        skeleton.classList.add('hide');
+        content.style.display = 'block';
+        setup.textContent = 'failed to load joke. try again.';
+        delivery.textContent = '';
+      });
+  };
+
+  const waifuObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !jokeLoaded) {
+        jokeLoaded = true;
+        fetchJoke();
+        waifuObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.2 });
+
+  const waifuSection = document.getElementById('waifu-section');
+  if (waifuSection) waifuObserver.observe(waifuSection);
+
+  // PROJECTS — loaded from projects.json
+  const PER_PAGE = 3;
+  let currentPage = 1;
+  let totalPages = 1;
+  let projects = [];
+
+  function renderProjects(direction = 0) {
+    const list = document.getElementById('projects-list');
+    if (!list) return;
+
+    const outX = direction > 0 ? '-60px' : '60px';
+    const inX = direction > 0 ? '60px' : '-60px';
+
+    list.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    list.style.opacity = '0';
+    list.style.transform = `translateX(${outX})`;
+
+    setTimeout(() => {
+      const start = (currentPage - 1) * PER_PAGE;
+      const slice = projects.slice(start, start + PER_PAGE);
+
+      list.innerHTML = slice.map(p => `
+        <li>
+          <h2><a href="${p.url}" target="_blank">${p.name}</a></h2>
+          <p>${p.description}</p>
+          <div class="date">${p.date}</div>
+        </li>
+      `).join('');
+
+      document.getElementById('page-indicator').textContent = currentPage + ' / ' + totalPages;
+      document.getElementById('prev-btn').disabled = currentPage === 1;
+      document.getElementById('next-btn').disabled = currentPage === totalPages;
+
+      list.style.transition = 'none';
+      list.style.opacity = '0';
+      list.style.transform = `translateX(${inX})`;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          list.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          list.style.opacity = '1';
+          list.style.transform = 'translateX(0)';
+        });
+      });
+    }, 200);
+  }
+
+  window.changePage = function(dir) {
+    currentPage = Math.min(Math.max(currentPage + dir, 1), totalPages);
+    renderProjects(dir);
+  };
+
+  fetch('./projects.json')
+    .then(r => r.json())
+    .then(data => {
+      projects = data.reverse(); // newest last in JSON = first on page
+      totalPages = Math.ceil(projects.length / PER_PAGE);
+      renderProjects();
+    })
+    .catch(err => console.error('Failed to load projects.json', err));
+
   // Passive event listeners for better scroll performance
   document.addEventListener('touchstart', function() {}, { passive: true });
   document.addEventListener('touchmove', function() {}, { passive: true });
+
+  window.openSsLightbox = function(src) {
+    const lightbox = document.getElementById('ssLightbox');
+    const img = lightbox.querySelector('.ss-lightbox-image');
+    const body = document.body;
+    const html = document.documentElement;
+    img.src = src;
+    const scrollY = window.scrollY;
+    requestAnimationFrame(() => {
+      lightbox.classList.add('show');
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+    });
+  };
+
+  window.closeSsLightbox = function() {
+    const lightbox = document.getElementById('ssLightbox');
+    const body = document.body;
+    const html = document.documentElement;
+    const scrollY = parseInt(body.style.top || '0') * -1;
+    requestAnimationFrame(() => {
+      lightbox.classList.remove('show');
+      body.style.position = '';
+      body.style.top = '';
+      body.style.width = '';
+      body.style.overflow = '';
+      html.style.overflow = '';
+      window.scrollTo(0, scrollY);
+    });
+  };
 })();

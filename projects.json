@@ -1,0 +1,38 @@
+[
+  {
+    "name": "MyWebJourney",
+    "url": "https://github.com/iamovi/MyWebJourney",
+    "description": "I made my first website when I was in high school. It was rough, but it was mine — and it's what got me hooked on building things for the web.",
+    "date": "Memories · August 23, 2023"
+  },
+  {
+    "name": "notAcursor",
+    "url": "https://github.com/iamovi/notAcursor",
+    "description": "A library for giving your cursor a cool custom look on web pages. Simple to drop in, and makes any site feel a bit more unique and alive.",
+    "date": "First Commit on November 24, 2023"
+  },
+  {
+    "name": "AniCss",
+    "url": "https://github.com/iamovi/ani.css",
+    "description": "A lightweight CSS library for button and text animations and effects. Plug it in and your elements come alive — no JS needed, just classes.",
+    "date": "First Commit on November 29, 2023"
+  },
+  {
+    "name": "Button Will React",
+    "url": "https://github.com/iamovi/button-will-react",
+    "description": "A collection of playful button pranks for the web. Buttons that dodge your cursor, buttons that fight back — small silly interactions that make people laugh.",
+    "date": "First Commit on October 16, 2023"
+  },
+  {
+    "name": "AnimeWaifu",
+    "url": "https://github.com/iamovi/AnimeWaifu",
+    "description": "My first anime related apps and ecosystem. A collection of tools and scripts built around anime — this is where my obsession with mixing anime and code first started.",
+    "date": "First Commit on February 2, 2024"
+  },
+  {
+    "name": "syswaifu",
+    "url": "https://github.com/iamovi/syswaifu",
+    "description": "A Cross-Platform Neofetch-style system info with waifu images in terminal. Built for Linux, macOS, and Windows — shows your system stats alongside a waifu. Because why not make your terminal a little more fun.",
+    "date": "First Commit on January 10, 2026"
+  }
+]
