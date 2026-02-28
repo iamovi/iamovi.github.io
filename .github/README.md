@@ -1,4 +1,4 @@
-This repository is mainly for [https://iamovi.github.io](https://iamovi.github.io)
+**this repository is mainly for: [https://iamovi.github.io](iamovi.github.io)**
 
 
 ![Preview of Site](./preview.png)
