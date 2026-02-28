@@ -561,7 +561,7 @@ li {
 h2 a {
     font-size: 26px;
     font-weight: 700;
-    color: #6aa9ff;
+    color: orange;
     text-decoration: none;
     line-height: 1.3;
     transition: text-decoration 0.2s ease;
@@ -592,7 +592,7 @@ h2 a:hover {
 }
 
 .light h2 a {
-    color: #0066cc;
+    color: orange;
 }
 
 .light .date {
