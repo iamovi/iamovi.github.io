@@ -1,52 +1,52 @@
 (function () {
   const THEME_KEY = "theme";
-  
+
   // Music Player
   let audio = null;
   let isPlaying = false;
   let timerInterval = null;
-  
-  window.initMusicPlayer = function() {
+
+  window.initMusicPlayer = function () {
     audio = new Audio('https://ik.imagekit.io/iamovi/init_ovi/NEVER_SATISFIED.mp3');
     audio.loop = true;
     audio.preload = 'metadata';
-    
-    audio.addEventListener('ended', function() {
+
+    audio.addEventListener('ended', function () {
       isPlaying = false;
       updatePlayButton();
       stopTimer();
     });
-    
-    audio.addEventListener('loadedmetadata', function() {
+
+    audio.addEventListener('loadedmetadata', function () {
       updateTimer();
     });
-    
-    audio.addEventListener('timeupdate', function() {
+
+    audio.addEventListener('timeupdate', function () {
       updateTimer();
     });
   };
-  
+
   // Initialize audio on page load to preload metadata
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     initMusicPlayer();
   });
-  
+
   function formatTime(seconds) {
     if (isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
-  
+
   function updateTimer() {
     const timerElement = document.querySelector('.music-timer');
     const progressBar = document.querySelector('.progress-fill');
-    
+
     if (timerElement && audio) {
       const currentTime = formatTime(audio.currentTime);
       const duration = formatTime(audio.duration);
       timerElement.textContent = `${currentTime} / ${duration}`;
-      
+
       // Update progress bar - use transform for better performance
       if (progressBar && audio.duration) {
         const progress = (audio.currentTime / audio.duration) * 100;
@@ -54,37 +54,37 @@
       }
     }
   }
-  
-  window.seekMusic = function(e) {
+
+  window.seekMusic = function (e) {
     if (!audio || !audio.duration) return;
-    
+
     const progressBar = e.currentTarget;
     const rect = progressBar.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const width = rect.width;
     const percentage = clickX / width;
-    
+
     audio.currentTime = percentage * audio.duration;
     updateTimer();
   };
-  
+
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(updateTimer, 100);
   }
-  
+
   function stopTimer() {
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
     }
   }
-  
-  window.toggleMusic = function() {
+
+  window.toggleMusic = function () {
     if (!audio) {
       initMusicPlayer();
     }
-    
+
     if (isPlaying) {
       audio.pause();
       isPlaying = false;
@@ -94,14 +94,14 @@
       isPlaying = true;
       startTimer();
     }
-    
+
     updatePlayButton();
   };
-  
+
   function updatePlayButton() {
     const playIcon = document.querySelector('.play-icon');
     const pauseIcon = document.querySelector('.pause-icon');
-    
+
     if (isPlaying) {
       playIcon.style.display = 'none';
       pauseIcon.style.display = 'block';
@@ -110,28 +110,28 @@
       pauseIcon.style.display = 'none';
     }
   }
-  
+
   window.toggleTheme = function () {
     const isLight = document.documentElement.classList.toggle("light");
     try {
       localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
-    } catch (e) {}
+    } catch (e) { }
   };
-  
+
   // Optimized menu toggle with passive event listeners
   window.toggleMenu = function () {
     const menu = document.querySelector('.slide-menu');
     const overlay = document.querySelector('.menu-overlay');
     const body = document.body;
     const html = document.documentElement;
-    
+
     const isOpening = !menu.classList.contains('open');
-    
+
     // Use requestAnimationFrame for smoother animations
     requestAnimationFrame(() => {
       menu.classList.toggle('open');
       overlay.classList.toggle('show');
-      
+
       // Prevent body scroll when menu is open
       if (isOpening) {
         // Store current scroll position
@@ -153,7 +153,7 @@
       }
     });
   };
-  
+
   window.showSection = function (sectionName) {
     // Use requestAnimationFrame for smooth section switching
     requestAnimationFrame(() => {
@@ -161,18 +161,18 @@
       sections.forEach(section => {
         section.classList.remove('active');
       });
-      
+
       const targetSection = document.getElementById(sectionName + '-section');
       if (targetSection) {
         targetSection.classList.add('active');
       }
-      
+
       // Update menu active state
       const menuLinks = document.querySelectorAll('.menu-link');
       menuLinks.forEach(link => {
         link.classList.remove('active');
       });
-      
+
       const activeLink = document.getElementById(sectionName + '-link');
       if (activeLink) {
         activeLink.classList.add('active');
@@ -181,14 +181,14 @@
   };
 
   // Avatar Lightbox Functions - Optimized
-  window.openAvatarLightbox = function() {
+  window.openAvatarLightbox = function () {
     const lightbox = document.getElementById('avatarLightbox');
     const body = document.body;
     const html = document.documentElement;
-    
+
     requestAnimationFrame(() => {
       lightbox.classList.add('show');
-      
+
       // Prevent body scroll
       const scrollY = window.scrollY;
       body.style.position = 'fixed';
@@ -199,14 +199,14 @@
     });
   };
 
-  window.closeAvatarLightbox = function() {
+  window.closeAvatarLightbox = function () {
     const lightbox = document.getElementById('avatarLightbox');
     const body = document.body;
     const html = document.documentElement;
-    
+
     requestAnimationFrame(() => {
       lightbox.classList.remove('show');
-      
+
       // Restore scroll position
       const scrollY = body.style.top;
       body.style.position = '';
@@ -217,35 +217,44 @@
       window.scrollTo(0, parseInt(scrollY || '0') * -1);
     });
   };
-  
+
   // LOADER
   const loader = document.getElementById('site-loader');
   const loaderBar = document.getElementById('loader-bar');
   const loaderStatus = document.getElementById('loader-status');
   const loaderGlitch = document.getElementById('loader-glitch');
+  const loaderDataStream = document.getElementById('loader-data-stream');
+  const loaderBarSegments = document.getElementById('loader-bar-segments');
 
   if (loaderGlitch) loaderGlitch.setAttribute('data-text', loaderGlitch.textContent);
 
+  // Create bar segments
+  if (loaderBarSegments) {
+    for (let i = 0; i < 20; i++) {
+      const segment = document.createElement('div');
+      segment.className = 'loader-segment';
+      loaderBarSegments.appendChild(segment);
+    }
+  }
+
   let progress = 0;
-  const statuses = ['loading...', 'fetching assets...', 'rendering...', 'almost there...'];
-  let statusIdx = 0;
 
   const progressInterval = setInterval(() => {
-    progress = Math.min(progress + Math.random() * 18, 85);
+    progress = Math.min(progress + Math.random() * 12, 92);
     if (loaderBar) loaderBar.style.width = progress + '%';
-    if (loaderStatus && statusIdx < statuses.length - 1) {
-      statusIdx = Math.floor(progress / 30);
-      loaderStatus.textContent = statuses[Math.min(statusIdx, statuses.length - 1)];
-    }
-  }, 200);
+  }, 120);
 
   function finishLoader() {
     clearInterval(progressInterval);
     if (loaderBar) loaderBar.style.width = '100%';
-    if (loaderStatus) loaderStatus.textContent = 'done.';
+
     setTimeout(() => {
-      if (loader) loader.classList.add('hide');
-      setTimeout(() => { if (loader) loader.remove(); }, 500);
+      if (loader) {
+        loader.classList.add('flicker-out');
+        setTimeout(() => {
+          loader.remove();
+        }, 400);
+      }
     }, 400);
   }
 
@@ -258,7 +267,7 @@
   // JOKE — lazy load when section is visible
   let jokeLoaded = false;
 
-  window.fetchJoke = function() {
+  window.fetchJoke = function () {
     const skeleton = document.getElementById('waifu-skeleton');
     const content = document.getElementById('joke-content');
     const setup = document.getElementById('joke-setup');
@@ -319,11 +328,11 @@
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.08);
-    } catch(e) {}
+    } catch (e) { }
   }
 
   // Attach click sound to pagination and menu buttons
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (
       e.target.closest('.page-btn') ||
       e.target.closest('.menu-link') ||
@@ -342,7 +351,7 @@
   let searchQuery = '';
 
   // SEARCH
-  window.filterProjects = function(query) {
+  window.filterProjects = function (query) {
     searchQuery = query.toLowerCase().trim();
     currentPage = 1;
     renderProjects(0);
@@ -403,7 +412,7 @@
     }, 200);
   }
 
-  window.changePage = function(dir) {
+  window.changePage = function (dir) {
     currentPage = Math.min(Math.max(currentPage + dir, 1), totalPages);
     renderProjects(dir);
   };
@@ -418,10 +427,10 @@
     .catch(err => console.error('Failed to load projects.json', err));
 
   // Passive event listeners for better scroll performance
-  document.addEventListener('touchstart', function() {}, { passive: true });
-  document.addEventListener('touchmove', function() {}, { passive: true });
+  document.addEventListener('touchstart', function () { }, { passive: true });
+  document.addEventListener('touchmove', function () { }, { passive: true });
 
-  window.openSsLightbox = function(src) {
+  window.openSsLightbox = function (src) {
     const lightbox = document.getElementById('ssLightbox');
     const img = lightbox.querySelector('.ss-lightbox-image');
     const body = document.body;
@@ -438,7 +447,7 @@
     });
   };
 
-  window.closeSsLightbox = function() {
+  window.closeSsLightbox = function () {
     const lightbox = document.getElementById('ssLightbox');
     const body = document.body;
     const html = document.documentElement;
