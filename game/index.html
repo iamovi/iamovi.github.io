@@ -15,8 +15,8 @@
 
         :root {
             --ink: #1a0f00;
-            --paper: #d6c88a;
-            --paper-dark: #c4b470;
+            --paper: #f2e6c8;
+            --paper-dark: #e0d0a8;
             --ink-mid: #6b5a3e;
             --ink-faint: #b09a78;
             --yes: #000;
@@ -29,7 +29,9 @@
         }
 
         body {
-            background: var(--paper);
+            background-color: var(--paper);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 20px 20px;
             font-family: 'Share Tech Mono', monospace;
             color: var(--ink);
             display: flex;
@@ -142,7 +144,7 @@
         .card-skeleton {
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, var(--paper-dark) 25%, #b8a45a 50%, var(--paper-dark) 75%);
+            background: linear-gradient(90deg, var(--paper-dark) 25%, #d4be88 50%, var(--paper-dark) 75%);
             background-size: 200% 100%;
             animation: sk 1.4s infinite;
         }
@@ -167,13 +169,13 @@
             left: 16px;
             color: #000;
             border-color: #000;
-            background: rgba(214,200,138,0.92);
+            background: rgba(242,230,200,0.92);
         }
         .card-hint.no {
             right: 16px;
             color: #000;
             border-color: #000;
-            background: rgba(214,200,138,0.92);
+            background: rgba(242,230,200,0.92);
         }
 
         /* swipe out animations */

@@ -14,8 +14,8 @@ button, input, select, textarea {
 
 :root {
     --ink: #1a0f00;
-    --paper: #d6c88a;
-    --paper-dark: #c4b470;
+    --paper: #f2e6c8;
+    --paper-dark: #e0d0a8;
     --ink-light: #2a1a05;
     --ink-mid: #6b5a3e;
     --ink-faint: #b09a78;
@@ -25,8 +25,9 @@ button, input, select, textarea {
 html, body { overflow-x: hidden; }
 
 body {
-    background: var(--paper);
-    
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-size: 20px 20px;
     color: var(--ink);
     padding: 32px 16px;
     font-family: 'Share Tech Mono', monospace;
@@ -76,7 +77,7 @@ body {
 }
 
 .skeleton-block {
-    background: linear-gradient(90deg, var(--paper-dark) 25%, #b8a45a 50%, var(--paper-dark) 75%);
+    background: linear-gradient(90deg, var(--paper-dark) 25%, #d4be88 50%, var(--paper-dark) 75%);
     background-size: 200% 100%;
     animation: sk-shimmer 1.4s infinite;
     display: block;
@@ -96,7 +97,7 @@ body {
     width: 88px;
     height: 88px;
     flex-shrink: 0;
-    background: linear-gradient(90deg, var(--paper-dark) 25%, #b8a45a 50%, var(--paper-dark) 75%);
+    background: linear-gradient(90deg, var(--paper-dark) 25%, #d4be88 50%, var(--paper-dark) 75%);
     background-size: 200% 100%;
     animation: sk-shimmer 1.4s infinite;
     border: 3px solid var(--ink);
@@ -382,7 +383,7 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
 .joke-skeleton.hide { display:none; }
 .joke-skeleton-line {
     height:14px;
-    background:linear-gradient(90deg,var(--paper-dark) 25%,#b8a45a 50%,var(--paper-dark) 75%);
+    background:linear-gradient(90deg,var(--paper-dark) 25%,#d4be88 50%,var(--paper-dark) 75%);
     background-size:200% 100%;
     animation:shimmer 1.4s infinite;
 }
