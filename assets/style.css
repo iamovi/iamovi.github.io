@@ -13,12 +13,12 @@ button, input, select, textarea {
 }
 
 :root {
-    --ink: #000000;
-    --paper: #f5f0e8;
-    --paper-dark: #e0dace;
-    --ink-light: #1a1a1a;
-    --ink-mid: #555;
-    --ink-faint: #999;
+    --ink: #1a0f00;
+    --paper: #d6c88a;
+    --paper-dark: #c4b470;
+    --ink-light: #2a1a05;
+    --ink-mid: #6b5a3e;
+    --ink-faint: #b09a78;
     --speed: 0.15s;
 }
 
@@ -76,7 +76,7 @@ body {
 }
 
 .skeleton-block {
-    background: linear-gradient(90deg, var(--paper-dark) 25%, #d8d2c6 50%, var(--paper-dark) 75%);
+    background: linear-gradient(90deg, var(--paper-dark) 25%, #b8a45a 50%, var(--paper-dark) 75%);
     background-size: 200% 100%;
     animation: sk-shimmer 1.4s infinite;
     display: block;
@@ -96,7 +96,7 @@ body {
     width: 88px;
     height: 88px;
     flex-shrink: 0;
-    background: linear-gradient(90deg, var(--paper-dark) 25%, #d8d2c6 50%, var(--paper-dark) 75%);
+    background: linear-gradient(90deg, var(--paper-dark) 25%, #b8a45a 50%, var(--paper-dark) 75%);
     background-size: 200% 100%;
     animation: sk-shimmer 1.4s infinite;
     border: 3px solid var(--ink);
@@ -382,7 +382,7 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
 .joke-skeleton.hide { display:none; }
 .joke-skeleton-line {
     height:14px;
-    background:linear-gradient(90deg,var(--paper-dark) 25%,#d4cec2 50%,var(--paper-dark) 75%);
+    background:linear-gradient(90deg,var(--paper-dark) 25%,#b8a45a 50%,var(--paper-dark) 75%);
     background-size:200% 100%;
     animation:shimmer 1.4s infinite;
 }
