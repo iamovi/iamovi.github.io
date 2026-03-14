@@ -1,6 +1,4 @@
 (function () {
-  const THEME_KEY = "theme";
-
   // Music Player
   let audio = null;
   let isPlaying = false;
@@ -111,12 +109,6 @@
     }
   }
 
-  window.toggleTheme = function () {
-    const isLight = document.documentElement.classList.toggle("light");
-    try {
-      localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
-    } catch (e) { }
-  };
 
   // Optimized menu toggle with passive event listeners
   window.toggleMenu = function () {
@@ -218,51 +210,111 @@
     });
   };
 
-  // LOADER
-  const loader = document.getElementById('site-loader');
-  const loaderBar = document.getElementById('loader-bar');
-  const loaderStatus = document.getElementById('loader-status');
-  const loaderGlitch = document.getElementById('loader-glitch');
-  const loaderDataStream = document.getElementById('loader-data-stream');
-  const loaderBarSegments = document.getElementById('loader-bar-segments');
+  // SKELETON — dynamically built to match active section
+  const skeletonEl = document.getElementById('site-skeleton');
 
-  if (loaderGlitch) loaderGlitch.setAttribute('data-text', loaderGlitch.textContent);
+  function buildSkeleton() {
+    if (!skeletonEl) return;
 
-  // Create bar segments
-  if (loaderBarSegments) {
-    for (let i = 0; i < 20; i++) {
-      const segment = document.createElement('div');
-      segment.className = 'loader-segment';
-      loaderBarSegments.appendChild(segment);
+    // detect active section from menu link
+    const activeLink = document.querySelector('.menu-link.active');
+    const section = activeLink ? (activeLink.id || '').replace('-link', '') : 'blog';
+
+    // always build header first
+    let html = `
+      <div class="skeleton-container">
+        <div class="skeleton-header">
+          <div class="skeleton-avatar"></div>
+          <div class="skeleton-header-info">
+            <div class="skeleton-block" style="width:55%;height:32px;"></div>
+            <div class="skeleton-block" style="width:80%;height:14px;margin-top:10px;"></div>
+            <div class="skeleton-nav">
+              <div class="skeleton-block" style="width:55px;height:12px;"></div>
+              <div class="skeleton-block" style="width:55px;height:12px;"></div>
+              <div class="skeleton-block" style="width:75px;height:12px;"></div>
+            </div>
+          </div>
+        </div>`;
+
+    if (section === 'blog') {
+      // search bar
+      html += `
+        <div class="skeleton-search">
+          <div class="skeleton-block" style="width:14px;height:20px;"></div>
+          <div class="skeleton-block" style="flex:1;height:14px;"></div>
+        </div>`;
+      // project rows — match PER_PAGE (3)
+      const widths = [[65, 100, 75], [50, 100, 60], [70, 100, 85]];
+      widths.forEach(([w1, w2, w3]) => {
+        html += `
+        <div class="skeleton-item">
+          <div class="skeleton-block" style="width:${w1}%;height:22px;"></div>
+          <div class="skeleton-block" style="width:${w2}%;height:13px;margin-top:10px;"></div>
+          <div class="skeleton-block" style="width:${w3}%;height:13px;margin-top:6px;"></div>
+          <div class="skeleton-block" style="width:70px;height:11px;margin-top:8px;"></div>
+        </div>`;
+      });
+
+    } else if (section === 'about') {
+      // about text lines
+      [90, 100, 80, 100, 95].forEach(w => {
+        html += `<div class="skeleton-block" style="width:${w}%;height:14px;margin-bottom:10px;"></div>`;
+      });
+      // image placeholder
+      html += `<div class="skeleton-block" style="width:50%;height:140px;margin:24px 0;"></div>`;
+      // heading
+      html += `<div class="skeleton-block" style="width:35%;height:20px;margin-bottom:14px;"></div>`;
+      [100, 95, 85, 100].forEach(w => {
+        html += `<div class="skeleton-block" style="width:${w}%;height:14px;margin-bottom:10px;"></div>`;
+      });
+      // skill tags
+      html += `<div class="skeleton-nav" style="margin-top:16px;flex-wrap:wrap;gap:10px;">`;
+      [80, 70, 100, 85, 90].forEach(w => {
+        html += `<div class="skeleton-block" style="width:${w}px;height:28px;"></div>`;
+      });
+      html += `</div>`;
+
+    } else if (section === 'claude') {
+      // claude said blocks
+      [1, 2, 3, 4].forEach(() => {
+        html += `
+        <div class="skeleton-item" style="border-left:4px solid #ccc;padding-left:16px;border-bottom:none;margin-bottom:28px;">
+          <div class="skeleton-block" style="width:30%;height:11px;margin-bottom:10px;"></div>
+          <div class="skeleton-block" style="width:100%;height:14px;margin-bottom:6px;"></div>
+          <div class="skeleton-block" style="width:90%;height:14px;margin-bottom:6px;"></div>
+          <div class="skeleton-block" style="width:75%;height:14px;"></div>
+        </div>`;
+      });
     }
+
+    html += `</div>`;
+    skeletonEl.innerHTML = html;
   }
 
-  let progress = 0;
-
-  const progressInterval = setInterval(() => {
-    progress = Math.min(progress + Math.random() * 12, 92);
-    if (loaderBar) loaderBar.style.width = progress + '%';
-  }, 120);
-
-  function finishLoader() {
-    clearInterval(progressInterval);
-    if (loaderBar) loaderBar.style.width = '100%';
-
+  function hideSkeleton() {
+    if (!skeletonEl) return;
+    // 0.5s delay before fade out
     setTimeout(() => {
-      if (loader) {
-        loader.classList.add('flicker-out');
-        setTimeout(() => {
-          loader.remove();
-        }, 400);
-      }
-    }, 400);
+      skeletonEl.classList.add('skeleton-hide');
+      setTimeout(() => skeletonEl.remove(), 300);
+    }, 500);
   }
+
+  // build immediately, hide when fully loaded
+  buildSkeleton();
 
   if (document.readyState === 'complete') {
-    finishLoader();
+    hideSkeleton();
   } else {
-    window.addEventListener('load', finishLoader);
+    window.addEventListener('load', hideSkeleton);
   }
+
+  // rebuild skeleton if section changes before load completes
+  const _origShowSection = window.showSection;
+  window.showSection = function(sectionName) {
+    _origShowSection(sectionName);
+    if (skeletonEl && skeletonEl.parentNode) buildSkeleton();
+  };
 
   // JOKE — lazy load when section is visible
   let jokeLoaded = false;

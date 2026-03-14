@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waifu or Not — Ovi ren</title>
+    <link rel="icon" href="../samurai-jack.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/bar.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ink: #000;
+            --paper: #f5f0e8;
+            --paper-dark: #e0dace;
+            --ink-mid: #555;
+            --ink-faint: #999;
+            --yes: #000;
+            --no: #000;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--paper);
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--ink);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            user-select: none;
+        }
+
+        /* ── BACK LINK ── */
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            z-index: 100;
+        }
+        .back:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+        /* ── SCORE ── */
+        .scoreboard {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            z-index: 100;
+        }
+
+        .score-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-faint); }
+        .score-num {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1;
+            transition: transform 0.15s;
+        }
+        .score-num.pop { animation: score-pop 0.25s ease; }
+        @keyframes score-pop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+
+        /* ── TITLE ── */
+        .game-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 8px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        /* ── CARD AREA ── */
+        .card-area {
+            position: relative;
+            width: 320px;
+            height: 420px;
+        }
+
+        @media (max-width: 400px) {
+            .card-area { width: 280px; height: 370px; }
+        }
+
+        /* ── CARD ── */
+        .card {
+            position: absolute;
+            inset: 0;
+            border: 3px solid var(--ink);
+            box-shadow: 6px 6px 0 var(--ink);
+            background: var(--paper-dark);
+            overflow: hidden;
+            cursor: grab;
+            transition: box-shadow 0.1s;
+            touch-action: none;
+        }
+
+        .card:active { cursor: grabbing; }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .card.loading img { opacity: 0; }
+
+        /* skeleton shimmer while image loads */
+        .card-skeleton {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, var(--paper-dark) 25%, #d4cec2 50%, var(--paper-dark) 75%);
+            background-size: 200% 100%;
+            animation: sk 1.4s infinite;
+        }
+        @keyframes sk { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        .card-skeleton.hide { display: none; }
+
+        /* tilt indicator */
+        .card-hint {
+            position: absolute;
+            top: 16px;
+            padding: 6px 14px;
+            font-family: 'Noto Serif JP', serif;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            border: 3px solid;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.1s;
+        }
+        .card-hint.yes {
+            left: 16px;
+            color: #000;
+            border-color: #000;
+            background: rgba(255,255,255,0.85);
+        }
+        .card-hint.no {
+            right: 16px;
+            color: #000;
+            border-color: #000;
+            background: rgba(255,255,255,0.85);
+        }
+
+        /* swipe out animations */
+        .card.swipe-yes {
+            animation: swipe-right 0.4s ease forwards;
+        }
+        .card.swipe-no {
+            animation: swipe-left 0.4s ease forwards;
+        }
+
+        @keyframes swipe-right {
+            to { transform: translateX(140%) rotate(20deg); opacity: 0; }
+        }
+        @keyframes swipe-left {
+            to { transform: translateX(-140%) rotate(-20deg); opacity: 0; }
+        }
+
+        /* ── SPEECH BUBBLE REACTION ── */
+        .reaction {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Noto Serif JP', serif;
+            font-size: 52px;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            text-shadow: 3px 3px 0 var(--paper), 4px 4px 0 var(--ink);
+        }
+        .reaction.show {
+            animation: reaction-pop 0.6s ease forwards;
+        }
+        @keyframes reaction-pop {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            40%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            70%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+
+        /* ── BUTTONS ── */
+        .buttons {
+            display: flex;
+            gap: 24px;
+            margin-top: 28px;
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid var(--ink);
+            color: var(--ink);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 10px 28px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 var(--ink);
+            transition: background 0.1s, color 0.1s, transform 0.1s, box-shadow 0.1s;
+        }
+
+        .btn:hover { background: var(--ink); color: var(--paper); }
+        .btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+
+        .btn-yes:hover { background: #000; }
+        .btn-no:hover  { background: #000; }
+
+        /* ── HINT TEXT ── */
+        .swipe-hint {
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+
+        /* ── ROUND COUNTER ── */
+        .round-info {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.1em;
+        }
+
+        /* ── GAME OVER ── */
+        .game-over {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+            max-width: 360px;
+        }
+
+        .game-over.show { display: flex; }
+
+        .game-over h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 28px;
+            font-weight: 900;
+            border-bottom: 3px solid var(--ink);
+            padding-bottom: 10px;
+            width: 100%;
+        }
+
+        .final-scores {
+            display: flex;
+            gap: 40px;
+        }
+
+        .final-score-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .final-score-item .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mid); }
+        .final-score-item .value { font-family: 'Noto Serif JP', serif; font-size: 40px; font-weight: 900; }
+
+        .verdict {
+            font-size: 13px;
+            color: var(--ink-mid);
+            line-height: 1.7;
+            border-left: 3px solid var(--ink);
+            padding-left: 14px;
+            text-align: left;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <a class="back" href="../">← back</a>
+
+    <div class="scoreboard">
+        <div class="score-item">
+            <span class="score-label">Yes</span>
+            <span class="score-num" id="score-yes">0</span>
+        </div>
+        <div class="score-item">
+            <span class="score-label">No</span>
+            <span class="score-num" id="score-no">0</span>
+        </div>
+        <div class="score-item">
+            <span class="score-label">Round</span>
+            <span class="score-num" id="score-round">0</span>
+        </div>
+    </div>
+
+    <div class="reaction" id="reaction"></div>
+
+    <!-- GAME UI -->
+    <div id="game-ui" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="game-title">Waifu or Not?</div>
+
+        <div class="card-area">
+            <div class="card" id="card">
+                <div class="card-skeleton" id="card-skeleton"></div>
+                <img id="card-img" src="" alt="waifu" onload="onImageLoad()" onerror="fetchImage()" />
+                <div class="card-hint yes" id="hint-yes">YES</div>
+                <div class="card-hint no" id="hint-no">NOPE</div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-no" onclick="vote('no')">[ NOPE ]</button>
+            <button class="btn btn-yes" onclick="vote('yes')">[ WAIFU ]</button>
+        </div>
+
+        <div class="swipe-hint">swipe left / right or use buttons</div>
+        <div class="round-info" id="round-info">round 1 of 10</div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="game-over" id="game-over">
+        <h2>Game Over</h2>
+        <div class="final-scores">
+            <div class="final-score-item">
+                <span class="label">Waifu</span>
+                <span class="value" id="final-yes">0</span>
+            </div>
+            <div class="final-score-item">
+                <span class="label">Nope</span>
+                <span class="value" id="final-no">0</span>
+            </div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <button class="btn" onclick="restartGame()">[ Play Again ]</button>
+        <a class="btn" href="../" style="text-decoration:none;text-align:center;">[ Back to Site ]</a>
+    </div>
+
+    <script>
+        const TOTAL_ROUNDS = 10;
+        const SFW_CATEGORIES = ['waifu', 'neko', 'shinobu', 'megumin'];
+
+        let yesCount = 0;
+        let noCount = 0;
+        let round = 1;
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let imageReady = false;
+
+        const card = document.getElementById('card');
+        const cardImg = document.getElementById('card-img');
+        const cardSkeleton = document.getElementById('card-skeleton');
+        const hintYes = document.getElementById('hint-yes');
+        const hintNo = document.getElementById('hint-no');
+        const reactionEl = document.getElementById('reaction');
+
+        // ── FETCH IMAGE ──
+        function fetchImage() {
+            imageReady = false;
+            cardSkeleton.classList.remove('hide');
+            cardImg.style.opacity = '0';
+            const cat = SFW_CATEGORIES[Math.floor(Math.random() * SFW_CATEGORIES.length)];
+            fetch(`https://api.waifu.pics/sfw/${cat}`)
+                .then(r => r.json())
+                .then(data => { cardImg.src = data.url; })
+                .catch(() => setTimeout(fetchImage, 1000));
+        }
+
+        function onImageLoad() {
+            cardSkeleton.classList.add('hide');
+            cardImg.style.opacity = '1';
+            imageReady = true;
+        }
+
+        // ── SCORE UPDATE ──
+        function updateScores() {
+            const yEl = document.getElementById('score-yes');
+            const nEl = document.getElementById('score-no');
+            const rEl = document.getElementById('score-round');
+            yEl.textContent = yesCount;
+            nEl.textContent = noCount;
+            rEl.textContent = round;
+            yEl.classList.remove('pop'); nEl.classList.remove('pop');
+            void yEl.offsetWidth;
+            if (yesCount > 0) yEl.classList.add('pop');
+            if (noCount > 0) nEl.classList.add('pop');
+        }
+
+        // ── REACTION ──
+        function showReaction(type) {
+            const emojis = {
+                yes: ['YES!', 'WAIFU!', '10/10', 'CUTE!', 'LOVE IT'],
+                no:  ['NOPE', 'PASS', 'NEXT', 'NO WAY', 'SKIP']
+            };
+            const list = emojis[type];
+            reactionEl.textContent = list[Math.floor(Math.random() * list.length)];
+            reactionEl.classList.remove('show');
+            void reactionEl.offsetWidth;
+            reactionEl.classList.add('show');
+        }
+
+        // ── VOTE ──
+        function vote(type) {
+            if (!imageReady) return;
+            if (card.classList.contains('swipe-yes') || card.classList.contains('swipe-no')) return;
+
+            if (type === 'yes') {
+                yesCount++;
+                card.classList.add('swipe-yes');
+            } else {
+                noCount++;
+                card.classList.add('swipe-no');
+            }
+
+            showReaction(type);
+            updateScores();
+
+            setTimeout(() => {
+                card.classList.remove('swipe-yes', 'swipe-no');
+                card.style.transform = '';
+                if (round >= TOTAL_ROUNDS) {
+                    endGame();
+                } else {
+                    round++;
+                    document.getElementById('round-info').textContent = `round ${round} of ${TOTAL_ROUNDS}`;
+                    fetchImage();
+                }
+            }, 420);
+        }
+
+        // ── DRAG / SWIPE ──
+        function onDragStart(e) {
+            if (!imageReady) return;
+            if (card.classList.contains('swipe-yes') || card.classList.contains('swipe-no')) return;
+            isDragging = true;
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            card.style.transition = 'none';
+        }
+
+        function onDragMove(e) {
+            if (!isDragging) return;
+            currentX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+            const rotate = currentX * 0.08;
+            card.style.transform = `translateX(${currentX}px) rotate(${rotate}deg)`;
+
+            const threshold = 60;
+            hintYes.style.opacity = currentX > threshold ? Math.min((currentX - threshold) / 40, 1) : 0;
+            hintNo.style.opacity  = currentX < -threshold ? Math.min((-currentX - threshold) / 40, 1) : 0;
+        }
+
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            card.style.transition = '';
+            hintYes.style.opacity = 0;
+            hintNo.style.opacity  = 0;
+
+            if (currentX > 80) {
+                vote('yes');
+            } else if (currentX < -80) {
+                vote('no');
+            } else {
+                card.style.transform = '';
+            }
+            currentX = 0;
+        }
+
+        card.addEventListener('mousedown', onDragStart);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        card.addEventListener('touchstart', onDragStart, { passive: true });
+        window.addEventListener('touchmove', onDragMove, { passive: true });
+        window.addEventListener('touchend', onDragEnd);
+
+        // keyboard
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight' || e.key === 'l') vote('yes');
+            if (e.key === 'ArrowLeft'  || e.key === 'h') vote('no');
+        });
+
+        // ── GAME OVER ──
+        function endGame() {
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('game-over').classList.add('show');
+            document.getElementById('final-yes').textContent = yesCount;
+            document.getElementById('final-no').textContent  = noCount;
+
+            const verdicts = [
+                [10, 0,  "you literally said yes to everything. zero standards. maximum based."],
+                [8,  99, "you have a type and you commit to it. respect."],
+                [5,  5,  "perfectly balanced. a true neutral."],
+                [0,  99, "you said no to almost everything. either very picky or having a bad day."],
+                [0,  10, "you rejected everyone. touch grass."],
+            ];
+
+            let text = `${yesCount} waifu approved, ${noCount} rejected out of ${TOTAL_ROUNDS} rounds.`;
+            if (yesCount === TOTAL_ROUNDS) text = "you literally said yes to everything. zero standards. maximum based.";
+            else if (noCount === TOTAL_ROUNDS) text = "you rejected everyone. not a single one? seriously?";
+            else if (yesCount > noCount) text = `${yesCount} out of ${TOTAL_ROUNDS} — you're easy to please. not judging.`;
+            else if (noCount > yesCount) text = `only ${yesCount} made the cut. you have standards. i respect it.`;
+            else text = `${yesCount} yes, ${noCount} no — perfectly balanced. a true neutral.`;
+
+            document.getElementById('verdict').textContent = text;
+        }
+
+        // ── RESTART ──
+        function restartGame() {
+            yesCount = 0; noCount = 0; round = 1;
+            document.getElementById('score-yes').textContent = '0';
+            document.getElementById('score-no').textContent  = '0';
+            document.getElementById('score-round').textContent = '1';
+            document.getElementById('round-info').textContent = `round 1 of ${TOTAL_ROUNDS}`;
+            document.getElementById('game-over').classList.remove('show');
+            document.getElementById('game-ui').style.display = 'flex';
+            card.style.transform = '';
+            fetchImage();
+        }
+
+        // init
+        fetchImage();
+    </script>
+
+</body>
+</html>

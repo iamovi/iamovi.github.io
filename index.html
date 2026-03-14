@@ -27,58 +27,24 @@
 
     <link rel="icon" href="./samurai-jack.png">
 
-    <script>
-        (function () {
-            try {
-                const theme = localStorage.getItem("theme");
-                if (theme === "light") {
-                    document.documentElement.classList.add("light");
-                }
-            } catch (e) { }
-        })();
-    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inconsolata&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="./assets/style.css">
 
     <!-- Scrollbar -->
-
     <link rel="stylesheet" href="./assets/bar.css">
+
+
 
 </head>
 
 <body>
 
-    <!-- LOADER -->
-    <div id="site-loader">
-        <div class="loader-bg-effects">
-            <div class="loader-noise"></div>
-            <div class="loader-scanline"></div>
-        </div>
-        <div class="loader-panel">
-            <div class="loader-corner tl"></div>
-            <div class="loader-corner tr"></div>
-            <div class="loader-corner bl"></div>
-            <div class="loader-corner br"></div>
-
-            <div class="loader-header">
-                <div class="loader-glitch" id="loader-glitch" data-text="loading...">loading...</div>
-            </div>
-
-            <div class="loader-main">
-                <div class="loader-bar-wrap">
-                    <div class="loader-bar-segments" id="loader-bar-segments">
-                        <!-- Segments added by JS -->
-                    </div>
-                    <div class="loader-bar" id="loader-bar"></div>
-                    <div class="loader-bar-glow"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- SKELETON SCREEN — built dynamically by JS -->
+    <div id="site-skeleton"></div>
 
     <div class="menu-overlay" onclick="toggleMenu()"></div>
 
@@ -115,6 +81,9 @@
                     onclick="showSection('claude'); toggleMenu(); return false;">
                     <span class="menu-link-text">Claude said about me</span>
                 </a>
+                <a href="../game/" class="menu-link">
+                    <span class="menu-link-text">Waifu or Not</span>
+                </a>
             </div>
 
             <div class="menu-section">
@@ -141,18 +110,6 @@
                     Satisfied - Corpse</div>
             </div>
 
-            <div class="menu-section">
-                <div class="menu-section-title">Appearance</div>
-                <button class="theme-toggle" onclick="toggleTheme()">
-                    <span class="theme-label">Toggle Theme</span>
-                    <svg class="moon-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <circle class="moon-body" cx="12" cy="12" r="5" fill="currentColor" />
-                        <circle class="moon-crater" cx="10" cy="10" r="1.2" fill="currentColor" opacity="0.3" />
-                        <circle class="moon-crater" cx="13.5" cy="13" r="0.8" fill="currentColor" opacity="0.3" />
-                        <circle class="moon-shadow" cx="17" cy="12" r="5" fill="var(--bg-color)" />
-                    </svg>
-                </button>
-            </div>
 
             <div class="menu-section">
                 <img src="https://ik.imagekit.io/iamovi/nyan_cat.gif" alt="Nyan Cat"
@@ -251,7 +208,14 @@
                     <div class="loader-corner br"></div>
                     <p class="waifu-text">thanks for visiting — here's a joke for you</p>
                     <div class="joke-wrap" id="joke-wrap">
-                        <div class="waifu-skeleton joke-skeleton" id="waifu-skeleton"></div>
+                        <div class="waifu-skeleton joke-skeleton" id="waifu-skeleton">
+                            <div class="joke-skeleton-line" style="width:100%"></div>
+                            <div class="joke-skeleton-line" style="width:95%"></div>
+                            <div class="joke-skeleton-line" style="width:88%"></div>
+                            <div class="joke-skeleton-divider"></div>
+                            <div class="joke-skeleton-line" style="width:80%"></div>
+                            <div class="joke-skeleton-line" style="width:60%"></div>
+                        </div>
                         <div class="joke-content" id="joke-content" style="display:none;">
                             <p class="joke-setup" id="joke-setup"></p>
                             <p class="joke-delivery" id="joke-delivery"></p>
