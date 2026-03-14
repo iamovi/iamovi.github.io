@@ -344,6 +344,7 @@
 
         <div class="swipe-hint">swipe left / right or use buttons</div>
         <div class="round-info" id="round-info">round 1 of 10</div>
+        <button id="sfx-toggle" class="btn" style="margin-top:12px;font-size:11px;padding:4px 10px;" onclick="toggleSfx()">[ SFX ON ]</button>
     </div>
 
     <!-- GAME OVER -->
@@ -429,7 +430,7 @@
         }
 
         // ── VOTE ──
-        function vote(type) {
+        window.vote = function vote(type) {
             if (!imageReady) return;
             if (card.classList.contains('swipe-yes') || card.classList.contains('swipe-no')) return;
 
@@ -503,12 +504,13 @@
 
         // keyboard
         document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowRight' || e.key === 'l') vote('yes');
-            if (e.key === 'ArrowLeft'  || e.key === 'h') vote('no');
+            if (e.key === 'ArrowRight' || e.key === 'l') window.vote('yes');
+            if (e.key === 'ArrowLeft'  || e.key === 'h') window.vote('no');
         });
 
         // ── GAME OVER ──
         function endGame() {
+            if (window.sfx_gameOver) sfx_gameOver();
             document.getElementById('game-ui').style.display = 'none';
             document.getElementById('game-over').classList.add('show');
             document.getElementById('final-yes').textContent = yesCount;
@@ -533,7 +535,7 @@
         }
 
         // ── RESTART ──
-        function restartGame() {
+        window.restartGame = function restartGame() {
             yesCount = 0; noCount = 0; round = 1;
             document.getElementById('score-yes').textContent = '0';
             document.getElementById('score-no').textContent  = '0';
@@ -547,6 +549,139 @@
 
         // init
         fetchImage();
+    </script>
+
+    <!-- MANGA SOUND ENGINE -->
+    <script>
+    (function () {
+      let sfxEnabled = true;
+      let audioCtx = null;
+
+      function getCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+      }
+
+      function playTone({ type = 'sine', freq = 440, endFreq, vol = 0.12, duration = 0.1, delay = 0 }) {
+        if (!sfxEnabled) return;
+        try {
+          const ctx = getCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = type;
+          const t = ctx.currentTime + delay;
+          osc.frequency.setValueAtTime(freq, t);
+          if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, t + duration);
+          gain.gain.setValueAtTime(vol, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+          osc.start(t); osc.stop(t + duration + 0.01);
+        } catch (e) {}
+      }
+
+      function playNoise({ vol = 0.08, duration = 0.08, delay = 0, filterFreq = 2000 }) {
+        if (!sfxEnabled) return;
+        try {
+          const ctx = getCtx();
+          const bufSize = ctx.sampleRate * duration;
+          const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.value = filterFreq;
+          filter.Q.value = 0.8;
+          const gain = ctx.createGain();
+          const t = ctx.currentTime + delay;
+          gain.gain.setValueAtTime(vol, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+          src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+          src.start(t); src.stop(t + duration + 0.01);
+        } catch (e) {}
+      }
+
+      window.sfx_pageLoad = function () {
+        playTone({ type: 'sawtooth', freq: 80, endFreq: 400, vol: 0.07, duration: 0.25 });
+        playNoise({ vol: 0.15, duration: 0.2, filterFreq: 800 });
+        playTone({ type: 'sine', freq: 120, endFreq: 40, vol: 0.18, duration: 0.3, delay: 0.15 });
+        playTone({ type: 'square', freq: 900, endFreq: 200, vol: 0.05, duration: 0.08, delay: 0.3 });
+      };
+      window.sfx_click = function () {
+        playNoise({ vol: 0.18, duration: 0.04, filterFreq: 4000 });
+        playTone({ type: 'square', freq: 1200, endFreq: 600, vol: 0.06, duration: 0.06 });
+      };
+      window.sfx_hover = function () {
+        playTone({ type: 'sine', freq: 600, endFreq: 800, vol: 0.04, duration: 0.05 });
+        playNoise({ vol: 0.04, duration: 0.03, filterFreq: 3000 });
+      };
+      window.sfx_voteYes = function () {
+        playTone({ type: 'sine', freq: 440, endFreq: 880, vol: 0.12, duration: 0.12 });
+        playTone({ type: 'sine', freq: 660, endFreq: 1320, vol: 0.08, duration: 0.1, delay: 0.08 });
+        playNoise({ vol: 0.08, duration: 0.06, filterFreq: 2000, delay: 0.1 });
+      };
+      window.sfx_voteNo = function () {
+        playTone({ type: 'sawtooth', freq: 300, endFreq: 80, vol: 0.14, duration: 0.2 });
+        playNoise({ vol: 0.12, duration: 0.1, filterFreq: 500 });
+      };
+      window.sfx_gameOver = function () {
+        playTone({ type: 'sawtooth', freq: 440, endFreq: 110, vol: 0.14, duration: 0.4 });
+        playNoise({ vol: 0.18, duration: 0.3, filterFreq: 400, delay: 0.1 });
+        playTone({ type: 'sine', freq: 220, endFreq: 55, vol: 0.1, duration: 0.5, delay: 0.3 });
+      };
+      window.sfx_playAgain = function () {
+        playTone({ type: 'sine', freq: 523, endFreq: 1046, vol: 0.1, duration: 0.1 });
+        playTone({ type: 'sine', freq: 659, endFreq: 1318, vol: 0.08, duration: 0.1, delay: 0.1 });
+        playTone({ type: 'sine', freq: 784, endFreq: 1568, vol: 0.06, duration: 0.12, delay: 0.2 });
+      };
+      window.sfx_swipe = function () {
+        playNoise({ vol: 0.16, duration: 0.18, filterFreq: 1500 });
+        playTone({ type: 'sawtooth', freq: 300, endFreq: 800, vol: 0.06, duration: 0.18 });
+      };
+
+      window.toggleSfx = function () {
+        sfxEnabled = !sfxEnabled;
+        const btn = document.getElementById('sfx-toggle');
+        if (btn) btn.textContent = sfxEnabled ? '[ SFX ON ]' : '[ SFX OFF ]';
+        if (sfxEnabled) sfx_click();
+      };
+
+      // Patch vote to add sounds
+      const _origVote = window.vote;
+      window.vote = function (type) {
+        if (type === 'yes') sfx_voteYes(); else sfx_voteNo();
+        sfx_swipe();
+        if (_origVote) _origVote(type);
+      };
+
+      // Patch restartGame
+      const _origRestart = window.restartGame;
+      window.restartGame = function () {
+        sfx_playAgain();
+        if (_origRestart) _origRestart();
+      };
+
+      // Hover sounds
+      let lastHover = null;
+      document.addEventListener('mouseover', function (e) {
+        const el = e.target.closest('a, button, .btn');
+        if (el && el !== lastHover) { lastHover = el; sfx_hover(); }
+      });
+      document.addEventListener('mouseout', function (e) {
+        if (e.target.closest('a, button, .btn')) lastHover = null;
+      });
+
+      // General click sounds
+      document.addEventListener('click', function (e) {
+        const sfxBtn = e.target.closest('#sfx-toggle');
+        if (sfxBtn) return;
+        if (e.target.closest('button, .btn, a')) sfx_click();
+      });
+
+      // Page load
+      setTimeout(sfx_pageLoad, 200);
+    })();
     </script>
 
 </body>

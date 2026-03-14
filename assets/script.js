@@ -365,36 +365,6 @@
   const waifuSection = document.getElementById('waifu-section');
   if (waifuSection) waifuObserver.observe(waifuSection);
 
-  // CLICK SOUND — tiny terminal beep via Web Audio API
-  function playClick() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.08);
-    } catch (e) { }
-  }
-
-  // Attach click sound to pagination and menu buttons
-  document.addEventListener('click', function (e) {
-    if (
-      e.target.closest('.page-btn') ||
-      e.target.closest('.menu-link') ||
-      e.target.closest('.menu-button') ||
-      e.target.closest('.waifu-reload')
-    ) {
-      playClick();
-    }
-  });
-
   // PROJECTS variables — declared early so search can use them
   const PER_PAGE = 3;
   let currentPage = 1;
