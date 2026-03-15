@@ -73,9 +73,13 @@
                     onclick="showSection('about'); toggleMenu(); return false;">
                     <span class="menu-link-text">About</span>
                 </a>
-                <a href="#" class="menu-link active" id="blog-link"
-                    onclick="showSection('blog'); toggleMenu(); return false;">
+                <a href="#" class="menu-link active" id="projects-link"
+                    onclick="showSection('projects'); toggleMenu(); return false;">
                     <span class="menu-link-text">Projects</span>
+                </a>
+                <a href="#" class="menu-link" id="blog-link"
+                    onclick="showSection('blog'); toggleMenu(); return false;">
+                    <span class="menu-link-text">Blog</span>
                 </a>
                 <a href="#" class="menu-link" id="claude-link"
                     onclick="showSection('claude'); toggleMenu(); return false;">
@@ -189,7 +193,7 @@
         </div>
 
         <!-- PROJECTS SECTION -->
-        <div id="blog-section" class="section active">
+        <div id="projects-section" class="section active">
             <div class="search-wrap">
                 <span class="search-bracket">[</span>
                 <input type="text" id="project-search" class="search-input" placeholder="search projects..."
@@ -227,6 +231,22 @@
                         </div>
                     </div>
                     <button class="waifu-reload" onclick="fetchJoke()">[ another one ]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOG SECTION -->
+        <div id="blog-section" class="section">
+            <div class="blog-content">
+                <div class="blog-header-row">
+                    <span class="blog-label">[ blog ]</span>
+                    <span class="blog-count" id="blog-count"></span>
+                </div>
+                <ul class="blog-list" id="blog-list">
+                    <!-- posts rendered by JS -->
+                </ul>
+                <div class="blog-empty" id="blog-empty" style="display:none;">
+                    [ no posts yet — check back soon ]
                 </div>
             </div>
         </div>
@@ -295,8 +315,8 @@
         <div class="closing">
             <!--             <p style="font-size: 0.85rem;">Wants to use this scroll bar in your webpage? <a href="./bar.html">Click here</a></p>
 <br> -->
-            <p style="font-size: 0.85rem;">Created by Ovi ren,</p>
-            <p style="font-size: 0.85rem;">i'm a writer, i write scripts.</p>
+            <p style="font-size: 0.85rem;">created by Ovi ren,</p>
+            <p style="font-size: 0.85rem;">an idle guy.</p>
             <br>
             <p style="font-size: 0.85rem;">
                 <a href="mailto:init.ovi@gmail.com">

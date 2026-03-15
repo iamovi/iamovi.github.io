@@ -218,7 +218,7 @@
 
     // detect active section from menu link
     const activeLink = document.querySelector('.menu-link.active');
-    const section = activeLink ? (activeLink.id || '').replace('-link', '') : 'blog';
+    const section = activeLink ? (activeLink.id || '').replace('-link', '') : 'projects';
 
     // always build header first
     let html = `
@@ -236,7 +236,7 @@
           </div>
         </div>`;
 
-    if (section === 'blog') {
+    if (section === 'projects') {
       // search bar
       html += `
         <div class="skeleton-search">
@@ -283,6 +283,17 @@
           <div class="skeleton-block" style="width:100%;height:14px;margin-bottom:6px;"></div>
           <div class="skeleton-block" style="width:90%;height:14px;margin-bottom:6px;"></div>
           <div class="skeleton-block" style="width:75%;height:14px;"></div>
+        </div>`;
+      });
+
+    } else if (section === 'blog') {
+      [1, 2, 3].forEach(() => {
+        html += `
+        <div class="skeleton-item" style="margin-bottom:28px;">
+          <div class="skeleton-block" style="width:20%;height:10px;margin-bottom:10px;"></div>
+          <div class="skeleton-block" style="width:65%;height:20px;margin-bottom:8px;"></div>
+          <div class="skeleton-block" style="width:100%;height:13px;margin-bottom:6px;"></div>
+          <div class="skeleton-block" style="width:85%;height:13px;"></div>
         </div>`;
       });
     }
@@ -447,6 +458,47 @@
       renderProjects(0);
     })
     .catch(err => console.error('Failed to load projects.json', err));
+
+  // BLOG — loaded from blog.json
+  let blogPosts = [];
+
+  function renderBlog() {
+    const list = document.getElementById('blog-list');
+    const empty = document.getElementById('blog-empty');
+    const count = document.getElementById('blog-count');
+    if (!list) return;
+
+    if (blogPosts.length === 0) {
+      list.style.display = 'none';
+      if (empty) empty.style.display = 'block';
+      if (count) count.textContent = '';
+      return;
+    }
+
+    if (empty) empty.style.display = 'none';
+    list.style.display = '';
+    if (count) count.textContent = blogPosts.length + ' post' + (blogPosts.length !== 1 ? 's' : '');
+
+    list.innerHTML = blogPosts.map(post => `
+      <li class="blog-post-item">
+        <div class="blog-post-meta">
+          <span class="blog-post-date">${post.date}</span>
+          ${post.tag ? `<span class="blog-post-tag">${post.tag}</span>` : ''}
+        </div>
+        <h2 class="blog-post-title">${post.title}</h2>
+        <p class="blog-post-excerpt">${post.excerpt}</p>
+        <a class="blog-post-link" href="./blog/${post.slug}/">read more →</a>
+      </li>
+    `).join('');
+  }
+
+  fetch('./blog.json')
+    .then(r => r.json())
+    .then(data => {
+      blogPosts = data.reverse();
+      renderBlog();
+    })
+    .catch(() => renderBlog());
 
   // Passive event listeners for better scroll performance
   document.addEventListener('touchstart', function () { }, { passive: true });
