@@ -565,3 +565,303 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
 }
 
 
+/* ═══════════════════════════════════════
+   FIND ME ON — SOCIAL LINKS
+   ═══════════════════════════════════════ */
+
+.find-me-section {
+    margin-top: 28px;
+    border-top: 1.5px solid var(--ink);
+    padding-top: 20px;
+}
+
+.find-me-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    transition: background var(--speed), color var(--speed);
+    position: relative;
+}
+
+.social-link i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.social-link::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    width: 100%;
+    height: 100%;
+    border: 1.5px solid var(--ink);
+    z-index: -1;
+    transition: transform var(--speed);
+}
+
+.social-link:hover {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.social-link:hover::after {
+    transform: translate(3px, 3px);
+}
+
+@media (max-width: 600px) {
+    .social-links { gap: 8px; }
+    .social-link { font-size: 12px; padding: 6px 11px; }
+    .social-link i { font-size: 15px; }
+}
+
+/* ═══════════════════════════════════════
+   GENJUTSU SECTION
+   ═══════════════════════════════════════ */
+
+.genjutsu-content {
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+.genjutsu-content p {
+    margin-bottom: 18px;
+    color: var(--ink);
+}
+
+.genjutsu-content h3 {
+    font-size: 18px;
+    font-weight: 900;
+    margin: 28px 0 10px 0;
+    letter-spacing: 0.04em;
+    border-left: 3px solid var(--ink);
+    padding-left: 10px;
+}
+
+.genjutsu-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1.5px solid var(--ink);
+}
+
+.genjutsu-logo-wrap {
+    width: 52px;
+    height: 52px;
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.genjutsu-logo-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--ink);
+    z-index: -1;
+}
+
+.genjutsu-eye-icon {
+    font-size: 26px;
+    color: var(--ink);
+}
+
+.genjutsu-title {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin: 0;
+}
+
+.genjutsu-sub {
+    font-size: 11px;
+    color: var(--ink-mid);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 4px 0 0 0 !important;
+}
+
+.genjutsu-stats-row {
+    display: flex;
+    gap: 0;
+    margin: 24px 0;
+    border: 1.5px solid var(--ink);
+}
+
+.genjutsu-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    border-right: 1.5px solid var(--ink);
+}
+
+.genjutsu-stat:last-child {
+    border-right: none;
+}
+
+.stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mid);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+}
+
+.genjutsu-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1.5px solid var(--ink);
+}
+
+.genjutsu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    position: relative;
+    transition: background var(--speed), color var(--speed);
+}
+
+.genjutsu-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--ink);
+    z-index: -1;
+    transition: transform var(--speed);
+}
+
+.genjutsu-btn:hover {
+    background: transparent;
+    color: var(--ink);
+}
+
+.genjutsu-btn:hover::after {
+    transform: translate(4px, 4px);
+}
+
+.genjutsu-btn-outline {
+    background: transparent;
+    color: var(--ink);
+}
+
+.genjutsu-btn-outline:hover {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+@media (max-width: 600px) {
+    .genjutsu-stats-row { flex-direction: column; }
+    .genjutsu-stat { border-right: none; border-bottom: 1.5px solid var(--ink); }
+    .genjutsu-stat:last-child { border-bottom: none; }
+    .genjutsu-title { font-size: 22px; }
+    .genjutsu-cta { flex-direction: column; }
+    .genjutsu-btn { justify-content: center; }
+}
+
+/* ═══════════════════════════════════════
+   GENJUTSU BLURB
+   ═══════════════════════════════════════ */
+
+.genjutsu-blurb {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border: 1.5px solid var(--ink);
+    position: relative;
+}
+
+.genjutsu-blurb::before {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 1.5px solid var(--ink);
+    z-index: -1;
+}
+
+.genjutsu-blurb-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mid);
+    margin-bottom: 10px !important;
+}
+
+.genjutsu-blurb p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 14px;
+}
+
+.genjutsu-inline-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    transition: background var(--speed), color var(--speed);
+}
+
+.genjutsu-inline-btn:hover {
+    background: transparent;
+    color: var(--ink);
+}
