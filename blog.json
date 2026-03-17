@@ -1,5 +1,12 @@
 [
   {
+    "title": "My First Website",
+    "slug": "my-first-website",
+    "date": "August 2021",
+    "tag": "web dev",
+    "excerpt": "The beginning of my web development journey. Created on my birthday, August 23, 2021 — a simple website that represents where it all started."
+  },
+  {
     "title": "Commit Like a Pro",
     "slug": "commit-like-a-pro",
     "date": "March 2026",
