@@ -147,6 +147,9 @@
   };
 
   window.showSection = function (sectionName) {
+    // Save current section to sessionStorage (no URL change)
+    sessionStorage.setItem('section', sectionName);
+
     // Use requestAnimationFrame for smooth section switching
     requestAnimationFrame(() => {
       const sections = document.querySelectorAll('.section');
@@ -171,6 +174,15 @@
       }
     });
   };
+
+  // On load, restore section from sessionStorage
+  document.addEventListener('DOMContentLoaded', function () {
+    const valid = ['about', 'projects', 'blog', 'claude', 'guestbook'];
+    const saved = sessionStorage.getItem('section');
+    if (saved && valid.includes(saved)) {
+      showSection(saved);
+    }
+  });
 
   // Avatar Lightbox Functions - Optimized
   window.openAvatarLightbox = function () {
@@ -499,6 +511,223 @@
       renderBlog();
     })
     .catch(() => renderBlog());
+
+  // ── GUESTBOOK ──
+  const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c3lpeGNoemVpcGx3d21xbGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3Njk3MTMsImV4cCI6MjA4OTM0NTcxM30.niaCbSuBZSNlHOnM0EsUTGWow6ZxLA0t1YuJaA8Uixw';
+
+  function gbHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    };
+  }
+
+  function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return days + 'd ago';
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderReplyForm(parentId) {
+    return `
+      <div class="gb-reply-form" id="reply-form-${parentId}">
+        <div class="guestbook-form-row">
+          <input type="text" class="gb-input gb-reply-name" placeholder="your name (or anon)" maxlength="40" autocomplete="off" />
+          <button class="gb-submit gb-reply-btn" onclick="submitReply(${parentId})">[ reply ]</button>
+          <button class="gb-cancel-btn" onclick="closeReplyForm(${parentId})">[ x ]</button>
+        </div>
+        <textarea class="gb-textarea gb-reply-msg" placeholder="your reply..." maxlength="300" rows="2"
+          oninput="this.closest('.gb-reply-form').querySelector('.gb-reply-chars').textContent = this.value.length"></textarea>
+        <div class="gb-char-count"><span class="gb-reply-chars">0</span> / 300</div>
+        <div class="gb-reply-status"></div>
+      </div>
+    `;
+  }
+
+  function buildTree(all, parentId) {
+    return all
+      .filter(m => (m.parent_id ?? null) === (parentId ?? null))
+      .sort((a, b) => parentId === null
+        ? new Date(b.created_at) - new Date(a.created_at)  // top-level: newest first
+        : new Date(a.created_at) - new Date(b.created_at)  // replies: oldest first
+      )
+      .map(m => ({ ...m, children: buildTree(all, m.id) }));
+  }
+
+  function renderNode(m) {
+    const childrenHtml = m.children.length
+      ? `<div class="gb-replies">${m.children.map(c => renderNode(c)).join('')}</div>`
+      : '';
+    return `
+      <div class="gb-message-item" id="msg-${m.id}">
+        <div class="gb-message-meta">
+          <span class="gb-message-name">${escapeHtml(m.name || 'anon')}</span>
+          <span class="gb-message-date">${timeAgo(m.created_at)}</span>
+        </div>
+        <p class="gb-message-text">${escapeHtml(m.message)}</p>
+        <button class="gb-reply-toggle" onclick="toggleReplyForm(${m.id})">[ reply ]</button>
+        ${childrenHtml}
+      </div>
+    `;
+  }
+
+  function loadGuestbook() {
+    const container = document.getElementById('gb-messages');
+    const countEl = document.getElementById('guestbook-count');
+    if (!container) return;
+
+    container.innerHTML = `<div class="gb-loading">[ loading messages... ]</div>`;
+
+    fetch(`${SUPABASE_URL}/rest/v1/guestbook?select=*&order=created_at.asc`, {
+      headers: gbHeaders()
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data || data.length === 0) {
+          container.innerHTML = `<p class="gb-empty">[ no messages yet — be the first ]</p>`;
+          if (countEl) countEl.textContent = '';
+          return;
+        }
+
+        const tree = buildTree(data, null);
+        if (countEl) countEl.textContent = tree.length + ' message' + (tree.length !== 1 ? 's' : '');
+        container.innerHTML = tree.map(m => renderNode(m)).join('');
+      })
+      .catch(() => {
+        if (container) container.innerHTML = `<p class="gb-empty">[ failed to load messages ]</p>`;
+      });
+  }
+
+  window.toggleReplyForm = function (parentId) {
+    const existing = document.getElementById(`reply-form-${parentId}`);
+    if (existing) { existing.remove(); return; }
+    const msgEl = document.getElementById(`msg-${parentId}`);
+    if (!msgEl) return;
+    const toggle = msgEl.querySelector(':scope > .gb-reply-toggle');
+    toggle.insertAdjacentHTML('afterend', renderReplyForm(parentId));
+    msgEl.querySelector(`#reply-form-${parentId} .gb-reply-name`).focus();
+  };
+
+  window.closeReplyForm = function (parentId) {
+    const form = document.getElementById(`reply-form-${parentId}`);
+    if (form) form.remove();
+  };
+
+  window.submitReply = function (parentId) {
+    const form = document.getElementById(`reply-form-${parentId}`);
+    if (!form) return;
+
+    const nameEl = form.querySelector('.gb-reply-name');
+    const msgEl = form.querySelector('.gb-reply-msg');
+    const statusEl = form.querySelector('.gb-reply-status');
+    const btn = form.querySelector('.gb-reply-btn');
+
+    const name = (nameEl.value.trim() || 'anon').slice(0, 40);
+    const message = msgEl.value.trim();
+
+    if (!message) {
+      statusEl.textContent = '[ reply cannot be empty ]';
+      statusEl.style.color = '#8b2020';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '[ posting... ]';
+    statusEl.style.color = '';
+
+    fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
+      method: 'POST',
+      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ name, message, parent_id: parentId })
+    })
+      .then(r => {
+        if (!r.ok) throw new Error('Failed');
+        loadGuestbook();
+      })
+      .catch(() => {
+        statusEl.textContent = '[ something went wrong ]';
+        statusEl.style.color = '#8b2020';
+        btn.disabled = false;
+      });
+  };
+
+  window.submitGuestbook = function () {
+    const nameEl = document.getElementById('gb-name');
+    const msgEl = document.getElementById('gb-message');
+    const statusEl = document.getElementById('gb-status');
+    const btn = document.querySelector('.gb-submit');
+
+    const name = (nameEl.value.trim() || 'anon').slice(0, 40);
+    const message = msgEl.value.trim();
+
+    if (!message) {
+      statusEl.textContent = '[ message cannot be empty ]';
+      statusEl.className = 'gb-status error';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '[ posting... ]';
+    statusEl.className = 'gb-status';
+
+    fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
+      method: 'POST',
+      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ name, message })
+    })
+      .then(r => {
+        if (!r.ok) throw new Error('Failed');
+        statusEl.textContent = '[ message posted! ]';
+        statusEl.className = 'gb-status success';
+        nameEl.value = '';
+        msgEl.value = '';
+        document.getElementById('gb-chars').textContent = '0';
+        loadGuestbook();
+      })
+      .catch(() => {
+        statusEl.textContent = '[ something went wrong, try again ]';
+        statusEl.className = 'gb-status error';
+      })
+      .finally(() => { btn.disabled = false; });
+  };
+
+  // char counter for main form
+  document.addEventListener('DOMContentLoaded', function () {
+    const msgEl = document.getElementById('gb-message');
+    const charsEl = document.getElementById('gb-chars');
+    if (msgEl && charsEl) {
+      msgEl.addEventListener('input', () => {
+        charsEl.textContent = msgEl.value.length;
+      });
+    }
+  });
+
+  // lazy load guestbook when section becomes visible
+  let gbLoaded = false;
+  const _origShowSectionForGb = window.showSection;
+  window.showSection = function (sectionName) {
+    _origShowSectionForGb(sectionName);
+    if (sectionName === 'guestbook' && !gbLoaded) {
+      gbLoaded = true;
+      loadGuestbook();
+    }
+  };
 
   // Passive event listeners for better scroll performance
   document.addEventListener('touchstart', function () { }, { passive: true });

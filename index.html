@@ -86,6 +86,10 @@
                     onclick="showSection('claude'); toggleMenu(); return false;">
                     <span class="menu-link-text">Claude said about me</span>
                 </a>
+                <a href="#" class="menu-link" id="guestbook-link"
+                    onclick="showSection('guestbook'); toggleMenu(); return false;">
+                    <span class="menu-link-text">Guestbook</span>
+                </a>
                 <a href="../game/" class="menu-link">
                     <span class="menu-link-text">Waifu or Not</span>
                 </a>
@@ -358,6 +362,33 @@
                         <img src="./assets/claude-ss-3.png" alt="Claude screenshot 3"
                             onclick="openSsLightbox(this.src)" />
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GUESTBOOK SECTION -->
+        <div id="guestbook-section" class="section">
+            <div class="guestbook-content">
+                <div class="guestbook-header-row">
+                    <span class="guestbook-label">[ guestbook ]</span>
+                    <span class="guestbook-count" id="guestbook-count"></span>
+                </div>
+                <p class="guestbook-intro">leave a message. say hi. tell me something interesting.</p>
+
+                <!-- FORM -->
+                <div class="guestbook-form-wrap">
+                    <div class="guestbook-form-row">
+                        <input type="text" id="gb-name" class="gb-input" placeholder="your name (or anon)" maxlength="40" autocomplete="off" />
+                        <button class="gb-submit" onclick="submitGuestbook()">[ sign ]</button>
+                    </div>
+                    <textarea id="gb-message" class="gb-textarea" placeholder="your message..." maxlength="300" rows="3"></textarea>
+                    <div class="gb-char-count"><span id="gb-chars">0</span> / 300</div>
+                    <div class="gb-status" id="gb-status"></div>
+                </div>
+
+                <!-- MESSAGES LIST -->
+                <div class="gb-messages" id="gb-messages">
+                    <div class="gb-loading" id="gb-loading">[ loading messages... ]</div>
                 </div>
             </div>
         </div>

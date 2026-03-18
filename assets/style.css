@@ -866,3 +866,266 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
     background: transparent;
     color: var(--ink);
 }
+
+/* ── GUESTBOOK ── */
+.guestbook-content { padding-top: 40px; }
+
+.guestbook-header-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 8px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+}
+
+.guestbook-label {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    font-weight: bold;
+}
+
+.guestbook-count {
+    font-size: 11px;
+    color: var(--ink-mid);
+    letter-spacing: 0.06em;
+}
+
+.guestbook-intro {
+    font-size: 13px;
+    color: var(--ink-mid);
+    margin: 14px 0 24px 0;
+    font-style: italic;
+}
+
+/* Form */
+.guestbook-form-wrap {
+    border: 2px solid var(--ink);
+    padding: 18px;
+    margin-bottom: 36px;
+    position: relative;
+    background: var(--paper);
+}
+
+.guestbook-form-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--ink);
+    z-index: -1;
+}
+
+.guestbook-form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.gb-input {
+    flex: 1;
+    background: transparent;
+    border: 1.5px solid var(--ink-mid);
+    color: var(--ink);
+    padding: 8px 12px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color var(--speed);
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.gb-input:focus { border-color: var(--ink); }
+
+.gb-textarea {
+    width: 100%;
+    background: transparent;
+    border: 1.5px solid var(--ink-mid);
+    color: var(--ink);
+    padding: 8px 12px;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+    min-height: 72px;
+    transition: border-color var(--speed);
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1.6;
+}
+
+.gb-textarea:focus { border-color: var(--ink); }
+
+.gb-char-count {
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: right;
+    margin-top: 5px;
+    letter-spacing: 0.06em;
+}
+
+.gb-submit {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1.5px solid var(--ink);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    font-family: 'Share Tech Mono', monospace;
+    transition: background var(--speed), color var(--speed);
+    white-space: nowrap;
+    align-self: flex-start;
+}
+
+.gb-submit:hover { background: transparent; color: var(--ink); }
+.gb-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.gb-status {
+    font-size: 12px;
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+    min-height: 18px;
+}
+
+.gb-status.success { color: #3a7a3a; }
+.gb-status.error { color: #8b2020; }
+
+/* Messages */
+.gb-loading {
+    font-size: 13px;
+    color: var(--ink-mid);
+    letter-spacing: 0.06em;
+    padding: 20px 0;
+}
+
+.gb-message-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--ink-faint);
+}
+
+.gb-message-item:last-child { border-bottom: none; }
+
+.gb-message-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.gb-message-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+}
+
+.gb-message-date {
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+}
+
+.gb-message-text {
+    font-size: 13px;
+    color: var(--ink-light);
+    line-height: 1.7;
+    word-break: break-word;
+}
+
+.gb-empty {
+    font-size: 13px;
+    color: var(--ink-mid);
+    font-style: italic;
+    padding: 20px 0;
+    letter-spacing: 0.05em;
+}
+
+/* ── GUESTBOOK REPLIES ── */
+.gb-reply-toggle {
+    background: transparent;
+    border: none;
+    color: var(--ink-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 4px 0;
+    letter-spacing: 0.06em;
+    margin-top: 6px;
+    display: inline-block;
+    transition: color var(--speed);
+}
+.gb-reply-toggle:hover { color: var(--ink); }
+
+.gb-replies {
+    margin-top: 10px;
+    padding-left: 14px;
+    border-left: 2px solid var(--ink-faint);
+}
+
+/* each nested level gets slightly less indent so it doesn't explode on mobile */
+.gb-replies .gb-replies { padding-left: 10px; }
+.gb-replies .gb-replies .gb-replies { padding-left: 8px; }
+
+.gb-message-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--ink-faint);
+}
+.gb-message-item:last-child { border-bottom: none; }
+
+/* replies inside .gb-replies have lighter dividers */
+.gb-replies > .gb-message-item {
+    border-bottom: 1px dashed var(--ink-faint);
+    padding: 10px 0;
+}
+
+.gb-reply-form {
+    margin-top: 10px;
+    padding: 12px;
+    border: 1.5px dashed var(--ink-mid);
+    background: var(--paper);
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+}
+
+.gb-reply-form .guestbook-form-row {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.gb-reply-form .gb-input {
+    min-width: 0;
+    flex: 1 1 120px;
+}
+
+.gb-reply-form .gb-submit,
+.gb-reply-form .gb-cancel-btn {
+    flex-shrink: 0;
+}
+
+.gb-reply-form .gb-textarea {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.gb-cancel-btn {
+    background: transparent;
+    border: 1.5px solid var(--ink-mid);
+    color: var(--ink-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: color var(--speed), border-color var(--speed);
+    white-space: nowrap;
+}
+.gb-cancel-btn:hover { color: var(--ink); border-color: var(--ink); }
+
+.gb-reply-status {
+    font-size: 11px;
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+    min-height: 16px;
+}
