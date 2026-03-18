@@ -3,13 +3,9 @@ export default {
     const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
     const ANON_KEY = env.SUPABASE_ANON_KEY;
 
-    const allowedOrigins = ['https://iamovi.github.io', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000'];
-    const origin = request.headers.get('Origin') || '';
-    const allowedOrigin = allowedOrigins.includes(origin) ? origin : 'https://iamovi.github.io';
-
-    // Allow CORS for your GitHub Pages site
+    // Allow CORS for all origins
     const corsHeaders = {
-      'Access-Control-Allow-Origin': allowedOrigin,
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization',
     };
