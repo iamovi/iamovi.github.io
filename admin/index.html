@@ -26,16 +26,10 @@
       color: var(--ink);
       font-family: 'Share Tech Mono', monospace;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      padding: 32px 16px;
     }
 
-    .panel {
-      width: 100%;
-      max-width: 480px;
-    }
+    .panel { width: 100%; max-width: 600px; margin: 0 auto; }
 
     .panel-title {
       font-size: 11px;
@@ -44,7 +38,6 @@
       color: var(--ink-mid);
       margin-bottom: 24px;
     }
-
     .panel-title span { color: var(--ink); }
 
     .box {
@@ -52,8 +45,8 @@
       padding: 24px;
       position: relative;
       background: var(--paper);
+      margin-bottom: 28px;
     }
-
     .box::after {
       content: '';
       position: absolute;
@@ -61,6 +54,19 @@
       width: 100%; height: 100%;
       border: 2px solid var(--ink);
       z-index: -1;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-mid);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--ink-faint);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     label {
@@ -84,10 +90,8 @@
       transition: border-color var(--speed);
       margin-bottom: 16px;
     }
-
     input:focus, textarea:focus { border-color: var(--ink); }
     input[type="password"] { letter-spacing: 0.2em; }
-
     textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 
     .btn {
@@ -102,7 +106,6 @@
       width: 100%;
       transition: background var(--speed), color var(--speed);
     }
-
     .btn:hover { background: transparent; color: var(--ink); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -113,6 +116,21 @@
       margin-top: 10px;
     }
     .btn-ghost:hover { color: var(--ink); border-color: var(--ink); background: transparent; }
+
+    .btn-danger {
+      background: transparent;
+      color: #8b2020;
+      border: 1.5px solid #8b2020;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-family: 'Share Tech Mono', monospace;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      transition: background var(--speed), color var(--speed);
+      width: auto;
+    }
+    .btn-danger:hover { background: #8b2020; color: var(--paper); }
 
     .status-msg {
       font-size: 12px;
@@ -132,14 +150,64 @@
       border-left: 3px solid var(--ink-faint);
     }
 
-    .section-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--ink-mid);
-      margin-bottom: 16px;
-      padding-bottom: 8px;
+    /* comment list */
+    .comment-list { margin-top: 4px; }
+
+    .comment-item {
+      padding: 12px 0;
       border-bottom: 1px solid var(--ink-faint);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .comment-item:last-child { border-bottom: none; }
+
+    .comment-body { flex: 1; min-width: 0; }
+
+    .comment-meta {
+      font-size: 11px;
+      color: var(--ink-mid);
+      margin-bottom: 4px;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .comment-name { font-weight: bold; color: var(--ink); font-size: 12px; }
+    .comment-reply-badge {
+      font-size: 10px;
+      color: var(--ink-faint);
+      border: 1px solid var(--ink-faint);
+      padding: 1px 5px;
+      letter-spacing: 0.04em;
+    }
+
+    .comment-text {
+      font-size: 13px;
+      color: var(--ink);
+      word-break: break-word;
+      line-height: 1.6;
+    }
+
+    .comment-empty {
+      font-size: 13px;
+      color: var(--ink-mid);
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    .comment-count {
+      font-size: 11px;
+      color: var(--ink-faint);
+      font-weight: normal;
+    }
+
+    .gb-loading-admin {
+      font-size: 13px;
+      color: var(--ink-mid);
+      padding: 8px 0;
+      letter-spacing: 0.06em;
     }
 
     #login-view, #admin-view { display: none; }
@@ -163,14 +231,33 @@
   </div>
 
   <!-- ADMIN -->
-  <div class="box" id="admin-view">
-    <div class="section-title">status message</div>
-    <div class="current-status" id="current-status">loading current status...</div>
-    <label>new message</label>
-    <textarea id="status-input" placeholder="what are you up to..." maxlength="120"></textarea>
-    <button class="btn" onclick="saveStatus()" id="save-btn">[ save ]</button>
-    <div class="status-msg" id="save-status"></div>
-    <button class="btn btn-ghost" onclick="doLogout()">[ sign out ]</button>
+  <div id="admin-view">
+
+    <!-- STATUS -->
+    <div class="box">
+      <div class="section-title">status message</div>
+      <div class="current-status" id="current-status">loading...</div>
+      <label>new message</label>
+      <textarea id="status-input" placeholder="what are you up to..." maxlength="120"></textarea>
+      <button class="btn" onclick="saveStatus()" id="save-btn">[ save ]</button>
+      <div class="status-msg" id="save-status"></div>
+    </div>
+
+    <!-- GUESTBOOK MODERATION -->
+    <div class="box">
+      <div class="section-title">
+        <span>guestbook</span>
+        <span class="comment-count" id="comment-count"></span>
+      </div>
+      <div class="comment-list" id="comment-list">
+        <div class="gb-loading-admin">[ loading comments... ]</div>
+      </div>
+    </div>
+
+    <div class="box" style="padding: 16px 24px;">
+      <button class="btn btn-ghost" style="margin-top:0;" onclick="doLogout()">[ sign out ]</button>
+    </div>
+
   </div>
 </div>
 
@@ -180,11 +267,11 @@
 
   let accessToken = null;
 
-  function authHeaders(token) {
+  function authHeaders() {
     return {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + token
+      'Authorization': 'Bearer ' + accessToken
     };
   }
 
@@ -196,6 +283,25 @@
     };
   }
 
+  function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return days + 'd ago';
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── LOGIN ──
   function showLogin() {
     document.getElementById('login-view').classList.add('show');
     document.getElementById('admin-view').classList.remove('show');
@@ -206,6 +312,7 @@
     document.getElementById('login-view').classList.remove('show');
     document.getElementById('admin-view').classList.add('show');
     loadCurrentStatus();
+    loadComments();
   }
 
   async function doLogin() {
@@ -241,15 +348,22 @@
     }
   }
 
+  function doLogout() {
+    sessionStorage.removeItem('admin_token');
+    accessToken = null;
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-status').textContent = '';
+    showLogin();
+  }
+
+  // ── STATUS ──
   async function loadCurrentStatus() {
     const el = document.getElementById('current-status');
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/status?select=message&limit=1', { headers: anonHeaders() });
       const data = await res.json();
       el.textContent = data && data[0] ? '"' + data[0].message + '"' : '[ no status set yet ]';
-    } catch {
-      el.textContent = '[ failed to load ]';
-    }
+    } catch { el.textContent = '[ failed to load ]'; }
   }
 
   async function saveStatus() {
@@ -268,10 +382,9 @@
     statusEl.className = 'status-msg';
 
     try {
-      // upsert — update the single row (id=1), or insert if not exists
       const res = await fetch(SUPABASE_URL + '/rest/v1/status?id=eq.1', {
         method: 'PATCH',
-        headers: { ...authHeaders(accessToken), 'Prefer': 'return=minimal' },
+        headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
         body: JSON.stringify({ message: msg })
       });
       if (!res.ok) throw new Error('failed to save');
@@ -282,32 +395,83 @@
     } catch (err) {
       statusEl.textContent = '[ ' + err.message + ' ]';
       statusEl.className = 'status-msg err';
-    } finally {
-      btn.disabled = false;
+    } finally { btn.disabled = false; }
+  }
+
+  // ── GUESTBOOK MODERATION ──
+  async function loadComments() {
+    const list = document.getElementById('comment-list');
+    const countEl = document.getElementById('comment-count');
+    list.innerHTML = '<div class="gb-loading-admin">[ loading comments... ]</div>';
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?select=*&order=created_at.desc', { headers: anonHeaders() });
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        list.innerHTML = '<p class="comment-empty">[ no comments yet ]</p>';
+        if (countEl) countEl.textContent = '';
+        return;
+      }
+
+      if (countEl) countEl.textContent = data.length + ' total';
+
+      list.innerHTML = data.map(m => {
+        const isReply = m.parent_id !== null;
+        return `
+          <div class="comment-item" id="admin-msg-${m.id}">
+            <div class="comment-body">
+              <div class="comment-meta">
+                <span class="comment-name">${escapeHtml(m.name || 'anon')}</span>
+                ${isReply ? '<span class="comment-reply-badge">reply</span>' : ''}
+                <span>${timeAgo(m.created_at)}</span>
+                ${isReply ? `<span style="color:var(--ink-faint)">↳ id:${m.parent_id}</span>` : ''}
+              </div>
+              <div class="comment-text">${escapeHtml(m.message)}</div>
+            </div>
+            <button class="btn-danger" onclick="deleteComment(${m.id})">[ delete ]</button>
+          </div>
+        `;
+      }).join('');
+    } catch {
+      list.innerHTML = '<p class="comment-empty">[ failed to load ]</p>';
     }
   }
 
-  function doLogout() {
-    sessionStorage.removeItem('admin_token');
-    accessToken = null;
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-status').textContent = '';
-    showLogin();
+  async function deleteComment(id) {
+    if (!confirm('Delete this comment? Replies to it will also be deleted.')) return;
+
+    const row = document.getElementById('admin-msg-' + id);
+    const btn = row ? row.querySelector('.btn-danger') : null;
+    if (btn) btn.disabled = true;
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?id=eq.' + id, {
+        method: 'DELETE',
+        headers: authHeaders()
+      });
+      if (!res.ok) throw new Error('failed');
+      // remove from UI
+      if (row) row.remove();
+      // update count
+      const countEl = document.getElementById('comment-count');
+      if (countEl) {
+        const cur = parseInt(countEl.textContent) || 1;
+        countEl.textContent = (cur - 1) + ' total';
+      }
+    } catch {
+      if (btn) btn.disabled = false;
+      alert('Failed to delete. Try again.');
+    }
   }
 
-  // enter key on password field
+  // ── INIT ──
   document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('login-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();
     });
-
-    // check for existing session
     const saved = sessionStorage.getItem('admin_token');
-    if (saved) {
-      showAdmin(saved);
-    } else {
-      showLogin();
-    }
+    if (saved) { showAdmin(saved); } else { showLogin(); }
   });
 </script>
 </body>
