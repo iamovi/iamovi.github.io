@@ -7,7 +7,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': 'https://iamovi.github.io',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Prefer',
+      'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization',
     };
 
     if (request.method === 'OPTIONS') {
