@@ -603,8 +603,8 @@
   };
 
   // ── GUESTBOOK ──
-  const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c3lpeGNoemVpcGx3d21xbGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3Njk3MTMsImV4cCI6MjA4OTM0NTcxM30.niaCbSuBZSNlHOnM0EsUTGWow6ZxLA0t1YuJaA8Uixw';
+  const SUPABASE_URL = 'https://iamovi-github-io.oviren-human.workers.dev/proxy';
+  const SUPABASE_ANON_KEY = ''; // key is now hidden in Cloudflare Worker
 
   // ── STATUS ──
   function loadStatus() {
