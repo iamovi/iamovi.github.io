@@ -867,6 +867,64 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
     color: var(--ink);
 }
 
+/* ── UNDER THE HOOD BUTTON ── */
+.under-hood-blurb {
+    margin-top: 16px;
+    padding: 18px 20px;
+    border: 1.5px dashed var(--ink-mid);
+    position: relative;
+}
+
+.under-hood-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mid);
+    margin-bottom: 12px;
+}
+
+.under-hood-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    transition: background var(--speed), color var(--speed);
+    position: relative;
+}
+
+.under-hood-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    width: 100%;
+    height: 100%;
+    border: 1.5px solid var(--ink);
+    z-index: -1;
+    transition: transform var(--speed);
+}
+
+.under-hood-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.under-hood-btn:hover::after {
+    transform: translate(3px, 3px);
+}
+
+.under-hood-btn i {
+    font-size: 15px;
+}
+
 /* ── GUESTBOOK ── */
 .guestbook-content { padding-top: 40px; }
 
@@ -1206,4 +1264,38 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
     color: var(--ink);
     font-style: italic;
     word-break: break-word;
+}
+
+/* ── VISITOR COUNT ── */
+.visitor-count {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--ink-faint);
+    margin-bottom: 24px;
+    margin-top: 8px;
+}
+
+.visitor-count-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.visitor-count-num {
+    font-size: 12px;
+    color: var(--ink-mid);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.visitor-count-suffix {
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }

@@ -627,6 +627,41 @@
   // load status on page load
   document.addEventListener('DOMContentLoaded', loadStatus);
 
+  // ── VISITOR COUNT ──
+  function loadVisitorCount() {
+    fetch(SUPABASE_URL + '/rest/v1/rpc/get_today_visit_count', {
+      method: 'POST',
+      headers: gbHeaders()
+    })
+      .then(r => r.json())
+      .then(count => {
+        const el = document.getElementById('visitor-count-num');
+        const wrap = document.getElementById('visitor-count');
+        if (el && wrap && typeof count === 'number') {
+          el.textContent = count;
+          wrap.style.display = 'flex';
+        }
+      })
+      .catch(() => {});
+  }
+
+  function recordVisit() {
+    if (sessionStorage.getItem('visit_recorded')) return;
+    sessionStorage.setItem('visit_recorded', '1');
+    fetch(SUPABASE_URL + '/rest/v1/visits', {
+      method: 'POST',
+      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({})
+    })
+      .then(r => { if (r.ok) loadVisitorCount(); })
+      .catch(() => {});
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    recordVisit();
+    loadVisitorCount();
+  });
+
   function gbHeaders() {
     return {
       'Content-Type': 'application/json',

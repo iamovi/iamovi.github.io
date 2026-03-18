@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>under the hood — init_ovi</title>
+    <link rel="icon" href="../samurai-jack.png">
+    <meta name="robots" content="index, follow">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/bar.css">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ink: #1a0f00;
+            --paper: #f2e6c8;
+            --paper-dark: #e0d0a8;
+            --ink-light: #2a1a05;
+            --ink-mid: #6b5a3e;
+            --ink-faint: #b09a78;
+            --speed: 0.15s;
+        }
+
+        html { overflow-x: hidden; }
+        body { overflow-x: clip; }
+
+        body {
+            background-color: var(--paper);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 20px 20px;
+            color: var(--ink);
+            padding: 32px 16px 64px;
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            margin-bottom: 56px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid var(--ink);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            transition: color var(--speed);
+        }
+        .back-link:hover { color: var(--ink); }
+
+        .page-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1.2;
+            text-shadow: 3px 3px 0 var(--paper-dark), 4px 4px 0 var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: var(--ink-mid);
+            line-height: 1.7;
+            max-width: 560px;
+        }
+
+        /* ── TOC ── */
+        .toc {
+            border: 2px solid var(--ink);
+            padding: 20px 24px;
+            margin-bottom: 56px;
+            position: relative;
+            background: var(--paper-dark);
+        }
+        .toc::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; right: -5px;
+            width: 100%; height: 100%;
+            border: 2px solid var(--ink);
+            z-index: -1;
+        }
+        .toc-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--ink-mid);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--ink-faint);
+        }
+        .toc-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .toc-list a {
+            font-size: 13px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: color var(--speed);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toc-list a::before {
+            content: '→';
+            color: var(--ink-faint);
+            font-size: 11px;
+        }
+        .toc-list a:hover { color: var(--ink); }
+
+        /* ── SECTIONS ── */
+        .doc-section {
+            margin-bottom: 64px;
+        }
+
+        .section-anchor {
+            display: block;
+            position: relative;
+            top: -20px;
+            visibility: hidden;
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-faint);
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--ink);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--ink);
+            letter-spacing: 0.02em;
+        }
+
+        .section-body {
+            font-size: 14px;
+            line-height: 1.9;
+            color: var(--ink-light);
+        }
+
+        .section-body p {
+            margin-bottom: 16px;
+        }
+
+        .section-body h4 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 28px 0 10px;
+            padding-left: 12px;
+            border-left: 3px solid var(--ink);
+            letter-spacing: 0.03em;
+        }
+
+        /* ── CODE BLOCKS ── */
+        .code-block {
+            background: var(--ink);
+            color: var(--paper);
+            padding: 16px 18px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            margin: 16px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block .code-label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-faint);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #3a2a10;
+        }
+
+        .code-block .comment { color: #b09a78; }
+        .code-block .key { color: #ffd080; }
+        .code-block .val { color: #a8e0a0; }
+        .code-block .kw { color: #ff9060; }
+
+        /* ── FLOW DIAGRAM ── */
+        .flow {
+            border: 2px solid var(--ink);
+            padding: 20px;
+            margin: 16px 0;
+            position: relative;
+        }
+        .flow::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; right: -4px;
+            width: 100%; height: 100%;
+            border: 2px solid var(--ink);
+            z-index: -1;
+        }
+        .flow-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--ink-mid);
+            margin-bottom: 14px;
+        }
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--ink-faint);
+            font-size: 13px;
+            color: var(--ink-light);
+            line-height: 1.6;
+        }
+        .flow-step:last-child { border-bottom: none; }
+        .flow-num {
+            font-size: 10px;
+            color: var(--paper);
+            background: var(--ink);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ── CALLOUT BOXES ── */
+        .callout {
+            border-left: 4px solid var(--ink);
+            padding: 12px 16px;
+            margin: 16px 0;
+            background: var(--paper-dark);
+            font-size: 13px;
+            color: var(--ink-light);
+            line-height: 1.7;
+        }
+        .callout strong {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        /* ── TABLE ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin: 16px 0;
+        }
+        .data-table th {
+            background: var(--ink);
+            color: var(--paper);
+            padding: 8px 12px;
+            text-align: left;
+            letter-spacing: 0.08em;
+            font-weight: 400;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+        .data-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--paper-dark);
+            color: var(--ink-light);
+            vertical-align: top;
+            line-height: 1.6;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:nth-child(even) td { background: var(--paper-dark); }
+
+        /* ── HIGHLIGHT ── */
+        .hl {
+            color: var(--ink);
+            font-weight: 700;
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 1px;
+        }
+
+        /* ── DIVIDER ── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--ink-faint);
+            margin: 48px 0;
+        }
+
+        /* ── FOOTER ── */
+        .page-footer {
+            margin-top: 64px;
+            padding-top: 20px;
+            border-top: 3px solid var(--ink);
+            font-size: 12px;
+            color: var(--ink-mid);
+            letter-spacing: 0.05em;
+        }
+        .page-footer a {
+            color: var(--ink);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 22px 14px 48px; }
+            .page-title { font-size: 24px; }
+            .section-title { font-size: 20px; }
+            .data-table { font-size: 11px; }
+            .data-table th, .data-table td { padding: 6px 8px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="page-header">
+            <a href="../" class="back-link">
+                <i class="ri-arrow-left-line"></i> back to init_ovi
+            </a>
+            <h1 class="page-title">under the hood</h1>
+            <p class="page-subtitle">
+                Every system on this site explained in full — no hand-waving, no buzzwords.
+                How the database works, how data flows, why each decision was made.
+                Nothing is hidden.
+            </p>
+        </div>
+
+        <!-- TOC -->
+        <div class="toc">
+            <div class="toc-title">contents</div>
+            <ul class="toc-list">
+                <li><a href="#architecture">Architecture overview</a></li>
+                <li><a href="#supabase">Supabase — the database</a></li>
+                <li><a href="#worker">Cloudflare Worker — the proxy</a></li>
+                <li><a href="#guestbook">Guestbook & threaded replies</a></li>
+                <li><a href="#reactions">Reactions system</a></li>
+                <li><a href="#status">Status bar</a></li>
+                <li><a href="#visits">Visitor counter</a></li>
+                <li><a href="#cronjob">Cron job — daily cleanup</a></li>
+                <li><a href="#admin">Admin panel</a></li>
+                <li><a href="#frontend">Frontend — no frameworks</a></li>
+                <li><a href="#music">Music player & sound engine</a></li>
+                <li><a href="#hosting">Hosting & deployment</a></li>
+            </ul>
+        </div>
+
+        <!-- 1. ARCHITECTURE -->
+        <div class="doc-section">
+            <span class="section-anchor" id="architecture"></span>
+            <div class="section-label">01</div>
+            <h2 class="section-title">Architecture overview</h2>
+            <div class="section-body">
+                <p>This is a fully static site — there is no server, no Node.js backend, no build step. Every HTML file is just a file. The only dynamic parts are powered by three external services: <span class="hl">GitHub Pages</span> for hosting, <span class="hl">Supabase</span> as the database, and a <span class="hl">Cloudflare Worker</span> as a proxy layer between them.</p>
+
+                <div class="flow">
+                    <div class="flow-title">request flow — how your browser talks to the database</div>
+                    <div class="flow-steps">
+                        <div class="flow-step">
+                            <div class="flow-num">1</div>
+                            <span>Your browser loads <strong>iamovi.github.io</strong> — a static HTML file served from GitHub Pages. Zero server-side code runs.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">2</div>
+                            <span>JavaScript in the page needs data (guestbook messages, reaction counts, visitor count). It sends a <strong>fetch()</strong> request to the Cloudflare Worker URL instead of calling Supabase directly.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">3</div>
+                            <span>The <strong>Cloudflare Worker</strong> receives the request, attaches the secret Supabase API key (stored securely as an environment variable), and forwards it to Supabase.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">4</div>
+                            <span><strong>Supabase</strong> processes the request — reads or writes to the Postgres database — and returns a response.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">5</div>
+                            <span>The Worker adds CORS headers and returns the response to your browser. The page renders the data.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout">
+                    <strong>Why this setup?</strong> Calling Supabase directly from the browser would expose the API key in plain text in the JavaScript source. Anyone could open DevTools and grab it. The Worker hides the key completely — it lives in Cloudflare's environment variables, never in the HTML or JS.
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SUPABASE -->
+        <div class="doc-section">
+            <span class="section-anchor" id="supabase"></span>
+            <div class="section-label">02</div>
+            <h2 class="section-title">Supabase — the database</h2>
+            <div class="section-body">
+                <p><span class="hl">Supabase</span> is an open-source Firebase alternative built on top of Postgres. It provides a real database, auto-generated REST API, authentication, row-level security, and more. I'm using the free tier.</p>
+
+                <p>Supabase exposes every table as a REST endpoint via <span class="hl">PostgREST</span> — so you can query, insert, update, and delete rows using plain HTTP requests without writing any backend code. It also supports calling Postgres functions directly via <strong>/rest/v1/rpc/function_name</strong>.</p>
+
+                <h4>Tables</h4>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Table</th>
+                            <th>Purpose</th>
+                            <th>Key columns</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>guestbook</strong></td>
+                            <td>Stores all guestbook messages and replies</td>
+                            <td>id, name, message, parent_id, created_at</td>
+                        </tr>
+                        <tr>
+                            <td><strong>reactions</strong></td>
+                            <td>Stores every emoji reaction on projects, blog posts, and comments</td>
+                            <td>id, target_type, target_id, reaction, created_at</td>
+                        </tr>
+                        <tr>
+                            <td><strong>status</strong></td>
+                            <td>Single-row table holding the "ovi says —" message</td>
+                            <td>id, message, updated_at</td>
+                        </tr>
+                        <tr>
+                            <td><strong>visits</strong></td>
+                            <td>One row per site visit session, used for the daily counter</td>
+                            <td>id, visited_at</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Row Level Security (RLS)</h4>
+                <p>Every table has <span class="hl">RLS enabled</span>. This is a Postgres feature that enforces access rules at the database level — even if someone bypasses the Worker and calls Supabase directly, the policies still apply.</p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Table</th>
+                            <th>Who can read</th>
+                            <th>Who can insert</th>
+                            <th>Who can update/delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>guestbook</td>
+                            <td>Everyone</td>
+                            <td>Everyone</td>
+                            <td>Authenticated only (admin)</td>
+                        </tr>
+                        <tr>
+                            <td>reactions</td>
+                            <td>Everyone</td>
+                            <td>Everyone</td>
+                            <td>Not allowed</td>
+                        </tr>
+                        <tr>
+                            <td>status</td>
+                            <td>Everyone</td>
+                            <td>Not allowed</td>
+                            <td>Authenticated only (admin)</td>
+                        </tr>
+                        <tr>
+                            <td>visits</td>
+                            <td>Everyone</td>
+                            <td>Everyone</td>
+                            <td>Not allowed</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout">
+                    <strong>What "authenticated" means here:</strong> Only me, logged in via the Supabase admin panel or the admin page on this site. Regular visitors are treated as "anon" — they can read and post, but cannot delete or update anything.
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CLOUDFLARE WORKER -->
+        <div class="doc-section">
+            <span class="section-anchor" id="worker"></span>
+            <div class="section-label">03</div>
+            <h2 class="section-title">Cloudflare Worker — the proxy</h2>
+            <div class="section-body">
+                <p>A <span class="hl">Cloudflare Worker</span> is a tiny JavaScript function that runs on Cloudflare's global edge network — not on a server I own or manage. It's serverless, runs in milliseconds, and the free tier handles 100,000 requests per day.</p>
+
+                <p>The Worker lives at <strong>iamovi-github-io.oviren-human.workers.dev</strong>. Every API call from the site goes through <strong>/proxy</strong> on that domain, which gets stripped and forwarded to the real Supabase URL.</p>
+
+                <h4>What the Worker actually does</h4>
+                <div class="code-block">
+                    <span class="code-label">cloudflare-worker/worker.js — simplified</span>
+<span class="comment">// 1. Handle CORS preflight (browsers send this before real requests)</span>
+<span class="kw">if</span> (request.method === <span class="val">'OPTIONS'</span>) {
+  <span class="kw">return</span> new Response(null, { headers: corsHeaders });
+}
+
+<span class="comment">// 2. Strip /proxy from the path</span>
+<span class="comment">//    /proxy/rest/v1/guestbook → /rest/v1/guestbook</span>
+const supabasePath = url.pathname.replace(<span class="val">'/proxy'</span>, <span class="val">''</span>);
+
+<span class="comment">// 3. Forward to Supabase with the secret key attached</span>
+<span class="comment">//    The key comes from env.SUPABASE_ANON_KEY — never hardcoded</span>
+const supabaseRequest = new Request(SUPABASE_URL + supabasePath, {
+  <span class="key">method</span>: <span class="val">request.method</span>,
+  <span class="key">headers</span>: {
+    <span class="key">'apikey'</span>: <span class="val">env.SUPABASE_ANON_KEY</span>,
+    <span class="key">'Authorization'</span>: <span class="val">'Bearer ' + env.SUPABASE_ANON_KEY</span>,
+  }
+});
+
+<span class="comment">// 4. Return Supabase's response + CORS headers to the browser</span>
+<span class="kw">return</span> new Response(response.body, { headers: corsHeaders });
+                </div>
+
+                <h4>CORS — why it's needed</h4>
+                <p>Browsers block JavaScript from fetching data from a different domain by default. This is called the <span class="hl">Same-Origin Policy</span>. Since the site is on <strong>iamovi.github.io</strong> and Supabase is on <strong>supabase.co</strong>, the browser would block every request without CORS headers. The Worker adds <strong>Access-Control-Allow-Origin: *</strong> to every response, telling the browser "this is fine".</p>
+
+                <h4>Allowed methods</h4>
+                <p>The Worker only allows <strong>GET, POST, OPTIONS</strong>. DELETE and PATCH are intentionally blocked — nobody can delete data from the frontend, only from the admin panel which uses Supabase's own auth.</p>
+            </div>
+        </div>
+
+        <!-- 4. GUESTBOOK -->
+        <div class="doc-section">
+            <span class="section-anchor" id="guestbook"></span>
+            <div class="section-label">04</div>
+            <h2 class="section-title">Guestbook & threaded replies</h2>
+            <div class="section-body">
+                <p>The guestbook is a single Postgres table with a <span class="hl">self-referential foreign key</span> — a row can point to another row as its parent. This is how threaded replies work without a separate replies table.</p>
+
+                <div class="code-block">
+                    <span class="code-label">guestbook table schema</span>
+<span class="key">id</span>          bigint  <span class="comment">-- auto-incrementing primary key</span>
+<span class="key">name</span>        text    <span class="comment">-- visitor name, defaults to 'anon'</span>
+<span class="key">message</span>     text    <span class="comment">-- the message content</span>
+<span class="key">parent_id</span>   bigint  <span class="comment">-- NULL = top-level, non-NULL = reply to that id</span>
+<span class="key">created_at</span>  timestamptz  <span class="comment">-- set automatically by Postgres</span>
+                </div>
+
+                <h4>How the tree is built in JavaScript</h4>
+                <p>Every time the guestbook loads, the site fetches <strong>all rows at once</strong> ordered by <strong>created_at ascending</strong>. The JS then builds a tree from the flat array:</p>
+
+                <div class="flow">
+                    <div class="flow-title">tree-building algorithm</div>
+                    <div class="flow-steps">
+                        <div class="flow-step">
+                            <div class="flow-num">1</div>
+                            <span>Fetch all rows from Supabase in one request — <strong>SELECT * FROM guestbook ORDER BY created_at ASC</strong></span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">2</div>
+                            <span><strong>buildTree(all, null)</strong> — filter rows where parent_id is NULL. These are the top-level messages. Sort them newest first.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">3</div>
+                            <span>For each top-level message, recursively call <strong>buildTree(all, message.id)</strong> to find its children. Children are sorted oldest first (chronological reply order).</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">4</div>
+                            <span>Each node gets a <strong>children</strong> array. The resulting tree is rendered as nested HTML — each reply level gets a left border indent.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Posting a message</h4>
+                <p>When you click <strong>[ sign ]</strong>, the JS sends a POST to <strong>/rest/v1/guestbook</strong> with <strong>&#123; name, message &#125;</strong>. No <strong>parent_id</strong> means it's a top-level post. For replies, <strong>parent_id</strong> is set to the parent message's id. Supabase inserts the row and returns a 201 status. The page then re-fetches the full guestbook to show the new message.</p>
+
+                <h4>HTML escaping</h4>
+                <p>All user content — names and messages — is run through an <strong>escapeHtml()</strong> function before being injected into the DOM. This prevents XSS attacks where someone could post a message containing <strong>&lt;script&gt;</strong> tags.</p>
+
+                <h4>Deletion (admin only)</h4>
+                <p>The <strong>parent_id</strong> column has <strong>ON DELETE CASCADE</strong> — if a parent message is deleted, all its replies are automatically deleted too by Postgres. Deletion is only possible via the admin panel, which requires Supabase authentication.</p>
+            </div>
+        </div>
+
+        <!-- 5. REACTIONS -->
+        <div class="doc-section">
+            <span class="section-anchor" id="reactions"></span>
+            <div class="section-label">05</div>
+            <h2 class="section-title">Reactions system</h2>
+            <div class="section-body">
+                <p>Reactions (💀 🔥 👾 [lol]) work on three things: projects, blog posts, and guestbook comments. Every reaction is a row in the <span class="hl">reactions</span> table with a <strong>target_type</strong> and <strong>target_id</strong> to identify what was reacted to.</p>
+
+                <div class="code-block">
+                    <span class="code-label">reactions table schema</span>
+<span class="key">id</span>           bigint  <span class="comment">-- auto-incrementing primary key</span>
+<span class="key">target_type</span>  text    <span class="comment">-- 'project', 'blog', or 'comment'</span>
+<span class="key">target_id</span>    text    <span class="comment">-- slugified project name, blog slug, or comment id</span>
+<span class="key">reaction</span>     text    <span class="comment">-- 'skull', 'fire', 'alien', or 'lol'</span>
+<span class="key">created_at</span>   timestamptz
+                </div>
+
+                <h4>Loading counts efficiently</h4>
+                <p>When a page of projects or blog posts renders, all visible items are passed to <strong>loadReactionCounts()</strong> at once. It builds a single Supabase query using an <strong>OR</strong> filter to fetch reactions for all items in one request — not one request per item.</p>
+
+                <div class="code-block">
+                    <span class="code-label">single batched query for all visible items</span>
+<span class="comment">-- equivalent SQL for 3 projects on the current page:</span>
+<span class="kw">SELECT</span> target_type, target_id, reaction
+<span class="kw">FROM</span> reactions
+<span class="kw">WHERE</span> (target_type = <span class="val">'project'</span> AND target_id = <span class="val">'genjutsu'</span>)
+   OR (target_type = <span class="val">'project'</span> AND target_id = <span class="val">'syswaifu'</span>)
+   OR (target_type = <span class="val">'project'</span> AND target_id = <span class="val">'keys-and-fingers'</span>);
+                </div>
+
+                <p>The returned rows are tallied in JS into a counts object, then each reaction button's count span is updated. This means one network request renders counts for every item on screen.</p>
+
+                <h4>Preventing duplicate reactions — localStorage</h4>
+                <p>There's no login system. Instead, when you react to something, the key <strong>r:type:id:reaction</strong> is written to <span class="hl">localStorage</span>. Before every reaction click, the JS checks if that key exists. If it does, the button does nothing. The button also gets a <strong>reacted</strong> CSS class so it appears filled-in.</p>
+
+                <div class="callout">
+                    <strong>Honest limitation:</strong> localStorage is per-browser per-device. If you clear your browser storage, open a private window, or use a different device, you can react again. The system is designed to be lightweight, not airtight. There's no IP tracking or fingerprinting — that felt unnecessarily invasive for a personal site.
+                </div>
+
+                <h4>Optimistic UI</h4>
+                <p>When you click a reaction button, the count increments <strong>immediately</strong> in the UI before the network request completes. This makes the site feel instant. If the POST fails, the count rolls back and the button un-fills. If it succeeds, the count stays as-is.</p>
+            </div>
+        </div>
+
+        <!-- 6. STATUS -->
+        <div class="doc-section">
+            <span class="section-anchor" id="status"></span>
+            <div class="section-label">06</div>
+            <h2 class="section-title">Status bar</h2>
+            <div class="section-body">
+                <p>The <span class="hl">"ovi says —"</span> bar at the top of the projects section is powered by a single-row Postgres table. There is exactly one row, and only I can update it (via the admin panel or Supabase dashboard).</p>
+
+                <div class="code-block">
+                    <span class="code-label">status table schema</span>
+<span class="key">id</span>          bigint        <span class="comment">-- always 1</span>
+<span class="key">message</span>     text          <span class="comment">-- whatever I'm saying right now</span>
+<span class="key">updated_at</span>  timestamptz   <span class="comment">-- auto-updated by a Postgres trigger on every change</span>
+                </div>
+
+                <p>On page load, the JS fetches <strong>SELECT message FROM status LIMIT 1</strong>. If the message is empty or the row doesn't exist, the bar stays hidden. If there's a message, it appears. Simple.</p>
+
+                <p>The <strong>updated_at</strong> column is maintained by a Postgres trigger — a function that fires automatically before every UPDATE and sets <strong>updated_at = now()</strong>. I never have to remember to update it manually.</p>
+            </div>
+        </div>
+
+        <!-- 7. VISITOR COUNTER -->
+        <div class="doc-section">
+            <span class="section-anchor" id="visits"></span>
+            <div class="section-label">07</div>
+            <h2 class="section-title">Visitor counter</h2>
+            <div class="section-body">
+                <p>The <span class="hl">"today — N visits"</span> counter below the status bar tracks how many sessions have visited the site today. Each visit is a row in the <strong>visits</strong> table.</p>
+
+                <div class="code-block">
+                    <span class="code-label">visits table schema</span>
+<span class="key">id</span>          bigint        <span class="comment">-- auto-incrementing primary key</span>
+<span class="key">visited_at</span>  timestamptz   <span class="comment">-- timestamp set automatically by Postgres (default now())</span>
+                </div>
+
+                <h4>How a visit is recorded</h4>
+                <div class="flow">
+                    <div class="flow-title">visit recording flow</div>
+                    <div class="flow-steps">
+                        <div class="flow-step">
+                            <div class="flow-num">1</div>
+                            <span>Page loads. JS checks <strong>sessionStorage</strong> for the key <strong>visit_recorded</strong>.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">2</div>
+                            <span>If it exists — you've already been counted this session (e.g. you refreshed). Nothing happens.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">3</div>
+                            <span>If it doesn't exist — POST an empty body to <strong>/rest/v1/visits</strong>. Postgres inserts a row with <strong>visited_at = now()</strong> automatically. Sets <strong>visit_recorded = 1</strong> in sessionStorage.</span>
+                        </div>
+                        <div class="flow-step">
+                            <div class="flow-num">4</div>
+                            <span>On success, call <strong>loadVisitorCount()</strong> to fetch and display the updated count.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>How the count is calculated — RPC function</h4>
+                <p>The count is not computed on the client. Instead, the JS calls a Postgres function via <strong>/rest/v1/rpc/get_today_visit_count</strong>. The function runs on the database server and uses <span class="hl">Bangladesh time (Asia/Dhaka, UTC+6)</span> to determine "today":</p>
+
+                <div class="code-block">
+                    <span class="code-label">get_today_visit_count() — postgres function</span>
+<span class="kw">SELECT</span> count(*)
+<span class="kw">FROM</span> visits
+<span class="kw">WHERE</span> (visited_at <span class="kw">AT TIME ZONE</span> <span class="val">'Asia/Dhaka'</span>)::<span class="kw">date</span>
+    = (now() <span class="kw">AT TIME ZONE</span> <span class="val">'Asia/Dhaka'</span>)::<span class="kw">date</span>;
+                </div>
+
+                <p>This means "today" resets at <strong>midnight Bangladesh time</strong> for everyone in the world, regardless of the visitor's local timezone. It returns a plain number, which the JS displays directly.</p>
+
+                <div class="callout">
+                    <strong>Why use an RPC function instead of a client-side date filter?</strong> If the browser computed "today's date" and sent it in the query, the result would depend on the visitor's system clock and timezone. Using a server-side function means one authoritative time source — the database — determines what counts as "today".
+                </div>
+
+                <h4>sessionStorage vs localStorage</h4>
+                <p><strong>sessionStorage</strong> is used here, not <strong>localStorage</strong>. The difference: sessionStorage clears when you close the tab. So if you close the site and come back, you get counted again. Each browser tab session = one visit. This is intentional — it counts real visits, not unique people forever.</p>
+            </div>
+        </div>
+
+        <!-- 8. CRON JOB -->
+        <div class="doc-section">
+            <span class="section-anchor" id="cronjob"></span>
+            <div class="section-label">08</div>
+            <h2 class="section-title">Cron job — daily cleanup</h2>
+            <div class="section-body">
+                <p>The <strong>visits</strong> table would grow forever if nothing cleaned it up. A Postgres cron job runs automatically every day at midnight Bangladesh time and deletes all rows from previous days.</p>
+
+                <p>This is powered by the <span class="hl">pg_cron</span> extension — a Postgres extension that lets you schedule SQL queries to run on a schedule, like a cron job but inside the database itself. Supabase supports it on all plans.</p>
+
+                <div class="code-block">
+                    <span class="code-label">cron job definition</span>
+<span class="comment">-- runs at 18:00 UTC every day (= 00:00 Asia/Dhaka)</span>
+select cron.schedule(
+  <span class="val">'delete-old-visits'</span>,
+  <span class="val">'0 18 * * *'</span>,
+  $$
+    <span class="kw">DELETE FROM</span> visits
+    <span class="kw">WHERE</span> (visited_at <span class="kw">AT TIME ZONE</span> <span class="val">'Asia/Dhaka'</span>)::<span class="kw">date</span>
+        &lt; (now() <span class="kw">AT TIME ZONE</span> <span class="val">'Asia/Dhaka'</span>)::<span class="kw">date</span>;
+  $$
+);
+                </div>
+
+                <p>The cron schedule <strong>0 18 * * *</strong> means: at minute 0 of hour 18, every day, every month, every day of the week. 18:00 UTC is exactly midnight in Bangladesh (UTC+6). The delete condition mirrors the RPC function — it uses <strong>Asia/Dhaka</strong> time so "yesterday" is calculated in the same timezone as the counter.</p>
+
+                <div class="callout">
+                    <strong>Result:</strong> The visits table never holds more than one day's worth of rows. The database stays tiny. No manual cleanup ever needed.
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. ADMIN -->
+        <div class="doc-section">
+            <span class="section-anchor" id="admin"></span>
+            <div class="section-label">09</div>
+            <h2 class="section-title">Admin panel</h2>
+            <div class="section-body">
+                <p>The admin panel lives at <strong>/admin/</strong> and is a simple password-protected page that lets me manage the site's dynamic content. It is marked <strong>noindex</strong> so search engines don't index it.</p>
+
+                <p>Authentication works via <span class="hl">Supabase Auth</span> — I log in with email and password, which returns a JWT token. That token is included in all subsequent requests as the <strong>Authorization</strong> header. This is what makes <strong>auth.role() = 'authenticated'</strong> evaluate to true in the RLS policies — allowing delete and update operations that anonymous users can't perform.</p>
+
+                <h4>What the admin panel can do</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Feature</th><th>How it works</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Update status message</td>
+                            <td>PATCH to /rest/v1/status with the new message. The Postgres trigger auto-updates updated_at.</td>
+                        </tr>
+                        <tr>
+                            <td>Delete guestbook messages</td>
+                            <td>DELETE to /rest/v1/guestbook?id=eq.{id} — cascades to all child replies automatically.</td>
+                        </tr>
+                        <tr>
+                            <td>View all messages</td>
+                            <td>Same fetch as the public guestbook, but with auth token — no functional difference since read is public anyway.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 10. FRONTEND -->
+        <div class="doc-section">
+            <span class="section-anchor" id="frontend"></span>
+            <div class="section-label">10</div>
+            <h2 class="section-title">Frontend — no frameworks</h2>
+            <div class="section-body">
+                <p>The entire frontend is vanilla HTML, CSS, and JavaScript. No React, no Vue, no build step, no node_modules. The page is a single HTML file with all sections in the DOM — sections are shown or hidden with CSS <strong>display: none / block</strong> and an <strong>active</strong> class toggled by JS.</p>
+
+                <h4>Section switching</h4>
+                <p>Navigation doesn't change the URL. Instead it calls <strong>showSection('name')</strong> which removes <strong>active</strong> from all sections and adds it to the target one. The current section is saved to <strong>sessionStorage</strong> so refreshing the page restores where you were.</p>
+
+                <h4>Skeleton screen</h4>
+                <p>Before any content loads, a <span class="hl">skeleton screen</span> covers the full page — a shimmering placeholder that matches the layout of whatever section is active. It's built in pure JS by <strong>buildSkeleton()</strong>, injected into a fixed overlay div. Once the page fully loads, it fades out and removes itself from the DOM.</p>
+
+                <h4>Projects — pagination and search</h4>
+                <p>Projects are loaded from a static <strong>projects.json</strong> file, reversed so newest appear first, and paginated at 3 per page. Search filters the array client-side on every keystroke — no server involved. Page transitions use a CSS translate + opacity animation timed with <strong>requestAnimationFrame</strong>.</p>
+
+                <h4>Blog</h4>
+                <p>Blog post metadata (title, date, excerpt, slug) lives in <strong>blog.json</strong>. The actual post content is a separate static HTML file at <strong>/blog/post-slug/index.html</strong>. The index just renders the list; clicking "read more" navigates to the static post page.</p>
+
+                <h4>Lazy loading</h4>
+                <p>The guestbook only fetches data when you first navigate to that section — not on page load. This is done by wrapping <strong>loadGuestbook()</strong> in a patched version of <strong>showSection()</strong>. The joke panel at the bottom of the projects section uses an <strong>IntersectionObserver</strong> — it only fetches a joke when you scroll it into view.</p>
+            </div>
+        </div>
+
+        <!-- 11. MUSIC & SOUND -->
+        <div class="doc-section">
+            <span class="section-anchor" id="music"></span>
+            <div class="section-label">11</div>
+            <h2 class="section-title">Music player & sound engine</h2>
+            <div class="section-body">
+                <p>The music player streams an MP3 from <span class="hl">ImageKit CDN</span> using the browser's native <strong>Audio</strong> API. It supports play/pause, a seek-able progress bar, and a live time display updated every 100ms via <strong>setInterval</strong>.</p>
+
+                <h4>Sound effects — zero audio files</h4>
+                <p>Every UI sound effect (hover, click, menu open/close, page load) is generated in real-time using the <span class="hl">Web Audio API</span> — no external audio files at all. The engine creates oscillators and noise buffers programmatically:</p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Sound</th><th>How it's made</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Page load</td>
+                            <td>Sawtooth sweep + noise burst + sine thud + square pop — layered and timed with delays</td>
+                        </tr>
+                        <tr>
+                            <td>Menu open</td>
+                            <td>Bandpass noise + sawtooth frequency ramp + sine rise</td>
+                        </tr>
+                        <tr>
+                            <td>Menu close</td>
+                            <td>Sawtooth descending + low noise</td>
+                        </tr>
+                        <tr>
+                            <td>Button click</td>
+                            <td>High-frequency bandpass noise + square wave decay (typewriter clack)</td>
+                        </tr>
+                        <tr>
+                            <td>Hover</td>
+                            <td>Soft sine rise + tiny noise tap — kept very quiet (vol 0.04)</td>
+                        </tr>
+                        <tr>
+                            <td>Link click</td>
+                            <td>Slightly heavier noise + square drop</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>SFX can be toggled off with the <strong>[ SFX ON/OFF ]</strong> button in the menu. The toggle state is not persisted — it resets to ON on every page load.</p>
+            </div>
+        </div>
+
+        <!-- 12. HOSTING -->
+        <div class="doc-section">
+            <span class="section-anchor" id="hosting"></span>
+            <div class="section-label">12</div>
+            <h2 class="section-title">Hosting & deployment</h2>
+            <div class="section-body">
+                <p>The site is hosted on <span class="hl">GitHub Pages</span> — free static hosting directly from the repository. Pushing to the <strong>main</strong> branch deploys automatically. No build pipeline, no CI/CD config needed for a fully static site.</p>
+
+                <h4>Keep-alive workflow</h4>
+                <p>Supabase pauses inactive free-tier projects after a period of inactivity. A <span class="hl">GitHub Actions workflow</span> (<strong>.github/workflows/keep-supabase-alive.yml</strong>) runs on a schedule and pings the database to prevent it from going idle.</p>
+
+                <h4>Cloudflare Worker deployment</h4>
+                <p>The Worker is deployed via <span class="hl">Wrangler</span> — Cloudflare's CLI tool. The <strong>wrangler.toml</strong> config file defines the project name and entry point. The Supabase anon key is stored as a secret via <strong>wrangler secret put SUPABASE_ANON_KEY</strong> — it never appears in any file in the repository.</p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Service</th><th>What it hosts</th><th>Cost</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>GitHub Pages</td>
+                            <td>All HTML, CSS, JS, images</td>
+                            <td>Free</td>
+                        </tr>
+                        <tr>
+                            <td>Supabase</td>
+                            <td>Postgres database, REST API, Auth</td>
+                            <td>Free tier</td>
+                        </tr>
+                        <tr>
+                            <td>Cloudflare Workers</td>
+                            <td>API proxy (100k req/day free)</td>
+                            <td>Free tier</td>
+                        </tr>
+                        <tr>
+                            <td>ImageKit</td>
+                            <td>Music file CDN</td>
+                            <td>Free tier</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout">
+                    <strong>Total monthly cost: $0.</strong> The entire site runs on free tiers. The tradeoff is Supabase's free tier pauses after inactivity (solved by the keep-alive workflow) and has limits on database size and API requests — both of which a personal site will never come close to hitting.
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="page-footer">
+            <p>built by <a href="../">Ovi ren</a> — no magic, just code.</p>
+        </div>
+
+    </div>
+</body>
+</html>
