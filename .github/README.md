@@ -4,7 +4,7 @@
 
 ### License
 
-[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC_BY--NC--ND_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightblue.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-© 2026 iamovi — This portfolio (code, design, and content) is licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/).  
-You're welcome to learn from it, but please don't clone or reuse it as your own.
+© 2026 iamovi — This portfolio is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).  
+You're free to use, modify, or build on it — just give credit.
