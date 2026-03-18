@@ -435,8 +435,10 @@
             <h2><a href="${p.url}" target="_blank">${p.name}</a></h2>
             <p>${p.description}</p>
             <div class="date">${p.date}</div>
+            ${reactionBar('project', slugify(p.name))}
           </li>
         `).join('');
+        loadReactionCounts(slice.map(p => ({ type: 'project', id: slugify(p.name) })));
       }
 
       document.getElementById('page-indicator').textContent = currentPage + ' / ' + totalPages;
@@ -500,8 +502,10 @@
         <h2 class="blog-post-title">${post.title}</h2>
         <p class="blog-post-excerpt">${post.excerpt}</p>
         <a class="blog-post-link" href="./blog/${post.slug}/">read more →</a>
+        ${reactionBar('blog', post.slug)}
       </li>
     `).join('');
+    loadReactionCounts(blogPosts.map(p => ({ type: 'blog', id: p.slug })));
   }
 
   fetch('./blog.json')
@@ -511,6 +515,92 @@
       renderBlog();
     })
     .catch(() => renderBlog());
+
+  // ── REACTIONS ──
+  const REACTIONS = [
+    { key: 'skull', label: '💀' },
+    { key: 'fire',  label: '🔥' },
+    { key: 'alien', label: '👾' },
+    { key: 'lol',   label: '[ lol ]' },
+  ];
+
+  function slugify(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function hasReacted(type, id, key) {
+    try { return localStorage.getItem('r:' + type + ':' + id + ':' + key) === '1'; } catch(e) { return false; }
+  }
+
+  function markReacted(type, id, key) {
+    try { localStorage.setItem('r:' + type + ':' + id + ':' + key, '1'); } catch(e) {}
+  }
+
+  function reactionBar(type, id) {
+    const btns = REACTIONS.map(r => {
+      const reacted = hasReacted(type, id, r.key);
+      const cls = 'reaction-btn' + (reacted ? ' reacted' : '');
+      const countId = 'rc-' + type + '-' + id + '-' + r.key;
+      return `<button class="${cls}" onclick="addReaction('${type}','${id}','${r.key}',this)" title="${r.key}"><span class="reaction-emoji">${r.label}</span><span class="reaction-count" id="${countId}">·</span></button>`;
+    }).join('');
+    return `<div class="reaction-bar" data-type="${type}" data-id="${id}">${btns}</div>`;
+  }
+
+  function loadReactionCounts(targets) {
+    if (!targets || targets.length === 0) return;
+    // build filter: (target_type.eq.blog,target_id.eq.my-slug),(...)
+    const filters = targets.map(t => 'and(target_type.eq.' + t.type + ',target_id.eq.' + t.id + ')').join(',');
+    fetch(SUPABASE_URL + '/rest/v1/reactions?select=target_type,target_id,reaction&or=(' + encodeURIComponent(filters) + ')', {
+      headers: gbHeaders()
+    })
+      .then(r => r.json())
+      .then(rows => {
+        if (!Array.isArray(rows)) return;
+        // tally counts
+        const counts = {};
+        rows.forEach(row => {
+          const k = row.target_type + ':' + row.target_id + ':' + row.reaction;
+          counts[k] = (counts[k] || 0) + 1;
+        });
+        // fill in the spans
+        targets.forEach(t => {
+          REACTIONS.forEach(r => {
+            const el = document.getElementById('rc-' + t.type + '-' + t.id + '-' + r.key);
+            if (el) {
+              const n = counts[t.type + ':' + t.id + ':' + r.key] || 0;
+              el.textContent = n > 0 ? n : '·';
+            }
+          });
+        });
+      })
+      .catch(() => {});
+  }
+
+  window.addReaction = function (type, id, key, btn) {
+    if (hasReacted(type, id, key)) return; // already reacted
+    btn.classList.add('reacted');
+    markReacted(type, id, key);
+
+    // optimistically update count
+    const countEl = document.getElementById('rc-' + type + '-' + id + '-' + key);
+    if (countEl) {
+      const cur = parseInt(countEl.textContent) || 0;
+      countEl.textContent = cur + 1;
+    }
+
+    fetch(SUPABASE_URL + '/rest/v1/reactions', {
+      method: 'POST',
+      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ target_type: type, target_id: id, reaction: key })
+    }).catch(() => {
+      // rollback on failure
+      btn.classList.remove('reacted');
+      if (countEl) {
+        const cur = parseInt(countEl.textContent) || 1;
+        countEl.textContent = cur - 1 > 0 ? cur - 1 : '·';
+      }
+    });
+  };
 
   // ── GUESTBOOK ──
   const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
@@ -582,6 +672,7 @@
         </div>
         <p class="gb-message-text">${escapeHtml(m.message)}</p>
         <button class="gb-reply-toggle" onclick="toggleReplyForm(${m.id})">[ reply ]</button>
+        ${reactionBar('comment', String(m.id))}
         ${childrenHtml}
       </div>
     `;
@@ -608,6 +699,7 @@
         const tree = buildTree(data, null);
         if (countEl) countEl.textContent = tree.length + ' message' + (tree.length !== 1 ? 's' : '');
         container.innerHTML = tree.map(m => renderNode(m)).join('');
+        loadReactionCounts(data.map(m => ({ type: 'comment', id: String(m.id) })));
       })
       .catch(() => {
         if (container) container.innerHTML = `<p class="gb-empty">[ failed to load messages ]</p>`;

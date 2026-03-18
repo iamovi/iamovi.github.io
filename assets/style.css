@@ -1129,3 +1129,42 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
     letter-spacing: 0.05em;
     min-height: 16px;
 }
+
+/* ── REACTIONS ── */
+.reaction-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: 1.5px solid var(--ink-faint);
+    color: var(--ink-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: border-color var(--speed), color var(--speed), background var(--speed);
+    letter-spacing: 0.04em;
+    user-select: none;
+}
+
+.reaction-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+.reaction-btn.reacted {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.reaction-emoji { font-size: 14px; line-height: 1; }
+.reaction-count { font-size: 11px; opacity: 0.8; }
