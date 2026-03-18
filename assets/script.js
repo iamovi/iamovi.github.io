@@ -606,6 +606,27 @@
   const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c3lpeGNoemVpcGx3d21xbGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3Njk3MTMsImV4cCI6MjA4OTM0NTcxM30.niaCbSuBZSNlHOnM0EsUTGWow6ZxLA0t1YuJaA8Uixw';
 
+  // ── STATUS ──
+  function loadStatus() {
+    fetch(SUPABASE_URL + '/rest/v1/status?select=message&limit=1', {
+      headers: gbHeaders()
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data || data.length === 0 || !data[0].message) return;
+        const bar = document.getElementById('ovi-status');
+        const msg = document.getElementById('ovi-status-msg');
+        if (bar && msg) {
+          msg.textContent = data[0].message;
+          bar.style.display = 'flex';
+        }
+      })
+      .catch(() => {});
+  }
+
+  // load status on page load
+  document.addEventListener('DOMContentLoaded', loadStatus);
+
   function gbHeaders() {
     return {
       'Content-Type': 'application/json',
