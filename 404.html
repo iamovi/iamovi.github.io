@@ -44,19 +44,19 @@
       text-align: center;
     }
 
-    /* manga speed lines radiating from behind the panel */
-    .panel::before {
-      content: '';
-      position: absolute;
-      inset: -60px;
+    /* manga speed lines — fixed to viewport, never causes overflow */
+    .speed-lines {
+      position: fixed;
+      inset: 0;
       background: repeating-conic-gradient(
         var(--paper-dark) 0deg,
         var(--paper-dark) 1.5deg,
         transparent 1.5deg,
         transparent 6deg
       );
-      z-index: -1;
       opacity: 0.6;
+      z-index: -1;
+      pointer-events: none;
     }
 
     /* corner brackets */
@@ -170,6 +170,7 @@
   </style>
 </head>
 <body>
+  <div class="speed-lines"></div>
   <div class="panel">
     <div class="corner tl"></div>
     <div class="corner tr"></div>

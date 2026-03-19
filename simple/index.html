@@ -399,6 +399,87 @@
       footer { padding: 24px 20px; }
       .topbar-link { display: none; }
     }
+
+    /* ── PRINT ── */
+    @media print {
+      /* hide everything that's not content */
+      .topbar, #rain-canvas, footer, .theme-toggle { display: none !important; }
+
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+        padding: 0;
+      }
+
+      main { padding-top: 0; max-width: 100%; }
+
+      /* hero */
+      .hero {
+        padding: 24pt 0 16pt;
+        border-bottom: 2pt solid #000;
+        display: flex;
+        gap: 16pt;
+        align-items: center;
+      }
+
+      .hero-title { font-size: 48pt; }
+      .hero-title span { font-size: 18pt; }
+      .hero-avatar { width: 64pt; height: 64pt; filter: grayscale(100%); }
+      .hero-tag { font-size: 9pt; }
+
+      /* two-column layout: flatten to single column */
+      .content-grid {
+        display: block;
+        border-bottom: 1pt solid #ccc;
+        padding: 12pt 0;
+      }
+
+      .grid-label {
+        font-size: 8pt;
+        letter-spacing: 0.14em;
+        color: #555;
+        border: none;
+        padding: 0 0 6pt 0;
+        position: static;
+      }
+
+      .grid-body { padding: 0; }
+
+      /* about */
+      .about-body p { font-size: 10pt; line-height: 1.6; color: #000; }
+      .skills { margin-top: 10pt; gap: 5pt; }
+      .skill { font-size: 8pt; border-color: #999; color: #555; padding: 2pt 6pt; }
+
+      /* contact grid — show as inline list */
+      .contact-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        background: none;
+        border: none;
+      }
+
+      .contact-link {
+        background: none;
+        border: none;
+        font-size: 9pt;
+        color: #000;
+        padding: 3pt 12pt 3pt 0;
+        letter-spacing: 0.05em;
+      }
+
+      /* show href next to links */
+      .contact-link[href^="http"]::after,
+      .contact-link[href^="mailto"]::after {
+        content: " (" attr(href) ")";
+        font-size: 7pt;
+        color: #888;
+      }
+
+      /* avoid page breaks inside sections */
+      .content-grid, .about-body, .skills { page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
