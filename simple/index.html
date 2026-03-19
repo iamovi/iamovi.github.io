@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ovi ren</title>
+  <meta name="description" content="Ovi ren — hobby programmer.">
+  <link rel="icon" href="../samurai-jack.png">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --mid: #555555;
+      --faint: #bbbbbb;
+      --hover-bg: #000000;
+      --hover-fg: #ffffff;
+      --speed: 0.18s;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0a;
+      --fg: #f0f0f0;
+      --mid: #999999;
+      --faint: #333333;
+      --hover-bg: #f0f0f0;
+      --hover-fg: #0a0a0a;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    #rain-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    [data-theme="dark"] #rain-canvas { opacity: 0.18; }
+
+    main, .topbar { position: relative; z-index: 1; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      min-height: 100vh;
+      transition: background var(--speed), color var(--speed);
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1.5px solid var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 48px;
+      transition: background var(--speed), border-color var(--speed);
+    }
+
+    .topbar-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.08em;
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .topbar-link {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color var(--speed);
+    }
+
+    .topbar-link:hover { color: var(--fg); }
+
+    .theme-toggle {
+      background: none;
+      border: 1.5px solid var(--fg);
+      color: var(--fg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: background var(--speed), color var(--speed), border-color var(--speed);
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover-bg);
+      color: var(--hover-fg);
+    }
+
+    /* ── MAIN ── */
+    main {
+      padding-top: 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 80px 32px 64px;
+      border-bottom: 1.5px solid var(--fg);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 40px;
+      align-items: end;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(72px, 14vw, 140px);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      color: var(--fg);
+    }
+
+    .hero-title span {
+      display: block;
+      font-size: clamp(32px, 6vw, 60px);
+      color: var(--mid);
+    }
+
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      padding-bottom: 8px;
+    }
+
+    .hero-tag {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-align: right;
+      line-height: 2;
+    }
+
+    .hero-avatar {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border: 1.5px solid var(--fg);
+      filter: grayscale(100%);
+      display: block;
+    }
+
+    /* ── CONTENT GRID ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      border-bottom: 1.5px solid var(--fg);
+    }
+
+    .grid-label {
+      padding: 40px 32px;
+      border-right: 1.5px solid var(--fg);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+      position: sticky;
+      top: 48px;
+      align-self: start;
+    }
+
+    .grid-body { padding: 40px 32px; }
+
+    /* ── ABOUT ── */
+    .about-body p {
+      font-size: 13px;
+      line-height: 1.85;
+      color: var(--fg);
+      max-width: 540px;
+    }
+
+    .about-body p + p { margin-top: 14px; }
+    .about-body strong { font-weight: 600; }
+
+    .skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 28px;
+    }
+
+    .skill {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--faint);
+      padding: 3px 9px;
+      color: var(--mid);
+      transition: border-color var(--speed), color var(--speed);
+    }
+
+    .skill:hover { border-color: var(--fg); color: var(--fg); }
+
+    /* ── PROJECTS ── */
+    .project-item {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--faint);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .project-item:first-child { padding-top: 0; }
+    .project-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .project-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .project-name a {
+      color: var(--fg);
+      text-decoration: none;
+      transition: color var(--speed);
+    }
+
+    .project-name a:hover { color: var(--mid); }
+
+    .project-desc {
+      font-size: 12px;
+      line-height: 1.75;
+      color: var(--mid);
+      max-width: 420px;
+    }
+
+    .project-date {
+      font-size: 10px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--faint);
+      white-space: nowrap;
+      padding-top: 5px;
+    }
+
+    /* ── BLOG ── */
+    .blog-item {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--faint);
+    }
+
+    .blog-item:first-child { padding-top: 0; }
+    .blog-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .blog-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .blog-date {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .blog-tag {
+      font-size: 10px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      border: 1px solid var(--faint);
+      padding: 1px 7px;
+      color: var(--mid);
+    }
+
+    .blog-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 10px;
+      color: var(--fg);
+    }
+
+    .blog-excerpt {
+      font-size: 12px;
+      line-height: 1.75;
+      color: var(--mid);
+      max-width: 460px;
+      margin-bottom: 12px;
+    }
+
+    .blog-link {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px solid var(--fg);
+      padding-bottom: 1px;
+      transition: color var(--speed), border-color var(--speed);
+    }
+
+    .blog-link:hover { color: var(--mid); border-color: var(--mid); }
+
+    /* ── CONTACT ── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 1px;
+      background: var(--faint);
+      border: 1px solid var(--faint);
+    }
+
+    .contact-link {
+      display: block;
+      background: var(--bg);
+      padding: 16px 20px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: background var(--speed), color var(--speed);
+    }
+
+    .contact-link:hover {
+      background: var(--hover-bg);
+      color: var(--hover-fg);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-text {
+      font-size: 11px;
+      color: var(--mid);
+      letter-spacing: 0.05em;
+    }
+
+    .footer-back {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color var(--speed);
+    }
+
+    .footer-back:hover { color: var(--fg); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .topbar { padding: 0 20px; }
+      .hero { padding: 48px 20px 40px; grid-template-columns: 1fr; }
+      .hero-right { flex-direction: row; align-items: center; }
+      .content-grid { grid-template-columns: 1fr; }
+      .grid-label {
+        padding: 28px 20px 8px;
+        border-right: none;
+        border-bottom: 1px solid var(--faint);
+        position: static;
+      }
+      .grid-body { padding: 24px 20px; }
+      .grid-body.contact-body { padding: 24px 0 24px 20px; }
+      .project-item { grid-template-columns: 1fr; }
+      .project-date { order: -1; }
+      footer { padding: 24px 20px; }
+      .topbar-link { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="rain-canvas"></canvas>
+
+  <nav class="topbar">
+    <a class="topbar-name" href="#">OVI REN</a>
+    <div class="topbar-right">
+      <a class="topbar-link" href="https://github.com/iamovi" target="_blank">GitHub</a>
+      <a class="topbar-link" href="mailto:init.ovi@gmail.com">Email</a>
+      <a class="topbar-link" href="../">Full site</a>
+      <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">Dark</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <section class="hero">
+      <div>
+        <div class="hero-title">
+          OVI<br>REN
+          <span>Hobby Programmer</span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <img class="hero-avatar" src="https://github.com/iamovi.png" alt="Ovi ren" />
+        <p class="hero-tag">Node.js<br>Python<br>Open Source</p>
+      </div>
+    </section>
+
+    <div class="content-grid">
+      <div class="grid-label">About</div>
+      <div class="grid-body about-body">
+        <p>I build things on the internet. Some are useful, some are just fun, and some make people question my design choices. I'm cool with all three.</p>
+        <p>Started coding as a hobby and somehow ended up with a GitHub full of projects. I specialize in <strong>Node.js</strong> and <strong>Python</strong>, but I'm always trying new tech just to see what it can do.</p>
+        <p>Open source enthusiast. Overthinker. Dark mode for everything.</p>
+        <div class="skills">
+          <span class="skill">Node.js</span>
+          <span class="skill">Python</span>
+          <span class="skill">JavaScript</span>
+          <span class="skill">Git / GitHub</span>
+          <span class="skill">Linux / CLI</span>
+          <span class="skill">Open Source</span>
+          <span class="skill">Sarcasm</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="grid-label">Find me</div>
+      <div class="grid-body contact-body" style="padding: 40px 0 40px 32px;">
+        <div class="contact-grid">
+          <a class="contact-link" href="https://github.com/iamovi" target="_blank">GitHub</a>
+          <a class="contact-link" href="https://x.com/hahahaovi" target="_blank">Twitter</a>
+          <a class="contact-link" href="https://www.instagram.com/hahahaovi" target="_blank">Instagram</a>
+          <a class="contact-link" href="https://dev.to/iamovi" target="_blank">dev.to</a>
+          <a class="contact-link" href="https://iamovi.itch.io" target="_blank">Itch.io</a>
+          <a class="contact-link" href="https://t.me/hahahaovi" target="_blank">Telegram</a>
+          <a class="contact-link" href="https://genjutsu-social.vercel.app/iamovi" target="_blank">Genjutsu</a>
+          <a class="contact-link" href="mailto:init.ovi@gmail.com">Email</a>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span class="footer-text">ovi ren — init.ovi@gmail.com</span>
+      <a class="footer-back" href="../">← full site</a>
+    </footer>
+
+  </main>
+
+  <script>
+    // ── RAIN ANIMATION ──
+    (function () {
+      const canvas = document.getElementById('rain-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const CHARS = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+      const FONT_SIZE = 14;
+      let cols, drops;
+
+      let lastWidth = 0;
+
+      function resize() {
+        const w = window.innerWidth;
+        if (w === lastWidth) return; // ignore height-only changes (mobile toolbar)
+        lastWidth = w;
+        canvas.width  = w;
+        canvas.height = window.innerHeight;
+        cols  = Math.floor(w / FONT_SIZE);
+        drops = Array.from({ length: cols }, () => Math.random() * -100);
+      }
+
+      function getColor() {
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+          ? '#ffffff' : '#000000';
+      }
+
+      function draw() {
+        const color = getColor();
+        // fade trail
+        ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark'
+          ? 'rgba(10,10,10,0.05)' : 'rgba(255,255,255,0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = color;
+        ctx.font = FONT_SIZE + 'px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+          const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+          ctx.globalAlpha = Math.random() * 0.5 + 0.2;
+          ctx.fillText(char, i * FONT_SIZE, drops[i] * FONT_SIZE);
+          ctx.globalAlpha = 1;
+
+          if (drops[i] * FONT_SIZE > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i] += 0.5;
+        }
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      setInterval(draw, 50);
+    })();
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const btn = document.getElementById('themeBtn');
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      btn.textContent = isDark ? 'Dark' : 'Light';
+    }
+
+
+  </script>
+
+</body>
+</html>
