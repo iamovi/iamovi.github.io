@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dear Brain — Ovi ren</title>
+    <link rel="icon" href="../../samurai-jack.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/bar.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ink: #1a0f00;
+            --paper: #f2e6c8;
+            --paper-dark: #e0d0a8;
+            --ink-light: #2a1a05;
+            --ink-mid: #6b5a3e;
+            --ink-faint: #b09a78;
+            --speed: 0.15s;
+        }
+
+        html, body { overflow-x: hidden; }
+
+        body {
+            background-color: var(--paper);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 20px 20px;
+            color: var(--ink);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 40px 16px 80px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        /* ── BACK ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 48px;
+            border-bottom: 1px solid transparent;
+            transition: color var(--speed), border-color var(--speed);
+        }
+        .back-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+        /* ── POST HEADER ── */
+        .post-header {
+            border-bottom: 3px solid var(--ink);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .post-date {
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.08em;
+        }
+
+        .post-tag {
+            font-size: 10px;
+            color: var(--ink-mid);
+            border: 1px solid var(--ink-faint);
+            padding: 1px 7px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .post-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.25;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .post-subtitle {
+            font-size: 13px;
+            color: var(--ink-mid);
+            line-height: 1.6;
+        }
+
+        /* ── POST BODY ── */
+        .post-body {
+            line-height: 1.8;
+            font-size: 14px;
+            color: var(--ink);
+        }
+
+        .post-body h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 48px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--ink);
+        }
+
+        .post-body h3 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 32px 0 12px;
+            color: var(--ink);
+        }
+
+        .post-body p {
+            margin-bottom: 16px;
+            color: var(--ink-mid);
+        }
+
+        .post-body strong { color: var(--ink); }
+
+        .post-body em { font-style: italic; }
+
+        .post-body a {
+            color: var(--ink);
+            text-decoration: none;
+            border-bottom: 1px solid var(--ink-faint);
+            transition: border-color var(--speed);
+        }
+        .post-body a:hover { border-bottom-color: var(--ink); }
+
+        /* ── BLOCKQUOTE ── */
+        .post-body blockquote {
+            border-left: 4px solid var(--ink);
+            padding: 12px 20px;
+            margin: 24px 0;
+            background: var(--paper-dark);
+            font-style: italic;
+            color: var(--ink-mid);
+        }
+
+        /* ── LISTS ── */
+        .post-body ul, .post-body ol {
+            padding-left: 24px;
+            margin-bottom: 16px;
+            color: var(--ink-mid);
+        }
+
+        .post-body li {
+            margin-bottom: 6px;
+            line-height: 1.7;
+        }
+
+        /* ── HR ── */
+        .post-body hr {
+            border: none;
+            border-top: 2px dashed var(--ink-faint);
+            margin: 40px 0;
+        }
+
+        /* ── HIGHLIGHT ── */
+        .post-body .highlight { color: var(--ink); font-weight: 700; }
+
+        /* ── NOTE BOX ── */
+        .post-body .note {
+            border: 1px dashed var(--ink-faint);
+            padding: 12px 16px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: var(--ink-mid);
+            background: var(--paper-dark);
+        }
+
+        /* ── TIME STAMP ── */
+        .timestamp {
+            display: inline-block;
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.12em;
+            border: 1px solid var(--ink-faint);
+            padding: 2px 8px;
+            margin-bottom: 8px;
+        }
+
+        /* ── LETTER WRAP ── */
+        .letter-section {
+            margin: 32px 0;
+            padding: 24px;
+            background: var(--paper-dark);
+            border: 2px solid var(--ink);
+            position: relative;
+        }
+
+        .letter-section::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -11px;
+            left: 16px;
+            background: var(--paper-dark);
+            padding: 0 8px;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--ink-mid);
+            text-transform: uppercase;
+        }
+
+        .letter-section p {
+            margin-bottom: 12px;
+        }
+
+        .letter-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ── CLOSING ── */
+        .post-footer {
+            margin-top: 72px;
+            padding-top: 24px;
+            border-top: 2px solid var(--ink);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--ink-mid);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .post-footer a {
+            color: var(--ink);
+            text-decoration: none;
+            border-bottom: 1px solid var(--ink-faint);
+            transition: border-color var(--speed);
+        }
+        .post-footer a:hover { border-bottom-color: var(--ink); }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <a class="back-link" href="../../">← back</a>
+
+        <div class="post-header">
+            <div class="post-meta">
+                <span class="post-date">MARCH 2026</span>
+                <span class="post-tag">life</span>
+            </div>
+            <h1 class="post-title">Dear Brain,</h1>
+            <p class="post-subtitle">An open letter to the part of me that's apparently nocturnal, chaotic, and deeply committed to my suffering.</p>
+        </div>
+
+        <div class="post-body">
+
+            <p>We need to talk. Seriously. Not at 2 AM — now, in broad daylight, where you can't hide behind the dark and pretend this is "reflection time." Because 2 AM is not a deep reflection session. It's full-on sabotage. And yes, I see what you're doing.</p>
+
+            <div class="letter-section" data-label="exhibit A">
+                <div class="timestamp">02:00 AM</div>
+                <p>Why are you showing me that embarrassing text from 2014? Why are you questioning all my life choices? And why — <em>oh why</em> — are you suddenly convinced that the ending of that movie I watched six months ago is secretly about me?</p>
+                <p>Spoiler: it's not.</p>
+                <p>You're supposed to help me sleep. Instead, you're hosting a late-night TED Talk titled <strong>Everything You've Done Wrong and Why You'll Fail Forever.</strong> Thanks a lot.</p>
+            </div>
+
+            <h2>The Random Thoughts You Choose to Obsess Over</h2>
+
+            <p>Who taught you that obsessing over minutiae is productive? No one. Yet here we are:</p>
+
+            <ul>
+                <li>Dissecting that one comment I made at a work meeting in 2018 — yeah, the one I had <em>specifically</em> blocked out</li>
+                <li>Debating whether I should've chosen almond milk instead of oat milk last week</li>
+                <li>Imagining conversations with my high school crush that will <strong>never</strong> happen</li>
+            </ul>
+
+            <p>Meanwhile, sleep? Forget it. You're busy keeping me awake. Congratulations.</p>
+
+            <blockquote>
+                "Why did I say 'you too' when the waiter told me to enjoy my meal?" — me, apparently, at 2:17 AM, unprompted.
+            </blockquote>
+
+            <h2>The Creativity Trap</h2>
+
+            <div class="letter-section" data-label="exhibit B">
+                <div class="timestamp">02:15 AM</div>
+                <p>And don't get me started on when you <em>pretend</em> to be helpful. Suddenly, 2:15 AM is prime brainstorming hour. You convince me I need a life plan, a startup idea, and a novel manuscript — all before sunrise.</p>
+                <p>Brain, do you know what people call this? <strong>Insomnia.</strong> Some also call it torture. But sure, let's call it creativity. Let's call it <em>hustle.</em> Let's call it whatever makes you feel better about robbing me of eight hours.</p>
+            </div>
+
+            <p>The worst part? The ideas feel <em>genuinely good</em> in the moment. A new project. A product. A plan so detailed it has subfolders. And then morning comes and I open my notes app to find:</p>
+
+            <div class="note">
+                "what if social media but for dogs who code" — 2:41 AM, last Tuesday.
+            </div>
+
+            <p>Incredible. Truly a visionary at work.</p>
+
+            <h2>The Existential Spiral</h2>
+
+            <div class="letter-section" data-label="exhibit C">
+                <div class="timestamp">02:47 AM</div>
+                <p>Then you go full philosopher. Suddenly, I'm questioning the meaning of life, my purpose, and whether I should have learned Mandarin instead of Spanish.</p>
+                <p>Fun fact: I can barely conjugate "to be" in English. Which I feel is relevant.</p>
+                <p>But no — apparently I need to discover the grand truth of existence before sunrise. Cool. Love it. Very necessary. Definitely not a symptom of something I should talk to someone about.</p>
+            </div>
+
+            <p>Here's what the 3 AM philosopher always conveniently forgets: <strong>nothing has ever been solved at 3 AM.</strong> Not a single war ended. Not one relationship healed. Not one existential crisis resolved. The universe has been around for 13.8 billion years. It will wait until 10 AM.</p>
+
+            <h2>A Simple Request</h2>
+
+            <p>So here's the deal, Brain. A formal agreement. Terms and conditions:</p>
+
+            <ul>
+                <li>Stop replaying every social mistake I've ever made — especially the ones from before I had a fully developed prefrontal cortex</li>
+                <li>Stop creating imaginary arguments I'll never have (and somehow losing them)</li>
+                <li>Stop convincing me that my life depends on solving the mysteries of the universe at 2:47 AM</li>
+                <li>Stop generating startup ideas when I'm horizontal</li>
+                <li>Stop. The. Oat. Milk. Debate.</li>
+            </ul>
+
+            <p>Let's save that existential energy for, say — <strong>10 AM?</strong> Maybe after coffee? Maybe after three alarms, two groans, and crying into my pillow? We can question everything then. I'll even make a list.</p>
+
+            <hr>
+
+            <h2>Closing Thoughts</h2>
+
+            <p>You're brilliant, I'll give you that. You write code that actually works. You remember things I never deliberately stored. You connected two unrelated ideas once and it led to something genuinely cool. I respect the grind.</p>
+
+            <p>But you're also a little sadistic. And while I appreciate your dedication to my growth and reflection — <em>can we maybe take a break?</em> For eight hours? Twelve would be nice. Sixteen if you're feeling generous.</p>
+
+            <p>The 2014 text isn't coming back. The meeting comment from 2018 has been forgotten by everyone except you. The oat milk was fine. The movie ending was not about me.</p>
+
+            <blockquote>
+                We're going to be okay. But only if you let me sleep.
+            </blockquote>
+
+            <p style="margin-top: 32px;">Sincerely,<br><strong>Me</strong> (who really just wants eight hours)</p>
+
+        </div>
+
+        <div class="post-footer">
+            <span>Made by <a href="../../">Ovi ren</a></span>
+            <span style="color: var(--ink-faint); font-size: 11px;">written at a reasonable hour, for once</span>
+        </div>
+
+    </div>
+</body>
+
+</html>
