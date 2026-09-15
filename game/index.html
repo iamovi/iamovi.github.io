@@ -299,6 +299,18 @@
             padding-left: 14px;
             text-align: left;
         }
+        .fetch-error {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #8b0000;
+            background: rgba(255,240,240,0.9);
+            border: 1px solid rgba(139,0,0,0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: none;
+            text-align: center;
+            max-width: 320px;
+        }
 
     </style>
 </head>
@@ -336,6 +348,7 @@
                 <div class="card-hint no" id="hint-no">NOPE</div>
             </div>
         </div>
+        <div id="fetch-error" class="fetch-error">Unable to load images. Retrying...</div>
 
         <div class="buttons">
             <button class="btn btn-no" onclick="vote('no')">[ NOPE ]</button>
@@ -367,7 +380,7 @@
 
     <script>
         const TOTAL_ROUNDS = 10;
-        const SFW_CATEGORIES = ['waifu', 'neko', 'shinobu', 'megumin'];
+        const SFW_CATEGORIES = ['waifu', 'neko', 'fox_girl', 'wallpaper'];
 
         let yesCount = 0;
         let noCount = 0;
@@ -387,19 +400,41 @@
         // ── FETCH IMAGE ──
         function fetchImage() {
             imageReady = false;
+            const errEl = document.getElementById('fetch-error');
+            if (errEl) errEl.style.display = 'none';
             cardSkeleton.classList.remove('hide');
             cardImg.style.opacity = '0';
             const cat = SFW_CATEGORIES[Math.floor(Math.random() * SFW_CATEGORIES.length)];
-            fetch(`https://api.waifu.pics/sfw/${cat}`)
-                .then(r => r.json())
-                .then(data => { cardImg.src = data.url; })
-                .catch(() => setTimeout(fetchImage, 1000));
+
+            // Primary: nekos.life API (returns { url: "..." })
+            fetch(`https://nekos.life/api/v2/img/${cat}`)
+                .then(r => {
+                    if (!r.ok) throw new Error('nekos API error');
+                    return r.json();
+                })
+                .then(data => {
+                    if (data && data.url) cardImg.src = data.url;
+                    else throw new Error('invalid nekos response');
+                })
+                // Fallback: previous waifu.pics API (if still available)
+                .catch(() => {
+                    fetch(`https://api.waifu.pics/sfw/${cat}`)
+                        .then(r => r.json())
+                        .then(data => { cardImg.src = data.url; })
+                        .catch(() => {
+                            const errEl2 = document.getElementById('fetch-error');
+                            if (errEl2) { errEl2.style.display = 'block'; errEl2.textContent = 'Unable to load images. Retrying...'; }
+                            setTimeout(fetchImage, 3000);
+                        });
+                });
         }
 
         function onImageLoad() {
             cardSkeleton.classList.add('hide');
             cardImg.style.opacity = '1';
             imageReady = true;
+            const errEl = document.getElementById('fetch-error');
+            if (errEl) errEl.style.display = 'none';
         }
 
         // ── SCORE UPDATE ──
