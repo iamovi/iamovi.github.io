@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
-    <title>Ovi ren — blog</title>
+    <title>Maruf Hasan Ovi — blog</title>
     <link>https://iamovi.github.io</link>
-    <description>Writing by Ovi ren — hobby programmer.</description>
+    <description>Writing by Maruf Hasan Ovi — hobby programmer.</description>
     <language>en-us</language>
     <atom:link href="https://iamovi.github.io/feed.xml" rel="self" type="application/rss+xml" />
 
     <image>
       <url>https://github.com/iamovi.png</url>
-      <title>Ovi ren — blog</title>
+      <title>Maruf Hasan Ovi — blog</title>
       <link>https://iamovi.github.io</link>
     </image>
 
