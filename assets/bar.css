@@ -101,7 +101,7 @@
 .light .slide-menu,
 .light .slide-menu * {
     scrollbar-width: thin;
-    scrollbar-color: #000000 transparent;
+    scrollbar-color: var(--ink) transparent;
 }
 
 .slide-menu::-webkit-scrollbar,
@@ -127,7 +127,7 @@
 .menu-content::-webkit-scrollbar-thumb,
 .light .slide-menu::-webkit-scrollbar-thumb,
 .light .slide-menu *::-webkit-scrollbar-thumb {
-    background: #000000;
+    background: var(--ink);
     border-radius: 2px;
     border: none;
     box-shadow: none;
@@ -138,7 +138,7 @@
 .menu-content::-webkit-scrollbar-thumb:hover,
 .light .slide-menu::-webkit-scrollbar-thumb:hover,
 .light .slide-menu *::-webkit-scrollbar-thumb:hover {
-    background: #222222;
+    background: var(--ink-mid);
 }
 
 /* MOBILE */

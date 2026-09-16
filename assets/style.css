@@ -157,7 +157,7 @@ body {
     font-family: 'Noto Serif JP', serif;
     font-size: 36px; font-weight: 900; color: var(--ink);
     line-height: 1.1; margin: 0; letter-spacing: -0.01em;
-    text-shadow: 3px 3px 0 var(--paper-dark), 4px 4px 0 var(--ink);
+    text-shadow: 3px 3px 0 var(--paper-dark), 4px 4px 0 var(--shadow);
 }
 .header-content { display: none; }
 nav { display: flex; gap: 20px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
@@ -176,7 +176,7 @@ nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 .avatar-lightbox.show { opacity:1;visibility:visible; transition:opacity 0.2s ease,visibility 0s linear 0s; }
 .lightbox-image {
     max-width:85%; max-height:80vh; object-fit:contain;
-    border: 4px solid var(--paper); box-shadow: 8px 8px 0 var(--paper);
+    border: 4px solid var(--lb-bg); box-shadow: 8px 8px 0 var(--lb-bg);
     transform: scale(0.92); transition: transform 0.2s ease;
 
 }
@@ -185,13 +185,13 @@ nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 .avatar-lightbox.show .lightbox-image { transform: scale(1); }
 .lightbox-close {
     position:absolute; top:20px;right:20px;
-    background:var(--paper); border:2px solid var(--paper); color:var(--ink);
+    background:var(--lb-bg); border:2px solid var(--lb-bg); color:var(--lb-ink);
     font-size:26px; width:40px;height:40px;
     cursor:pointer; display:flex; align-items:center; justify-content:center;
     font-family:'Share Tech Mono',monospace; font-weight:bold;
-    transition: background var(--speed);
+    transition: background var(--speed), color var(--speed);
 }
-.lightbox-close:hover { background:#ccc; }
+.lightbox-close:hover { background:var(--lb-ink); color:var(--lb-bg); }
 
 /* ── MENU BUTTON ── */
 .menu-button {
@@ -228,10 +228,13 @@ nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
     display: flex;
     flex-direction: column;
     gap: 20px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     padding-right: 14px;
+    padding-bottom: 24px;
 }
 .menu-section { display:flex;flex-direction:column;gap:8px; }
 .menu-section-title { font-size:11px;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.15em;border-bottom:1px solid var(--paper-dark);padding-bottom:4px; }
