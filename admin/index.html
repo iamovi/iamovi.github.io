@@ -228,6 +228,7 @@
     <input type="password" id="login-password" placeholder="password" autocomplete="current-password" />
     <button class="btn" onclick="doLogin()" id="login-btn">[ enter ]</button>
     <div class="status-msg" id="login-status"></div>
+    <button class="btn btn-ghost" onclick="doPasskeyLogin()" id="passkey-btn">[ sign in with passkey ]</button>
     <button class="btn btn-ghost" onclick="doForgotPassword()" id="forgot-btn">[ forgot password? ]</button>
     <div class="status-msg" id="forgot-status"></div>
   </div>
@@ -255,6 +256,14 @@
       <textarea id="status-input" placeholder="what are you up to..." maxlength="120"></textarea>
       <button class="btn" onclick="saveStatus()" id="save-btn">[ save ]</button>
       <div class="status-msg" id="save-status"></div>
+    </div>
+    
+    <!-- PASSKEY REGISTRATION -->
+    <div class="box">
+      <div class="section-title">passkeys</div>
+      <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Register a Passkey to log in securely without a password using TouchID, FaceID, Google Password Manager, or ProtonPass.</p>
+      <button class="btn" onclick="doRegisterPasskey()" id="register-passkey-btn">[ register new passkey ]</button>
+      <div class="status-msg" id="passkey-status"></div>
     </div>
 
     <!-- GUESTBOOK MODERATION -->
@@ -286,13 +295,24 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
   const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c3lpeGNoemVpcGx3d21xbGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3Njk3MTMsImV4cCI6MjA4OTM0NTcxM30.niaCbSuBZSNlHOnM0EsUTGWow6ZxLA0t1YuJaA8Uixw';
 
+  // Initialize Supabase JS Client with Passkey Support
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      experimental: {
+        passkey: true
+      }
+    }
+  });
+
   let accessToken = null;
 
-  function authHeaders() {
+  window.authHeaders = function() {
     return {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
@@ -300,7 +320,7 @@
     };
   }
 
-  function anonHeaders() {
+  window.anonHeaders = function() {
     return {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
@@ -308,7 +328,7 @@
     };
   }
 
-  function timeAgo(dateStr) {
+  window.timeAgo = function(dateStr) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'just now';
@@ -320,29 +340,29 @@
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   }
 
-  function escapeHtml(str) {
+  window.escapeHtml = function(str) {
     return String(str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   // LOGIN
-  function showLogin() {
+  window.showLogin = function() {
     document.getElementById('login-view').classList.add('show');
     document.getElementById('admin-view').classList.remove('show');
     document.getElementById('reset-view').classList.remove('show');
   }
 
-  function showAdmin(token) {
+  window.showAdmin = function(token) {
     accessToken = token;
     document.getElementById('login-view').classList.remove('show');
     document.getElementById('reset-view').classList.remove('show');
     document.getElementById('admin-view').classList.add('show');
-    loadCurrentStatus();
-    loadComments();
+    window.loadCurrentStatus();
+    window.loadComments();
   }
 
-  async function doLogin() {
+  window.doLogin = async function() {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const statusEl = document.getElementById('login-status');
@@ -358,33 +378,66 @@
     statusEl.textContent = '[ signing in... ]';
     statusEl.className = 'status-msg';
 
-    try {
-      const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.access_token) throw new Error(data.error_description || 'invalid credentials');
-      sessionStorage.setItem('admin_token', data.access_token);
-      showAdmin(data.access_token);
-    } catch (err) {
-      statusEl.textContent = '[ ' + err.message + ' ]';
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      statusEl.textContent = '[ ' + error.message + ' ]';
       statusEl.className = 'status-msg err';
       btn.disabled = false;
+    } else {
+      window.showAdmin(data.session.access_token);
     }
   }
 
-  function doLogout() {
-    sessionStorage.removeItem('admin_token');
+  window.doPasskeyLogin = async function() {
+    const statusEl = document.getElementById('forgot-status');
+    const btn = document.getElementById('passkey-btn');
+    
+    btn.disabled = true;
+    statusEl.textContent = '[ waiting for passkey... ]';
+    statusEl.className = 'status-msg';
+
+    const { data, error } = await supabase.auth.signInWithPasskey();
+    
+    if (error) {
+      statusEl.textContent = '[ ' + error.message + ' ]';
+      statusEl.className = 'status-msg err';
+      btn.disabled = false;
+    } else {
+      window.showAdmin(data.session.access_token);
+    }
+  }
+
+  window.doLogout = async function() {
+    await supabase.auth.signOut();
     accessToken = null;
     document.getElementById('login-password').value = '';
     document.getElementById('login-status').textContent = '';
-    showLogin();
+    window.showLogin();
+  }
+  
+  window.doRegisterPasskey = async function() {
+    const statusEl = document.getElementById('passkey-status');
+    const btn = document.getElementById('register-passkey-btn');
+    
+    btn.disabled = true;
+    statusEl.textContent = '[ waiting for device... ]';
+    statusEl.className = 'status-msg';
+
+    const { data, error } = await supabase.auth.enrollPasskey();
+    
+    if (error) {
+      statusEl.textContent = '[ ' + error.message + ' ]';
+      statusEl.className = 'status-msg err';
+    } else {
+      statusEl.textContent = '[ passkey registered successfully! ]';
+      statusEl.className = 'status-msg ok';
+    }
+    btn.disabled = false;
   }
 
   // FORGOT PASSWORD
-  async function doForgotPassword() {
+  window.doForgotPassword = async function() {
     const email = document.getElementById('login-email').value.trim();
     const statusEl = document.getElementById('forgot-status');
     const btn = document.getElementById('forgot-btn');
@@ -399,25 +452,22 @@
     statusEl.textContent = '[ sending recovery email... ]';
     statusEl.className = 'status-msg';
 
-    try {
-      const res = await fetch(SUPABASE_URL + '/auth/v1/recover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-        body: JSON.stringify({ email, redirectTo: window.location.href.split('#')[0] })
-      });
-      if (!res.ok) throw new Error('failed');
-      statusEl.textContent = '[ recovery email sent! check your inbox - link expires in 10 min ]';
-      statusEl.className = 'status-msg ok';
-    } catch {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.href.split('#')[0]
+    });
+
+    if (error) {
       statusEl.textContent = '[ failed to send - check your email address ]';
       statusEl.className = 'status-msg err';
-    } finally {
-      btn.disabled = false;
+    } else {
+      statusEl.textContent = '[ if that email is registered, a recovery link has been sent ]';
+      statusEl.className = 'status-msg ok';
     }
+    btn.disabled = false;
   }
 
   // RESET PASSWORD (from recovery email link)
-  async function doResetPassword() {
+  window.doResetPassword = async function() {
     const password = document.getElementById('reset-password').value;
     const confirm = document.getElementById('reset-password-confirm').value;
     const statusEl = document.getElementById('reset-status');
@@ -438,33 +488,27 @@
     statusEl.textContent = '[ updating... ]';
     statusEl.className = 'status-msg';
 
-    try {
-      const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + accessToken
-        },
-        body: JSON.stringify({ password: password })
-      });
-      if (!res.ok) throw new Error('failed');
+    const { data, error } = await supabase.auth.updateUser({ password: password });
+
+    if (error) {
+      statusEl.textContent = '[ failed to update - link may have expired. try forgot password again ]';
+      statusEl.className = 'status-msg err';
+      btn.disabled = false;
+    } else {
       statusEl.textContent = '[ password updated! redirecting to login... ]';
       statusEl.className = 'status-msg ok';
       setTimeout(() => {
         history.replaceState(null, '', window.location.pathname);
-        accessToken = null;
-        showLogin();
+        supabase.auth.signOut().then(() => {
+          accessToken = null;
+          window.showLogin();
+        });
       }, 2000);
-    } catch {
-      statusEl.textContent = '[ failed to update - link may have expired. try forgot password again ]';
-      statusEl.className = 'status-msg err';
-      btn.disabled = false;
     }
   }
 
   // CHANGE PASSWORD (when logged in)
-  async function doChangePassword() {
+  window.doChangePassword = async function() {
     const password = document.getElementById('new-password').value;
     const confirm = document.getElementById('new-password-confirm').value;
     const statusEl = document.getElementById('change-pw-status');
@@ -485,36 +529,31 @@
     statusEl.textContent = '[ updating... ]';
     statusEl.className = 'status-msg';
 
-    try {
-      const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({ password: password })
-      });
-      if (!res.ok) throw new Error('failed');
+    const { data, error } = await supabase.auth.updateUser({ password: password });
+
+    if (error) {
+      statusEl.textContent = '[ failed to update password ]';
+      statusEl.className = 'status-msg err';
+    } else {
       statusEl.textContent = '[ password updated successfully! ]';
       statusEl.className = 'status-msg ok';
       document.getElementById('new-password').value = '';
       document.getElementById('new-password-confirm').value = '';
-    } catch {
-      statusEl.textContent = '[ failed to update password ]';
-      statusEl.className = 'status-msg err';
-    } finally {
-      btn.disabled = false;
     }
+    btn.disabled = false;
   }
 
   // STATUS
-  async function loadCurrentStatus() {
+  window.loadCurrentStatus = async function() {
     const el = document.getElementById('current-status');
     try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/status?select=message&limit=1', { headers: anonHeaders() });
+      const res = await fetch(SUPABASE_URL + '/rest/v1/status?select=message&limit=1', { headers: window.anonHeaders() });
       const data = await res.json();
       el.textContent = data && data[0] ? '"' + data[0].message + '"' : '[ no status set yet ]';
     } catch { el.textContent = '[ failed to load ]'; }
   }
 
-  async function saveStatus() {
+  window.saveStatus = async function() {
     const msg = document.getElementById('status-input').value.trim();
     const statusEl = document.getElementById('save-status');
     const btn = document.getElementById('save-btn');
@@ -532,14 +571,14 @@
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/status?id=eq.1', {
         method: 'PATCH',
-        headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+        headers: { ...window.authHeaders(), 'Prefer': 'return=minimal' },
         body: JSON.stringify({ message: msg })
       });
       if (!res.ok) throw new Error('failed to save');
       statusEl.textContent = '[ saved! ]';
       statusEl.className = 'status-msg ok';
       document.getElementById('status-input').value = '';
-      loadCurrentStatus();
+      window.loadCurrentStatus();
     } catch (err) {
       statusEl.textContent = '[ ' + err.message + ' ]';
       statusEl.className = 'status-msg err';
@@ -547,13 +586,13 @@
   }
 
   // GUESTBOOK MODERATION
-  async function loadComments() {
+  window.loadComments = async function() {
     const list = document.getElementById('comment-list');
     const countEl = document.getElementById('comment-count');
     list.innerHTML = '<div class="gb-loading-admin">[ loading comments... ]</div>';
 
     try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?select=*&order=created_at.desc', { headers: anonHeaders() });
+      const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?select=*&order=created_at.desc', { headers: window.anonHeaders() });
       const data = await res.json();
 
       if (!data || data.length === 0) {
@@ -569,12 +608,12 @@
         return '<div class="comment-item" id="admin-msg-' + m.id + '">' +
           '<div class="comment-body">' +
             '<div class="comment-meta">' +
-              '<span class="comment-name">' + escapeHtml(m.name || 'anon') + '</span>' +
+              '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + '</span>' +
               (isReply ? '<span class="comment-reply-badge">reply</span>' : '') +
-              '<span>' + timeAgo(m.created_at) + '</span>' +
+              '<span>' + window.timeAgo(m.created_at) + '</span>' +
               (isReply ? '<span style="color:var(--ink-faint)">id:' + m.parent_id + '</span>' : '') +
             '</div>' +
-            '<div class="comment-text">' + escapeHtml(m.message) + '</div>' +
+            '<div class="comment-text">' + window.escapeHtml(m.message) + '</div>' +
           '</div>' +
           '<button class="btn-danger" onclick="deleteComment(' + m.id + ')">[ delete ]</button>' +
         '</div>';
@@ -584,7 +623,7 @@
     }
   }
 
-  async function deleteComment(id) {
+  window.deleteComment = async function(id) {
     if (!confirm('Delete this comment? Replies to it will also be deleted.')) return;
 
     const row = document.getElementById('admin-msg-' + id);
@@ -594,7 +633,7 @@
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?id=eq.' + id, {
         method: 'DELETE',
-        headers: authHeaders()
+        headers: window.authHeaders()
       });
       if (!res.ok) throw new Error('failed');
       if (row) row.remove();
@@ -610,23 +649,34 @@
   }
 
   // INIT
-  document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('login-password').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') doLogin();
+      if (e.key === 'Enter') window.doLogin();
     });
 
-    // Check if this is a password recovery redirect (Supabase puts token in URL hash)
+    // Handle Supabase Auth Session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // Check if this is a password recovery redirect
     const hash = new URLSearchParams(window.location.hash.substring(1));
-    const resetToken = hash.get('access_token');
     const tokenType = hash.get('type');
 
-    if (resetToken && tokenType === 'recovery') {
-      accessToken = resetToken;
+    if (tokenType === 'recovery' && session) {
+      // The client library automatically exchanged the token for a session!
+      accessToken = session.access_token;
       document.getElementById('reset-view').classList.add('show');
+    } else if (session) {
+      window.showAdmin(session.access_token);
     } else {
-      const saved = sessionStorage.getItem('admin_token');
-      if (saved) { showAdmin(saved); } else { showLogin(); }
+      window.showLogin();
     }
+    
+    // Listen for auth state changes
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        window.showLogin();
+      }
+    });
   });
 </script>
     <script src="../assets/sounds.js"></script>

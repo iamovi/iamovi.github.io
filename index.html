@@ -54,9 +54,9 @@
     <!-- Supabase auth recovery redirect handler -->
     <script>
       (function() {
-        var hash = new URLSearchParams(window.location.hash.substring(1));
-        if (hash.get('access_token') && hash.get('type') === 'recovery') {
-          window.location.replace('/admin/' + window.location.hash);
+        var h = window.location.hash;
+        if (h && (h.indexOf('access_token') !== -1 || h.indexOf('error=') !== -1)) {
+          window.location.replace('/admin/' + h);
         }
       })();
     </script>
