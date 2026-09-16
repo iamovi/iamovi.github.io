@@ -209,7 +209,7 @@ nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
 /* ── SLIDE MENU ── */
 .slide-menu {
-    position:fixed;top:0;right:0;width:280px;height:100vh;
+    position:fixed;top:0;right:0;width:280px;height:100vh; height:100dvh;
     background:var(--paper); border-left:3px solid var(--ink);
     padding:28px 24px;
     transform:translate3d(280px,0,0);
@@ -279,7 +279,7 @@ nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
 /* ── OVERLAY ── */
 .menu-overlay {
-    position:fixed;top:0;left:0;width:100%;height:100vh;
+    position:fixed;top:0;left:0;width:100%;height:100vh; height:100dvh;
     background:rgba(0,0,0,0.6);
     opacity:0;visibility:hidden;
     transition:opacity 0.2s ease,visibility 0s linear 0.2s;
