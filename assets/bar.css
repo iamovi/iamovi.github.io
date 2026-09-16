@@ -94,6 +94,53 @@
     scrollbar-color: #2196f3 rgba(0, 0, 0, 0.02);
 }
 
+/* ── ONLY SLIDE MENU SCROLLBAR (thin & black) ── */
+.slide-menu,
+.slide-menu *,
+.menu-content,
+.light .slide-menu,
+.light .slide-menu * {
+    scrollbar-width: thin;
+    scrollbar-color: #000000 transparent;
+}
+
+.slide-menu::-webkit-scrollbar,
+.slide-menu *::-webkit-scrollbar,
+.menu-content::-webkit-scrollbar,
+.light .slide-menu::-webkit-scrollbar,
+.light .slide-menu *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.slide-menu::-webkit-scrollbar-track,
+.slide-menu *::-webkit-scrollbar-track,
+.menu-content::-webkit-scrollbar-track,
+.light .slide-menu::-webkit-scrollbar-track,
+.light .slide-menu *::-webkit-scrollbar-track {
+    background: transparent;
+    border: none;
+}
+
+.slide-menu::-webkit-scrollbar-thumb,
+.slide-menu *::-webkit-scrollbar-thumb,
+.menu-content::-webkit-scrollbar-thumb,
+.light .slide-menu::-webkit-scrollbar-thumb,
+.light .slide-menu *::-webkit-scrollbar-thumb {
+    background: #000000;
+    border-radius: 2px;
+    border: none;
+    box-shadow: none;
+}
+
+.slide-menu::-webkit-scrollbar-thumb:hover,
+.slide-menu *::-webkit-scrollbar-thumb:hover,
+.menu-content::-webkit-scrollbar-thumb:hover,
+.light .slide-menu::-webkit-scrollbar-thumb:hover,
+.light .slide-menu *::-webkit-scrollbar-thumb:hover {
+    background: #222222;
+}
+
 /* MOBILE */
 @media (max-width: 600px) {
     body {
