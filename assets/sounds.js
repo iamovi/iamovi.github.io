@@ -1,10 +1,10 @@
 // ============================================================
-// MANGA SOUND ENGINE — Web Audio API, no external files
+// MANGA SOUND ENGINE â€” Web Audio API, no external files
 // ============================================================
 (function () {
   const SFX_KEY = 'ovi_sfx_enabled';
 
-  // Default OFF — user must explicitly turn on
+  // Default OFF â€” user must explicitly turn on
   let sfxEnabled = localStorage.getItem(SFX_KEY) === 'true';
   let audioCtx = null;
 
