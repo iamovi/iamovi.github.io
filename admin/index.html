@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -150,7 +150,6 @@
       border-left: 3px solid var(--ink-faint);
     }
 
-    /* comment list */
     .comment-list { margin-top: 4px; }
 
     .comment-item {
@@ -210,15 +209,15 @@
       letter-spacing: 0.06em;
     }
 
-    #login-view, #admin-view { display: none; }
-    #login-view.show, #admin-view.show { display: block; }
+    #login-view, #admin-view, #reset-view { display: none; }
+    #login-view.show, #admin-view.show, #reset-view.show { display: block; }
   </style>
 </head>
 <body>
 
 <div class="panel">
   <p class="panel-title">init_ovi / <span>admin</span></p>
-  <p style="margin-bottom: 24px;"><a href="../" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mid); text-decoration: none; border-bottom: 1px solid var(--ink-faint);">← back to init_ovi</a></p>
+  <p style="margin-bottom: 24px;"><a href="../" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mid); text-decoration: none; border-bottom: 1px solid var(--ink-faint);">back to init_ovi</a></p>
 
   <!-- LOGIN -->
   <div class="box" id="login-view">
@@ -226,9 +225,23 @@
     <label>email</label>
     <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email" />
     <label>password</label>
-    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+    <input type="password" id="login-password" placeholder="password" autocomplete="current-password" />
     <button class="btn" onclick="doLogin()" id="login-btn">[ enter ]</button>
     <div class="status-msg" id="login-status"></div>
+    <button class="btn btn-ghost" onclick="doForgotPassword()" id="forgot-btn">[ forgot password? ]</button>
+    <div class="status-msg" id="forgot-status"></div>
+  </div>
+
+  <!-- RESET PASSWORD (from recovery email link) -->
+  <div class="box" id="reset-view">
+    <div class="section-title">set new password</div>
+    <p style="font-size:11px; color:var(--ink-mid); margin-bottom:16px; letter-spacing:0.04em;">[ link expires in 10 minutes ]</p>
+    <label>new password</label>
+    <input type="password" id="reset-password" placeholder="new password" autocomplete="new-password" />
+    <label>confirm password</label>
+    <input type="password" id="reset-password-confirm" placeholder="confirm password" autocomplete="new-password" />
+    <button class="btn" onclick="doResetPassword()" id="reset-btn">[ set password ]</button>
+    <div class="status-msg" id="reset-status"></div>
   </div>
 
   <!-- ADMIN -->
@@ -253,6 +266,17 @@
       <div class="comment-list" id="comment-list">
         <div class="gb-loading-admin">[ loading comments... ]</div>
       </div>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="box">
+      <div class="section-title">change password</div>
+      <label>new password</label>
+      <input type="password" id="new-password" placeholder="new password" autocomplete="new-password" />
+      <label>confirm password</label>
+      <input type="password" id="new-password-confirm" placeholder="confirm password" autocomplete="new-password" />
+      <button class="btn" onclick="doChangePassword()" id="change-pw-btn">[ update password ]</button>
+      <div class="status-msg" id="change-pw-status"></div>
     </div>
 
     <div class="box" style="padding: 16px 24px;">
@@ -302,15 +326,17 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // ── LOGIN ──
+  // LOGIN
   function showLogin() {
     document.getElementById('login-view').classList.add('show');
     document.getElementById('admin-view').classList.remove('show');
+    document.getElementById('reset-view').classList.remove('show');
   }
 
   function showAdmin(token) {
     accessToken = token;
     document.getElementById('login-view').classList.remove('show');
+    document.getElementById('reset-view').classList.remove('show');
     document.getElementById('admin-view').classList.add('show');
     loadCurrentStatus();
     loadComments();
@@ -357,7 +383,128 @@
     showLogin();
   }
 
-  // ── STATUS ──
+  // FORGOT PASSWORD
+  async function doForgotPassword() {
+    const email = document.getElementById('login-email').value.trim();
+    const statusEl = document.getElementById('forgot-status');
+    const btn = document.getElementById('forgot-btn');
+
+    if (!email) {
+      statusEl.textContent = '[ enter your email above first ]';
+      statusEl.className = 'status-msg err';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '[ sending recovery email... ]';
+    statusEl.className = 'status-msg';
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/auth/v1/recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ email, redirectTo: window.location.href.split('#')[0] })
+      });
+      if (!res.ok) throw new Error('failed');
+      statusEl.textContent = '[ recovery email sent! check your inbox - link expires in 10 min ]';
+      statusEl.className = 'status-msg ok';
+    } catch {
+      statusEl.textContent = '[ failed to send - check your email address ]';
+      statusEl.className = 'status-msg err';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // RESET PASSWORD (from recovery email link)
+  async function doResetPassword() {
+    const password = document.getElementById('reset-password').value;
+    const confirm = document.getElementById('reset-password-confirm').value;
+    const statusEl = document.getElementById('reset-status');
+    const btn = document.getElementById('reset-btn');
+
+    if (!password) {
+      statusEl.textContent = '[ enter a new password ]';
+      statusEl.className = 'status-msg err';
+      return;
+    }
+    if (password !== confirm) {
+      statusEl.textContent = '[ passwords do not match ]';
+      statusEl.className = 'status-msg err';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '[ updating... ]';
+    statusEl.className = 'status-msg';
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + accessToken
+        },
+        body: JSON.stringify({ password: password })
+      });
+      if (!res.ok) throw new Error('failed');
+      statusEl.textContent = '[ password updated! redirecting to login... ]';
+      statusEl.className = 'status-msg ok';
+      setTimeout(() => {
+        history.replaceState(null, '', window.location.pathname);
+        accessToken = null;
+        showLogin();
+      }, 2000);
+    } catch {
+      statusEl.textContent = '[ failed to update - link may have expired. try forgot password again ]';
+      statusEl.className = 'status-msg err';
+      btn.disabled = false;
+    }
+  }
+
+  // CHANGE PASSWORD (when logged in)
+  async function doChangePassword() {
+    const password = document.getElementById('new-password').value;
+    const confirm = document.getElementById('new-password-confirm').value;
+    const statusEl = document.getElementById('change-pw-status');
+    const btn = document.getElementById('change-pw-btn');
+
+    if (!password) {
+      statusEl.textContent = '[ enter a new password ]';
+      statusEl.className = 'status-msg err';
+      return;
+    }
+    if (password !== confirm) {
+      statusEl.textContent = '[ passwords do not match ]';
+      statusEl.className = 'status-msg err';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '[ updating... ]';
+    statusEl.className = 'status-msg';
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ password: password })
+      });
+      if (!res.ok) throw new Error('failed');
+      statusEl.textContent = '[ password updated successfully! ]';
+      statusEl.className = 'status-msg ok';
+      document.getElementById('new-password').value = '';
+      document.getElementById('new-password-confirm').value = '';
+    } catch {
+      statusEl.textContent = '[ failed to update password ]';
+      statusEl.className = 'status-msg err';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // STATUS
   async function loadCurrentStatus() {
     const el = document.getElementById('current-status');
     try {
@@ -399,7 +546,7 @@
     } finally { btn.disabled = false; }
   }
 
-  // ── GUESTBOOK MODERATION ──
+  // GUESTBOOK MODERATION
   async function loadComments() {
     const list = document.getElementById('comment-list');
     const countEl = document.getElementById('comment-count');
@@ -417,22 +564,20 @@
 
       if (countEl) countEl.textContent = data.length + ' total';
 
-      list.innerHTML = data.map(m => {
+      list.innerHTML = data.map(function(m) {
         const isReply = m.parent_id !== null;
-        return `
-          <div class="comment-item" id="admin-msg-${m.id}">
-            <div class="comment-body">
-              <div class="comment-meta">
-                <span class="comment-name">${escapeHtml(m.name || 'anon')}</span>
-                ${isReply ? '<span class="comment-reply-badge">reply</span>' : ''}
-                <span>${timeAgo(m.created_at)}</span>
-                ${isReply ? `<span style="color:var(--ink-faint)">↳ id:${m.parent_id}</span>` : ''}
-              </div>
-              <div class="comment-text">${escapeHtml(m.message)}</div>
-            </div>
-            <button class="btn-danger" onclick="deleteComment(${m.id})">[ delete ]</button>
-          </div>
-        `;
+        return '<div class="comment-item" id="admin-msg-' + m.id + '">' +
+          '<div class="comment-body">' +
+            '<div class="comment-meta">' +
+              '<span class="comment-name">' + escapeHtml(m.name || 'anon') + '</span>' +
+              (isReply ? '<span class="comment-reply-badge">reply</span>' : '') +
+              '<span>' + timeAgo(m.created_at) + '</span>' +
+              (isReply ? '<span style="color:var(--ink-faint)">id:' + m.parent_id + '</span>' : '') +
+            '</div>' +
+            '<div class="comment-text">' + escapeHtml(m.message) + '</div>' +
+          '</div>' +
+          '<button class="btn-danger" onclick="deleteComment(' + m.id + ')">[ delete ]</button>' +
+        '</div>';
       }).join('');
     } catch {
       list.innerHTML = '<p class="comment-empty">[ failed to load ]</p>';
@@ -452,9 +597,7 @@
         headers: authHeaders()
       });
       if (!res.ok) throw new Error('failed');
-      // remove from UI
       if (row) row.remove();
-      // update count
       const countEl = document.getElementById('comment-count');
       if (countEl) {
         const cur = parseInt(countEl.textContent) || 1;
@@ -466,13 +609,24 @@
     }
   }
 
-  // ── INIT ──
+  // INIT
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('login-password').addEventListener('keydown', e => {
+    document.getElementById('login-password').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') doLogin();
     });
-    const saved = sessionStorage.getItem('admin_token');
-    if (saved) { showAdmin(saved); } else { showLogin(); }
+
+    // Check if this is a password recovery redirect (Supabase puts token in URL hash)
+    const hash = new URLSearchParams(window.location.hash.substring(1));
+    const resetToken = hash.get('access_token');
+    const tokenType = hash.get('type');
+
+    if (resetToken && tokenType === 'recovery') {
+      accessToken = resetToken;
+      document.getElementById('reset-view').classList.add('show');
+    } else {
+      const saved = sessionStorage.getItem('admin_token');
+      if (saved) { showAdmin(saved); } else { showLogin(); }
+    }
   });
 </script>
     <script src="../assets/sounds.js"></script>
