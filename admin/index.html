@@ -397,7 +397,13 @@
     statusEl.textContent = '[ waiting for passkey... ]';
     statusEl.className = 'status-msg';
 
-    const { data, error } = await supabase.auth.signInWithPasskey();
+    let data, error;
+    try {
+      const res = await supabase.auth.signInWithPasskey();
+      data = res.data; error = res.error;
+    } catch (e) {
+      error = e;
+    }
     
     if (error) {
       statusEl.textContent = '[ ' + error.message + ' ]';
@@ -424,7 +430,13 @@
     statusEl.textContent = '[ waiting for device... ]';
     statusEl.className = 'status-msg';
 
-    const { data, error } = await supabase.auth.enrollPasskey();
+    let data, error;
+    try {
+      const res = await supabase.auth.enrollPasskey();
+      data = res.data; error = res.error;
+    } catch (e) {
+      error = e;
+    }
     
     if (error) {
       statusEl.textContent = '[ ' + error.message + ' ]';
