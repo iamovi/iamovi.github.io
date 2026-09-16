@@ -1,8 +1,11 @@
 // ============================================================
-// MANGA SOUND ENGINE — Web Audio API, no external files
+// MANGA SOUND ENGINE � Web Audio API, no external files
 // ============================================================
 (function () {
-  let sfxEnabled = true;
+  const SFX_KEY = 'ovi_sfx_enabled';
+
+  // Default OFF � user must explicitly turn on
+  let sfxEnabled = localStorage.getItem(SFX_KEY) === 'true';
   let audioCtx = null;
 
   function getCtx() {
@@ -10,7 +13,7 @@
     return audioCtx;
   }
 
-  // ── Core sound primitives ──────────────────────────────────
+  // -- Core sound primitives ---------------------------------------------
 
   function playTone({ type = 'sine', freq = 440, endFreq, vol = 0.12, duration = 0.1, delay = 0 }) {
     if (!sfxEnabled) return;
@@ -52,96 +55,94 @@
     } catch (e) {}
   }
 
-  // ── Named sound effects ────────────────────────────────────
+  // -- Named sound effects -----------------------------------------------
 
-  // Page load — dramatic ink brush stroke + deep thud
   window.sfx_pageLoad = function () {
-    // whoosh sweep
     playTone({ type: 'sawtooth', freq: 80, endFreq: 400, vol: 0.07, duration: 0.25 });
     playNoise({ vol: 0.15, duration: 0.2, filterFreq: 800 });
-    // thud
     playTone({ type: 'sine', freq: 120, endFreq: 40, vol: 0.18, duration: 0.3, delay: 0.15 });
-    // ink splash pop
     playTone({ type: 'square', freq: 900, endFreq: 200, vol: 0.05, duration: 0.08, delay: 0.3 });
   };
 
-  // Menu open — sharp whoosh slide
   window.sfx_menuOpen = function () {
     playNoise({ vol: 0.14, duration: 0.15, filterFreq: 1200 });
     playTone({ type: 'sawtooth', freq: 200, endFreq: 600, vol: 0.08, duration: 0.15 });
     playTone({ type: 'sine', freq: 440, endFreq: 880, vol: 0.06, duration: 0.1, delay: 0.1 });
   };
 
-  // Menu close — reverse whoosh
   window.sfx_menuClose = function () {
     playTone({ type: 'sawtooth', freq: 600, endFreq: 150, vol: 0.08, duration: 0.18 });
     playNoise({ vol: 0.1, duration: 0.12, filterFreq: 900 });
   };
 
-  // Click / button — typewriter mechanical clack
   window.sfx_click = function () {
     playNoise({ vol: 0.18, duration: 0.04, filterFreq: 4000 });
     playTone({ type: 'square', freq: 1200, endFreq: 600, vol: 0.06, duration: 0.06 });
   };
 
-  // Hover — soft ink brush tap
   window.sfx_hover = function () {
     playTone({ type: 'sine', freq: 600, endFreq: 800, vol: 0.04, duration: 0.05 });
     playNoise({ vol: 0.04, duration: 0.03, filterFreq: 3000 });
   };
 
-  // Link click — deeper clack + pop
   window.sfx_linkClick = function () {
     playNoise({ vol: 0.2, duration: 0.05, filterFreq: 3500 });
     playTone({ type: 'square', freq: 880, endFreq: 220, vol: 0.08, duration: 0.1 });
   };
 
-  // Game: vote YES — rising manga power tone
   window.sfx_voteYes = function () {
     playTone({ type: 'sine', freq: 440, endFreq: 880, vol: 0.12, duration: 0.12 });
     playTone({ type: 'sine', freq: 660, endFreq: 1320, vol: 0.08, duration: 0.1, delay: 0.08 });
     playNoise({ vol: 0.08, duration: 0.06, filterFreq: 2000, delay: 0.1 });
   };
 
-  // Game: vote NO — thud rejection
   window.sfx_voteNo = function () {
     playTone({ type: 'sawtooth', freq: 300, endFreq: 80, vol: 0.14, duration: 0.2 });
     playNoise({ vol: 0.12, duration: 0.1, filterFreq: 500 });
   };
 
-  // Game: card swipe — whoosh
   window.sfx_swipe = function () {
     playNoise({ vol: 0.16, duration: 0.18, filterFreq: 1500 });
     playTone({ type: 'sawtooth', freq: 300, endFreq: 800, vol: 0.06, duration: 0.18 });
   };
 
-  // Game: game over — dramatic descending
   window.sfx_gameOver = function () {
     playTone({ type: 'sawtooth', freq: 440, endFreq: 110, vol: 0.14, duration: 0.4 });
     playNoise({ vol: 0.18, duration: 0.3, filterFreq: 400, delay: 0.1 });
     playTone({ type: 'sine', freq: 220, endFreq: 55, vol: 0.1, duration: 0.5, delay: 0.3 });
   };
 
-  // Game: play again — cheerful pop
   window.sfx_playAgain = function () {
     playTone({ type: 'sine', freq: 523, endFreq: 1046, vol: 0.1, duration: 0.1 });
     playTone({ type: 'sine', freq: 659, endFreq: 1318, vol: 0.08, duration: 0.1, delay: 0.1 });
     playTone({ type: 'sine', freq: 784, endFreq: 1568, vol: 0.06, duration: 0.12, delay: 0.2 });
   };
 
-  // ── Sound toggle ───────────────────────────────────────────
+  // -- Helpers -----------------------------------------------------------
+
+  function updateAllToggleBtns() {
+    document.querySelectorAll('.sfx-toggle').forEach(function (btn) {
+      btn.textContent = sfxEnabled ? '[ SFX ON ]' : '[ SFX OFF ]';
+      btn.setAttribute('aria-pressed', sfxEnabled ? 'true' : 'false');
+    });
+  }
+
+  // -- Sound toggle (saves to localStorage) -----------------------------
 
   window.toggleSfx = function () {
     sfxEnabled = !sfxEnabled;
-    const btn = document.getElementById('sfx-toggle');
-    if (btn) btn.textContent = sfxEnabled ? '[ SFX ON ]' : '[ SFX OFF ]';
-    if (sfxEnabled) sfx_click();
+    localStorage.setItem(SFX_KEY, sfxEnabled ? 'true' : 'false');
+    updateAllToggleBtns();
+    if (sfxEnabled) sfx_click(); // confirmation beep when turning ON
   };
 
-  // ── Auto-attach to main site interactions ─────────────────
+  // -- Auto-attach to main site interactions -----------------------------
 
   document.addEventListener('DOMContentLoaded', function () {
-    // Page load sound
+    // Set initial button state from stored preference
+    updateAllToggleBtns();
+
+    // Page load sound (only if user has enabled it)
     setTimeout(sfx_pageLoad, 200);
 
     // Hover on interactive elements
@@ -162,7 +163,7 @@
     document.addEventListener('click', function (e) {
       const btn = e.target.closest('button, .page-btn, .menu-button, .music-button, .theme-toggle, .waifu-reload');
       const link = e.target.closest('a');
-      const sfxBtn = e.target.closest('#sfx-toggle');
+      const sfxBtn = e.target.closest('.sfx-toggle');
       if (sfxBtn) return; // handled by toggleSfx
       if (btn) sfx_click();
       else if (link) sfx_linkClick();
