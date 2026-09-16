@@ -1,14 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>admin — init_ovi</title>
+  <title>admin / init_ovi</title>
   <link rel="icon" href="../samurai-jack.png">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <meta name="robots" content="noindex, nofollow">
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     :root {
       --ink: #1a0f00;
@@ -29,7 +36,11 @@
       padding: 32px 16px;
     }
 
-    .panel { width: 100%; max-width: 600px; margin: 0 auto; }
+    .panel {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
 
     .panel-title {
       font-size: 11px;
@@ -38,7 +49,10 @@
       color: var(--ink-mid);
       margin-bottom: 24px;
     }
-    .panel-title span { color: var(--ink); }
+
+    .panel-title span {
+      color: var(--ink);
+    }
 
     .box {
       border: 2px solid var(--ink);
@@ -47,11 +61,14 @@
       background: var(--paper);
       margin-bottom: 28px;
     }
+
     .box::after {
       content: '';
       position: absolute;
-      bottom: -5px; right: -5px;
-      width: 100%; height: 100%;
+      bottom: -5px;
+      right: -5px;
+      width: 100%;
+      height: 100%;
       border: 2px solid var(--ink);
       z-index: -1;
     }
@@ -78,7 +95,8 @@
       margin-bottom: 8px;
     }
 
-    input, textarea {
+    input,
+    textarea {
       width: 100%;
       background: transparent;
       border: 1.5px solid var(--ink-mid);
@@ -90,9 +108,21 @@
       transition: border-color var(--speed);
       margin-bottom: 16px;
     }
-    input:focus, textarea:focus { border-color: var(--ink); }
-    input[type="password"] { letter-spacing: 0.2em; }
-    textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--ink);
+    }
+
+    input[type="password"] {
+      letter-spacing: 0.2em;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.6;
+    }
 
     .btn {
       background: var(--ink);
@@ -106,8 +136,17 @@
       width: 100%;
       transition: background var(--speed), color var(--speed);
     }
-    .btn:hover { background: transparent; color: var(--ink); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn:hover {
+      background: var(--ink-mid);
+      border-color: var(--ink-mid);
+      color: var(--paper);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
 
     .btn-ghost {
       background: transparent;
@@ -115,7 +154,12 @@
       border: 1.5px solid var(--ink-faint);
       margin-top: 10px;
     }
-    .btn-ghost:hover { color: var(--ink); border-color: var(--ink); background: transparent; }
+
+    .btn-ghost:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+      background: transparent;
+    }
 
     .btn-danger {
       background: transparent;
@@ -130,7 +174,11 @@
       transition: background var(--speed), color var(--speed);
       width: auto;
     }
-    .btn-danger:hover { background: #8b2020; color: var(--paper); }
+
+    .btn-danger:hover {
+      background: #8b2020;
+      color: var(--paper);
+    }
 
     .status-msg {
       font-size: 12px;
@@ -138,8 +186,14 @@
       min-height: 18px;
       letter-spacing: 0.04em;
     }
-    .status-msg.ok { color: #3a7a3a; }
-    .status-msg.err { color: #8b2020; }
+
+    .status-msg.ok {
+      color: #3a7a3a;
+    }
+
+    .status-msg.err {
+      color: #8b2020;
+    }
 
     .current-status {
       font-size: 12px;
@@ -150,7 +204,9 @@
       border-left: 3px solid var(--ink-faint);
     }
 
-    .comment-list { margin-top: 4px; }
+    .comment-list {
+      margin-top: 4px;
+    }
 
     .comment-item {
       padding: 12px 0;
@@ -159,9 +215,15 @@
       gap: 12px;
       align-items: flex-start;
     }
-    .comment-item:last-child { border-bottom: none; }
 
-    .comment-body { flex: 1; min-width: 0; }
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-body {
+      flex: 1;
+      min-width: 0;
+    }
 
     .comment-meta {
       font-size: 11px;
@@ -173,7 +235,12 @@
       flex-wrap: wrap;
     }
 
-    .comment-name { font-weight: bold; color: var(--ink); font-size: 12px; }
+    .comment-name {
+      font-weight: bold;
+      color: var(--ink);
+      font-size: 12px;
+    }
+
     .comment-reply-badge {
       font-size: 10px;
       color: var(--ink-faint);
@@ -209,488 +276,585 @@
       letter-spacing: 0.06em;
     }
 
-    #login-view, #admin-view, #reset-view { display: none; }
-    #login-view.show, #admin-view.show, #reset-view.show { display: block; }
+    #login-view,
+    #admin-view,
+    #reset-view {
+      display: none;
+    }
+
+    #login-view.show,
+    #admin-view.show,
+    #reset-view.show {
+      display: block;
+    }
   </style>
 </head>
+
 <body>
 
-<div class="panel">
-  <p class="panel-title">init_ovi / <span>admin</span></p>
-  <p style="margin-bottom: 24px;"><a href="../" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mid); text-decoration: none; border-bottom: 1px solid var(--ink-faint);">back to init_ovi</a></p>
+  <div class="panel">
+    <p class="panel-title">init_ovi / <span>admin</span></p>
+    <p style="margin-bottom: 24px;"><a href="../"
+        style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mid); text-decoration: none; border-bottom: 1px solid var(--ink-faint);">back
+        to init_ovi</a></p>
 
-  <!-- LOGIN -->
-  <div class="box" id="login-view">
-    <div class="section-title">sign in</div>
-    <label>email</label>
-    <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email" />
-    <label>password</label>
-    <input type="password" id="login-password" placeholder="password" autocomplete="current-password" />
-    <button class="btn" onclick="doLogin()" id="login-btn">[ enter ]</button>
-    <div class="status-msg" id="login-status"></div>
-    <button class="btn btn-ghost" onclick="doPasskeyLogin()" id="passkey-btn">[ sign in with passkey ]</button>
-    <button class="btn btn-ghost" onclick="doForgotPassword()" id="forgot-btn">[ forgot password? ]</button>
-    <div class="status-msg" id="forgot-status"></div>
-  </div>
-
-  <!-- RESET PASSWORD (from recovery email link) -->
-  <div class="box" id="reset-view">
-    <div class="section-title">set new password</div>
-    <p style="font-size:11px; color:var(--ink-mid); margin-bottom:16px; letter-spacing:0.04em;">[ link expires in 10 minutes ]</p>
-    <label>new password</label>
-    <input type="password" id="reset-password" placeholder="new password" autocomplete="new-password" />
-    <label>confirm password</label>
-    <input type="password" id="reset-password-confirm" placeholder="confirm password" autocomplete="new-password" />
-    <button class="btn" onclick="doResetPassword()" id="reset-btn">[ set password ]</button>
-    <div class="status-msg" id="reset-status"></div>
-  </div>
-
-  <!-- ADMIN -->
-  <div id="admin-view">
-
-    <!-- STATUS -->
-    <div class="box">
-      <div class="section-title">status message</div>
-      <div class="current-status" id="current-status">loading...</div>
-      <label>new message</label>
-      <textarea id="status-input" placeholder="what are you up to..." maxlength="120"></textarea>
-      <button class="btn" onclick="saveStatus()" id="save-btn">[ save ]</button>
-      <div class="status-msg" id="save-status"></div>
-    </div>
-    
-    <!-- PASSKEY REGISTRATION -->
-    <div class="box">
-      <div class="section-title">passkeys</div>
-      <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Register a Passkey to log in securely without a password using TouchID, FaceID, Google Password Manager, or ProtonPass.</p>
-      <button class="btn" onclick="doRegisterPasskey()" id="register-passkey-btn">[ register new passkey ]</button>
-      <div class="status-msg" id="passkey-status"></div>
+    <!-- LOGIN -->
+    <div class="box" id="login-view">
+      <div class="section-title">sign in</div>
+      <label>email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" autocomplete="off" />
+      <label>password</label>
+      <input type="password" id="login-password" placeholder="password" autocomplete="current-password" />
+      <button class="btn" onclick="doLogin()" id="login-btn">[ enter ]</button>
+      <div class="status-msg" id="login-status"></div>
+      <button class="btn btn-ghost" onclick="doPasskeyLogin()" id="passkey-btn">[ sign in with passkey ]</button>
+      <button class="btn btn-ghost" onclick="doForgotPassword()" id="forgot-btn">[ forgot password? ]</button>
+      <div class="status-msg" id="forgot-status"></div>
     </div>
 
-    <!-- GUESTBOOK MODERATION -->
-    <div class="box">
-      <div class="section-title">
-        <span>guestbook</span>
-        <span class="comment-count" id="comment-count"></span>
-      </div>
-      <div class="comment-list" id="comment-list">
-        <div class="gb-loading-admin">[ loading comments... ]</div>
-      </div>
-    </div>
-
-    <!-- CHANGE PASSWORD -->
-    <div class="box">
-      <div class="section-title">change password</div>
+    <!-- RESET PASSWORD (from recovery email link) -->
+    <div class="box" id="reset-view">
+      <div class="section-title">set new password</div>
+      <p style="font-size:11px; color:var(--ink-mid); margin-bottom:16px; letter-spacing:0.04em;">[ link expires in 10
+        minutes ]</p>
       <label>new password</label>
-      <input type="password" id="new-password" placeholder="new password" autocomplete="new-password" />
+      <input type="password" id="reset-password" placeholder="new password" autocomplete="new-password" />
       <label>confirm password</label>
-      <input type="password" id="new-password-confirm" placeholder="confirm password" autocomplete="new-password" />
-      <button class="btn" onclick="doChangePassword()" id="change-pw-btn">[ update password ]</button>
-      <div class="status-msg" id="change-pw-status"></div>
+      <input type="password" id="reset-password-confirm" placeholder="confirm password" autocomplete="new-password" />
+      <button class="btn" onclick="doResetPassword()" id="reset-btn">[ set password ]</button>
+      <div class="status-msg" id="reset-status"></div>
     </div>
 
-    <div class="box" style="padding: 16px 24px;">
-      <button class="btn btn-ghost" style="margin-top:0;" onclick="doLogout()">[ sign out ]</button>
-    </div>
+    <!-- ADMIN -->
+    <div id="admin-view">
 
+      <!-- ADMIN TABS -->
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <button class="btn" style="flex:1; margin:0;" id="tab-btn-content" onclick="switchAdminTab('content')">[ content ]</button>
+        <button class="btn btn-ghost" style="flex:1; margin:0;" id="tab-btn-security" onclick="switchAdminTab('security')">[ security ]</button>
+      </div>
+
+      <!-- CONTENT TAB -->
+      <div id="admin-tab-content">
+        <!-- STATUS -->
+        <div class="box">
+          <div class="section-title">status message</div>
+          <div class="current-status" id="current-status">loading...</div>
+          <label>new message</label>
+          <textarea id="status-input" placeholder="what are you up to..." maxlength="120"></textarea>
+          <button class="btn" onclick="saveStatus()" id="save-btn">[ save ]</button>
+          <div class="status-msg" id="save-status"></div>
+        </div>
+
+        <!-- GUESTBOOK MODERATION -->
+        <div class="box">
+          <div class="section-title">
+            <span>guestbook</span>
+            <span class="comment-count" id="comment-count"></span>
+          </div>
+          <div class="comment-list" id="comment-list">
+            <div class="gb-loading-admin">[ loading comments... ]</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY TAB -->
+      <div id="admin-tab-security" style="display: none;">
+        <!-- CHANGE PASSWORD -->
+        <div class="box">
+          <div class="section-title">change password</div>
+          <label>new password</label>
+          <input type="password" id="new-password" placeholder="new password" autocomplete="new-password" />
+          <label>confirm password</label>
+          <input type="password" id="new-password-confirm" placeholder="confirm password" autocomplete="new-password" />
+          <button class="btn" onclick="doChangePassword()" id="change-pw-btn">[ update password ]</button>
+          <div class="status-msg" id="change-pw-status"></div>
+        </div>
+
+        <!-- PASSKEY REGISTRATION -->
+        <div class="box">
+          <div class="section-title">passkeys</div>
+          <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Register a Passkey to log in securely
+            without a password using TouchID, FaceID, Google Password Manager, or ProtonPass.</p>
+          <button class="btn" onclick="doRegisterPasskey()" id="register-passkey-btn">[ register new passkey ]</button>
+          <div class="status-msg" id="passkey-status"></div>
+          <div class="comment-list" id="passkey-list"
+            style="margin-top: 24px; border-top: 1px solid var(--ink-faint); padding-top: 16px;"></div>
+        </div>
+      </div>
+
+      <div class="box" style="padding: 16px 24px;">
+        <button class="btn btn-ghost" style="margin-top:0;" onclick="doLogout()">[ sign out ]</button>
+      </div>
+
+    </div>
   </div>
-</div>
 
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-  const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c3lpeGNoemVpcGx3d21xbGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3Njk3MTMsImV4cCI6MjA4OTM0NTcxM30.niaCbSuBZSNlHOnM0EsUTGWow6ZxLA0t1YuJaA8Uixw';
+    const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51c3lpeGNoemVpcGx3d21xbGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3Njk3MTMsImV4cCI6MjA4OTM0NTcxM30.niaCbSuBZSNlHOnM0EsUTGWow6ZxLA0t1YuJaA8Uixw';
 
-  // Initialize Supabase JS Client with Passkey Support
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      experimental: {
-        passkey: true
+    // Initialize Supabase JS Client with Passkey Support
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        experimental: {
+          passkey: true
+        }
       }
-    }
-  });
-
-  let accessToken = null;
-
-  window.authHeaders = function() {
-    return {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + accessToken
-    };
-  }
-
-  window.anonHeaders = function() {
-    return {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-    };
-  }
-
-  window.timeAgo = function(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return mins + 'm ago';
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return hrs + 'h ago';
-    const days = Math.floor(hrs / 24);
-    if (days < 30) return days + 'd ago';
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  }
-
-  window.escapeHtml = function(str) {
-    return String(str)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // LOGIN
-  window.showLogin = function() {
-    document.getElementById('login-view').classList.add('show');
-    document.getElementById('admin-view').classList.remove('show');
-    document.getElementById('reset-view').classList.remove('show');
-  }
-
-  window.showAdmin = function(token) {
-    accessToken = token;
-    document.getElementById('login-view').classList.remove('show');
-    document.getElementById('reset-view').classList.remove('show');
-    document.getElementById('admin-view').classList.add('show');
-    window.loadCurrentStatus();
-    window.loadComments();
-  }
-
-  window.doLogin = async function() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const statusEl = document.getElementById('login-status');
-    const btn = document.getElementById('login-btn');
-
-    if (!email || !password) {
-      statusEl.textContent = '[ fill in both fields ]';
-      statusEl.className = 'status-msg err';
-      return;
-    }
-
-    btn.disabled = true;
-    statusEl.textContent = '[ signing in... ]';
-    statusEl.className = 'status-msg';
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-      statusEl.textContent = '[ ' + error.message + ' ]';
-      statusEl.className = 'status-msg err';
-      btn.disabled = false;
-    } else {
-      window.showAdmin(data.session.access_token);
-    }
-  }
-
-  window.doPasskeyLogin = async function() {
-    const statusEl = document.getElementById('forgot-status');
-    const btn = document.getElementById('passkey-btn');
-    
-    btn.disabled = true;
-    statusEl.textContent = '[ waiting for passkey... ]';
-    statusEl.className = 'status-msg';
-
-    let data, error;
-    try {
-      const res = await supabase.auth.signInWithPasskey();
-      data = res.data; error = res.error;
-    } catch (e) {
-      error = e;
-    }
-    
-    if (error) {
-      statusEl.textContent = '[ ' + error.message + ' ]';
-      statusEl.className = 'status-msg err';
-      btn.disabled = false;
-    } else {
-      window.showAdmin(data.session.access_token);
-    }
-  }
-
-  window.doLogout = async function() {
-    await supabase.auth.signOut();
-    accessToken = null;
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-status').textContent = '';
-    window.showLogin();
-  }
-  
-  window.doRegisterPasskey = async function() {
-    const statusEl = document.getElementById('passkey-status');
-    const btn = document.getElementById('register-passkey-btn');
-    
-    btn.disabled = true;
-    statusEl.textContent = '[ waiting for device... ]';
-    statusEl.className = 'status-msg';
-
-    let data, error;
-    try {
-      const res = await supabase.auth.registerPasskey();
-      data = res.data; error = res.error;
-    } catch (e) {
-      error = e;
-    }
-    
-    if (error) {
-      statusEl.textContent = '[ ' + error.message + ' ]';
-      statusEl.className = 'status-msg err';
-    } else {
-      statusEl.textContent = '[ passkey registered successfully! ]';
-      statusEl.className = 'status-msg ok';
-    }
-    btn.disabled = false;
-  }
-
-  // FORGOT PASSWORD
-  window.doForgotPassword = async function() {
-    const email = document.getElementById('login-email').value.trim();
-    const statusEl = document.getElementById('forgot-status');
-    const btn = document.getElementById('forgot-btn');
-
-    if (!email) {
-      statusEl.textContent = '[ enter your email above first ]';
-      statusEl.className = 'status-msg err';
-      return;
-    }
-
-    btn.disabled = true;
-    statusEl.textContent = '[ sending recovery email... ]';
-    statusEl.className = 'status-msg';
-
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.href.split('#')[0]
     });
 
-    if (error) {
-      statusEl.textContent = '[ failed to send - check your email address ]';
-      statusEl.className = 'status-msg err';
-    } else {
-      statusEl.textContent = '[ if that email is registered, a recovery link has been sent ]';
-      statusEl.className = 'status-msg ok';
-    }
-    btn.disabled = false;
-  }
+    let accessToken = null;
 
-  // RESET PASSWORD (from recovery email link)
-  window.doResetPassword = async function() {
-    const password = document.getElementById('reset-password').value;
-    const confirm = document.getElementById('reset-password-confirm').value;
-    const statusEl = document.getElementById('reset-status');
-    const btn = document.getElementById('reset-btn');
-
-    if (!password) {
-      statusEl.textContent = '[ enter a new password ]';
-      statusEl.className = 'status-msg err';
-      return;
-    }
-    if (password !== confirm) {
-      statusEl.textContent = '[ passwords do not match ]';
-      statusEl.className = 'status-msg err';
-      return;
+    window.authHeaders = function () {
+      return {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + accessToken
+      };
     }
 
-    btn.disabled = true;
-    statusEl.textContent = '[ updating... ]';
-    statusEl.className = 'status-msg';
-
-    const { data, error } = await supabase.auth.updateUser({ password: password });
-
-    if (error) {
-      statusEl.textContent = '[ failed to update - link may have expired. try forgot password again ]';
-      statusEl.className = 'status-msg err';
-      btn.disabled = false;
-    } else {
-      statusEl.textContent = '[ password updated! redirecting to login... ]';
-      statusEl.className = 'status-msg ok';
-      setTimeout(() => {
-        history.replaceState(null, '', window.location.pathname);
-        supabase.auth.signOut().then(() => {
-          accessToken = null;
-          window.showLogin();
-        });
-      }, 2000);
-    }
-  }
-
-  // CHANGE PASSWORD (when logged in)
-  window.doChangePassword = async function() {
-    const password = document.getElementById('new-password').value;
-    const confirm = document.getElementById('new-password-confirm').value;
-    const statusEl = document.getElementById('change-pw-status');
-    const btn = document.getElementById('change-pw-btn');
-
-    if (!password) {
-      statusEl.textContent = '[ enter a new password ]';
-      statusEl.className = 'status-msg err';
-      return;
-    }
-    if (password !== confirm) {
-      statusEl.textContent = '[ passwords do not match ]';
-      statusEl.className = 'status-msg err';
-      return;
+    window.anonHeaders = function () {
+      return {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      };
     }
 
-    btn.disabled = true;
-    statusEl.textContent = '[ updating... ]';
-    statusEl.className = 'status-msg';
-
-    const { data, error } = await supabase.auth.updateUser({ password: password });
-
-    if (error) {
-      statusEl.textContent = '[ failed to update password ]';
-      statusEl.className = 'status-msg err';
-    } else {
-      statusEl.textContent = '[ password updated successfully! ]';
-      statusEl.className = 'status-msg ok';
-      document.getElementById('new-password').value = '';
-      document.getElementById('new-password-confirm').value = '';
-    }
-    btn.disabled = false;
-  }
-
-  // STATUS
-  window.loadCurrentStatus = async function() {
-    const el = document.getElementById('current-status');
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/status?select=message&limit=1', { headers: window.anonHeaders() });
-      const data = await res.json();
-      el.textContent = data && data[0] ? '"' + data[0].message + '"' : '[ no status set yet ]';
-    } catch { el.textContent = '[ failed to load ]'; }
-  }
-
-  window.saveStatus = async function() {
-    const msg = document.getElementById('status-input').value.trim();
-    const statusEl = document.getElementById('save-status');
-    const btn = document.getElementById('save-btn');
-
-    if (!msg) {
-      statusEl.textContent = '[ message cannot be empty ]';
-      statusEl.className = 'status-msg err';
-      return;
+    window.timeAgo = function (dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      const days = Math.floor(hrs / 24);
+      if (days < 30) return days + 'd ago';
+      return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
 
-    btn.disabled = true;
-    statusEl.textContent = '[ saving... ]';
-    statusEl.className = 'status-msg';
+    window.escapeHtml = function (str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/status?id=eq.1', {
-        method: 'PATCH',
-        headers: { ...window.authHeaders(), 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ message: msg })
-      });
-      if (!res.ok) throw new Error('failed to save');
-      statusEl.textContent = '[ saved! ]';
-      statusEl.className = 'status-msg ok';
-      document.getElementById('status-input').value = '';
+    window.switchAdminTab = function (tab) {
+      if (tab === 'content') {
+        document.getElementById('admin-tab-content').style.display = 'block';
+        document.getElementById('admin-tab-security').style.display = 'none';
+        document.getElementById('tab-btn-content').className = 'btn';
+        document.getElementById('tab-btn-security').className = 'btn btn-ghost';
+      } else {
+        document.getElementById('admin-tab-content').style.display = 'none';
+        document.getElementById('admin-tab-security').style.display = 'block';
+        document.getElementById('tab-btn-content').className = 'btn btn-ghost';
+        document.getElementById('tab-btn-security').className = 'btn';
+      }
+    }
+
+    // LOGIN
+    window.showLogin = function () {
+      document.getElementById('login-view').classList.add('show');
+      document.getElementById('admin-view').classList.remove('show');
+      document.getElementById('reset-view').classList.remove('show');
+    }
+
+    window.showAdmin = function (token) {
+      accessToken = token;
+      document.getElementById('login-view').classList.remove('show');
+      document.getElementById('reset-view').classList.remove('show');
+      document.getElementById('admin-view').classList.add('show');
       window.loadCurrentStatus();
-    } catch (err) {
-      statusEl.textContent = '[ ' + err.message + ' ]';
-      statusEl.className = 'status-msg err';
-    } finally { btn.disabled = false; }
-  }
+      window.loadPasskeys();
+      window.loadComments();
+    }
 
-  // GUESTBOOK MODERATION
-  window.loadComments = async function() {
-    const list = document.getElementById('comment-list');
-    const countEl = document.getElementById('comment-count');
-    list.innerHTML = '<div class="gb-loading-admin">[ loading comments... ]</div>';
+    window.doLogin = async function () {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const statusEl = document.getElementById('login-status');
+      const btn = document.getElementById('login-btn');
 
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?select=*&order=created_at.desc', { headers: window.anonHeaders() });
-      const data = await res.json();
-
-      if (!data || data.length === 0) {
-        list.innerHTML = '<p class="comment-empty">[ no comments yet ]</p>';
-        if (countEl) countEl.textContent = '';
+      if (!email || !password) {
+        statusEl.textContent = '[ fill in both fields ]';
+        statusEl.className = 'status-msg err';
         return;
       }
 
-      if (countEl) countEl.textContent = data.length + ' total';
+      btn.disabled = true;
+      statusEl.textContent = '[ signing in... ]';
+      statusEl.className = 'status-msg';
 
-      list.innerHTML = data.map(function(m) {
-        const isReply = m.parent_id !== null;
-        return '<div class="comment-item" id="admin-msg-' + m.id + '">' +
-          '<div class="comment-body">' +
-            '<div class="comment-meta">' +
-              '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + '</span>' +
-              (isReply ? '<span class="comment-reply-badge">reply</span>' : '') +
-              '<span>' + window.timeAgo(m.created_at) + '</span>' +
-              (isReply ? '<span style="color:var(--ink-faint)">id:' + m.parent_id + '</span>' : '') +
-            '</div>' +
-            '<div class="comment-text">' + window.escapeHtml(m.message) + '</div>' +
-          '</div>' +
-          '<button class="btn-danger" onclick="deleteComment(' + m.id + ')">[ delete ]</button>' +
-        '</div>';
-      }).join('');
-    } catch {
-      list.innerHTML = '<p class="comment-empty">[ failed to load ]</p>';
-    }
-  }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  window.deleteComment = async function(id) {
-    if (!confirm('Delete this comment? Replies to it will also be deleted.')) return;
-
-    const row = document.getElementById('admin-msg-' + id);
-    const btn = row ? row.querySelector('.btn-danger') : null;
-    if (btn) btn.disabled = true;
-
-    try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?id=eq.' + id, {
-        method: 'DELETE',
-        headers: window.authHeaders()
-      });
-      if (!res.ok) throw new Error('failed');
-      if (row) row.remove();
-      const countEl = document.getElementById('comment-count');
-      if (countEl) {
-        const cur = parseInt(countEl.textContent) || 1;
-        countEl.textContent = (cur - 1) + ' total';
+      if (error) {
+        statusEl.textContent = '[ ' + error.message + ' ]';
+        statusEl.className = 'status-msg err';
+        btn.disabled = false;
+      } else {
+        window.showAdmin(data.session.access_token);
       }
-    } catch {
-      if (btn) btn.disabled = false;
-      alert('Failed to delete. Try again.');
     }
-  }
 
-  // INIT
-  document.addEventListener('DOMContentLoaded', async function () {
-    document.getElementById('login-password').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') window.doLogin();
-    });
+    window.doPasskeyLogin = async function () {
+      const statusEl = document.getElementById('forgot-status');
+      const btn = document.getElementById('passkey-btn');
 
-    // Handle Supabase Auth Session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    // Check if this is a password recovery redirect
-    const hash = new URLSearchParams(window.location.hash.substring(1));
-    const tokenType = hash.get('type');
+      btn.disabled = true;
+      statusEl.textContent = '[ waiting for passkey... ]';
+      statusEl.className = 'status-msg';
 
-    if (tokenType === 'recovery' && session) {
-      // The client library automatically exchanged the token for a session!
-      accessToken = session.access_token;
-      document.getElementById('reset-view').classList.add('show');
-    } else if (session) {
-      window.showAdmin(session.access_token);
-    } else {
+      let data, error;
+      try {
+        const res = await supabase.auth.signInWithPasskey();
+        data = res.data; error = res.error;
+      } catch (e) {
+        error = e;
+      }
+
+      if (error) {
+        statusEl.textContent = '[ ' + error.message + ' ]';
+        statusEl.className = 'status-msg err';
+        btn.disabled = false;
+      } else {
+        window.showAdmin(data.session.access_token);
+      }
+    }
+
+    window.doLogout = async function () {
+      await supabase.auth.signOut();
+      accessToken = null;
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-status').textContent = '';
       window.showLogin();
     }
-    
-    // Listen for auth state changes
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
+
+    window.doRegisterPasskey = async function () {
+      const statusEl = document.getElementById('passkey-status');
+      const btn = document.getElementById('register-passkey-btn');
+
+      btn.disabled = true;
+      statusEl.textContent = '[ waiting for device... ]';
+      statusEl.className = 'status-msg';
+
+      let data, error;
+      try {
+        const res = await supabase.auth.registerPasskey();
+        data = res.data; error = res.error;
+      } catch (e) {
+        error = e;
+      }
+
+      if (error) {
+        statusEl.textContent = '[ ' + error.message + ' ]';
+        statusEl.className = 'status-msg err';
+      } else {
+        statusEl.textContent = '[ passkey registered successfully! ]';
+        statusEl.className = 'status-msg ok';
+        if (window.loadPasskeys) window.loadPasskeys();
+      }
+      btn.disabled = false;
+    }
+
+    // FORGOT PASSWORD
+    window.doForgotPassword = async function () {
+      const email = document.getElementById('login-email').value.trim();
+      const statusEl = document.getElementById('forgot-status');
+      const btn = document.getElementById('forgot-btn');
+
+      if (!email) {
+        statusEl.textContent = '[ enter your email above first ]';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = '[ sending recovery email... ]';
+      statusEl.className = 'status-msg';
+
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href.split('#')[0]
+      });
+
+      if (error) {
+        statusEl.textContent = '[ failed to send - check your email address ]';
+        statusEl.className = 'status-msg err';
+      } else {
+        statusEl.textContent = '[ if that email is registered, a recovery link has been sent ]';
+        statusEl.className = 'status-msg ok';
+        if (window.loadPasskeys) window.loadPasskeys();
+      }
+      btn.disabled = false;
+    }
+
+    // RESET PASSWORD (from recovery email link)
+    window.doResetPassword = async function () {
+      const password = document.getElementById('reset-password').value;
+      const confirm = document.getElementById('reset-password-confirm').value;
+      const statusEl = document.getElementById('reset-status');
+      const btn = document.getElementById('reset-btn');
+
+      if (!password) {
+        statusEl.textContent = '[ enter a new password ]';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+      if (password !== confirm) {
+        statusEl.textContent = '[ passwords do not match ]';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = '[ updating... ]';
+      statusEl.className = 'status-msg';
+
+      const { data, error } = await supabase.auth.updateUser({ password: password });
+
+      if (error) {
+        statusEl.textContent = '[ failed to update - link may have expired. try forgot password again ]';
+        statusEl.className = 'status-msg err';
+        btn.disabled = false;
+      } else {
+        statusEl.textContent = '[ password updated! redirecting to login... ]';
+        statusEl.className = 'status-msg ok';
+        if (window.loadPasskeys) window.loadPasskeys();
+        setTimeout(() => {
+          history.replaceState(null, '', window.location.pathname);
+          supabase.auth.signOut().then(() => {
+            accessToken = null;
+            window.showLogin();
+          });
+        }, 2000);
+      }
+    }
+
+    // CHANGE PASSWORD (when logged in)
+    window.doChangePassword = async function () {
+      const password = document.getElementById('new-password').value;
+      const confirm = document.getElementById('new-password-confirm').value;
+      const statusEl = document.getElementById('change-pw-status');
+      const btn = document.getElementById('change-pw-btn');
+
+      if (!password) {
+        statusEl.textContent = '[ enter a new password ]';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+      if (password !== confirm) {
+        statusEl.textContent = '[ passwords do not match ]';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = '[ updating... ]';
+      statusEl.className = 'status-msg';
+
+      const { data, error } = await supabase.auth.updateUser({ password: password });
+
+      if (error) {
+        statusEl.textContent = '[ failed to update password ]';
+        statusEl.className = 'status-msg err';
+      } else {
+        statusEl.textContent = '[ password updated successfully! ]';
+        statusEl.className = 'status-msg ok';
+        if (window.loadPasskeys) window.loadPasskeys();
+        document.getElementById('new-password').value = '';
+        document.getElementById('new-password-confirm').value = '';
+      }
+      btn.disabled = false;
+    }
+
+    // STATUS
+    window.loadCurrentStatus = async function () {
+      const el = document.getElementById('current-status');
+      try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/status?select=message&limit=1', { headers: window.anonHeaders() });
+        const data = await res.json();
+        el.textContent = data && data[0] ? '"' + data[0].message + '"' : '[ no status set yet ]';
+      } catch { el.textContent = '[ failed to load ]'; }
+    }
+
+    window.saveStatus = async function () {
+      const msg = document.getElementById('status-input').value.trim();
+      const statusEl = document.getElementById('save-status');
+      const btn = document.getElementById('save-btn');
+
+      if (!msg) {
+        statusEl.textContent = '[ message cannot be empty ]';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = '[ saving... ]';
+      statusEl.className = 'status-msg';
+
+      try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/status?id=eq.1', {
+          method: 'PATCH',
+          headers: { ...window.authHeaders(), 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ message: msg })
+        });
+        if (!res.ok) throw new Error('failed to save');
+        statusEl.textContent = '[ saved! ]';
+        statusEl.className = 'status-msg ok';
+        if (window.loadPasskeys) window.loadPasskeys();
+        document.getElementById('status-input').value = '';
+        window.loadCurrentStatus();
+        window.loadPasskeys();
+      } catch (err) {
+        statusEl.textContent = '[ ' + err.message + ' ]';
+        statusEl.className = 'status-msg err';
+      } finally { btn.disabled = false; }
+    }
+
+    window.loadPasskeys = async function () {
+      const list = document.getElementById('passkey-list');
+      if (!list) return;
+      list.innerHTML = '<div class="gb-loading-admin">[ loading passkeys... ]</div>';
+
+      try {
+        const { data: passkeys, error } = await supabase.auth.passkey.list();
+        if (error) throw error;
+
+        if (!passkeys || passkeys.length === 0) {
+          list.innerHTML = '<p class="comment-empty">[ no passkeys registered ]</p>';
+          return;
+        }
+
+        list.innerHTML = passkeys.map(function (pk) {
+          return '<div class="comment-item" id="pk-' + pk.id + '">' +
+            '<div class="comment-body">' +
+            '<div class="comment-meta">' +
+            '<span class="comment-name">' + window.escapeHtml(pk.friendly_name || 'Passkey') + '</span>' +
+            '<span>' + window.timeAgo(pk.created_at) + '</span>' +
+            '</div>' +
+            '</div>' +
+            '<button class="btn-danger" onclick="deletePasskey(\'' + pk.id + '\')">[ delete ]</button>' +
+            '</div>';
+        }).join('');
+      } catch (err) {
+        list.innerHTML = '<p class="comment-empty">[ failed to load passkeys ]</p>';
+      }
+    }
+
+    window.deletePasskey = async function (id) {
+      if (!confirm('Delete this passkey? You will no longer be able to log in with this device.')) return;
+
+      const row = document.getElementById('pk-' + id);
+      const btn = row ? row.querySelector('.btn-danger') : null;
+      if (btn) btn.disabled = true;
+
+      try {
+        const { error } = await supabase.auth.passkey.delete({ passkeyId: id });
+        if (error) throw error;
+        if (row) row.remove();
+      } catch (err) {
+        if (btn) btn.disabled = false;
+        alert('Failed to delete passkey: ' + err.message);
+      }
+    }
+
+    // GUESTBOOK MODERATION
+    window.loadComments = async function () {
+      const list = document.getElementById('comment-list');
+      const countEl = document.getElementById('comment-count');
+      list.innerHTML = '<div class="gb-loading-admin">[ loading comments... ]</div>';
+
+      try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?select=*&order=created_at.desc', { headers: window.anonHeaders() });
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+          list.innerHTML = '<p class="comment-empty">[ no comments yet ]</p>';
+          if (countEl) countEl.textContent = '';
+          return;
+        }
+
+        if (countEl) countEl.textContent = data.length + ' total';
+
+        list.innerHTML = data.map(function (m) {
+          const isReply = m.parent_id !== null;
+          return '<div class="comment-item" id="admin-msg-' + m.id + '">' +
+            '<div class="comment-body">' +
+            '<div class="comment-meta">' +
+            '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + '</span>' +
+            (isReply ? '<span class="comment-reply-badge">reply</span>' : '') +
+            '<span>' + window.timeAgo(m.created_at) + '</span>' +
+            (isReply ? '<span style="color:var(--ink-faint)">id:' + m.parent_id + '</span>' : '') +
+            '</div>' +
+            '<div class="comment-text">' + window.escapeHtml(m.message) + '</div>' +
+            '</div>' +
+            '<button class="btn-danger" onclick="deleteComment(' + m.id + ')">[ delete ]</button>' +
+            '</div>';
+        }).join('');
+      } catch {
+        list.innerHTML = '<p class="comment-empty">[ failed to load ]</p>';
+      }
+    }
+
+    window.deleteComment = async function (id) {
+      if (!confirm('Delete this comment? Replies to it will also be deleted.')) return;
+
+      const row = document.getElementById('admin-msg-' + id);
+      const btn = row ? row.querySelector('.btn-danger') : null;
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/guestbook?id=eq.' + id, {
+          method: 'DELETE',
+          headers: window.authHeaders()
+        });
+        if (!res.ok) throw new Error('failed');
+        if (row) row.remove();
+        const countEl = document.getElementById('comment-count');
+        if (countEl) {
+          const cur = parseInt(countEl.textContent) || 1;
+          countEl.textContent = (cur - 1) + ' total';
+        }
+      } catch {
+        if (btn) btn.disabled = false;
+        alert('Failed to delete. Try again.');
+      }
+    }
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', async function () {
+      document.getElementById('login-password').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') window.doLogin();
+      });
+
+      // Handle Supabase Auth Session
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Check if this is a password recovery redirect
+      const hash = new URLSearchParams(window.location.hash.substring(1));
+      const tokenType = hash.get('type');
+
+      if (tokenType === 'recovery' && session) {
+        // The client library automatically exchanged the token for a session!
+        accessToken = session.access_token;
+        document.getElementById('reset-view').classList.add('show');
+      } else if (session) {
+        window.showAdmin(session.access_token);
+      } else {
         window.showLogin();
       }
+
+      // Listen for auth state changes
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          window.showLogin();
+        }
+      });
     });
-  });
-</script>
-    <script src="../assets/sounds.js"></script>
+  </script>
+  <script src="../assets/sounds.js"></script>
 </body>
+
 </html>
