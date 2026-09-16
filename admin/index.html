@@ -432,7 +432,7 @@
 
     let data, error;
     try {
-      const res = await supabase.auth.enrollPasskey();
+      const res = await supabase.auth.registerPasskey();
       data = res.data; error = res.error;
     } catch (e) {
       error = e;
