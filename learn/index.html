@@ -13,26 +13,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/bar.css">
+    <link rel="stylesheet" href="../assets/theme.css">
+    <script src="../assets/theme.js"></script>
 
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        button, input, select, textarea { font-family: 'Share Tech Mono', monospace; color: inherit; }
 
-        :root {
-            --ink: #1a0f00;
-            --paper: #f2e6c8;
-            --paper-dark: #e0d0a8;
-            --ink-light: #2a1a05;
-            --ink-mid: #6b5a3e;
-            --ink-faint: #b09a78;
-            --speed: 0.15s;
-        }
+        /* Variables are now loaded from theme.css */
 
         html { overflow-x: hidden; }
         body { overflow-x: clip; }
 
         body {
             background-color: var(--paper);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-image: var(--bg-pattern);
             background-size: 20px 20px;
             color: var(--ink);
             padding: 32px 16px 64px;

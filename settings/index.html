@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>settings — init_ovi</title>
+    <link rel="icon" href="../samurai-jack.png">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/bar.css">
+    <link rel="stylesheet" href="../assets/theme.css">
+    <script src="../assets/theme.js"></script>
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        button, input, select, textarea { font-family: 'Share Tech Mono', monospace; color: inherit; }
+
+        /* Variables are now loaded from theme.css */
+
+        html { overflow-x: hidden; }
+        body { overflow-x: clip; }
+
+        body {
+            background-color: var(--paper);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: var(--ink);
+            padding: 32px 16px 64px;
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 740px; margin: 0 auto; }
+
+        /* ── HEADER ── */
+        .page-header {
+            margin-bottom: 56px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid var(--ink);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            transition: color var(--speed);
+        }
+        .back-link:hover { color: var(--ink); }
+
+        h1 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+            text-shadow: 3px 3px 0 var(--paper-dark), 4px 4px 0 var(--ink);
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: var(--ink-mid);
+            margin-top: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ── SETTINGS SECTIONS ── */
+        .settings-section {
+            margin-bottom: 52px;
+        }
+
+        .settings-section-title {
+            font-size: 11px;
+            color: var(--ink-mid);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-bottom: 1px solid var(--paper-dark);
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section-label {
+            font-size: 14px;
+            color: var(--ink);
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .settings-section-desc {
+            font-size: 12px;
+            color: var(--ink-mid);
+            margin-bottom: 20px;
+            line-height: 1.7;
+            letter-spacing: 0.02em;
+        }
+
+        /* ── CURSOR CARDS GRID ── */
+        .cursor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .cursor-card {
+            border: 2px solid var(--ink);
+            background: transparent;
+            padding: 18px 14px 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            transition: background var(--speed), color var(--speed), box-shadow var(--speed), transform var(--speed);
+            box-shadow: 3px 3px 0 var(--ink);
+            position: relative;
+            text-align: left;
+        }
+
+        .cursor-card:hover {
+            background: var(--paper-dark);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0 var(--ink);
+        }
+
+        .cursor-card.active {
+            background: var(--ink);
+            color: var(--paper);
+            box-shadow: 4px 4px 0 var(--ink-mid);
+        }
+
+        .cursor-card.active .cursor-card-desc {
+            color: var(--ink-faint);
+        }
+
+        .cursor-card-icon {
+            font-size: 22px;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .cursor-card-name {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+        }
+
+        .cursor-card-desc {
+            font-size: 11px;
+            color: var(--ink-mid);
+            line-height: 1.5;
+            pointer-events: none;
+        }
+
+        .cursor-card .active-badge {
+            display: none;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--paper);
+            opacity: 0.7;
+        }
+        .cursor-card.active .active-badge { display: block; }
+
+        /* ── STATUS TOAST placeholder ── */
+
+        /* ── STATUS TOAST ── */
+        .settings-toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--ink);
+            color: var(--paper);
+            padding: 10px 22px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            border: 2px solid var(--paper);
+            box-shadow: 4px 4px 0 var(--ink-mid);
+            z-index: 9999;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        .settings-toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ── FOOTER ── */
+        .page-footer {
+            margin-top: 80px;
+            padding-top: 24px;
+            border-top: 1px solid var(--paper-dark);
+            font-size: 12px;
+            color: var(--ink-faint);
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 22px 14px 48px; }
+            h1 { font-size: 24px; }
+        }
+
+        /* ── MOBILE NOTICE ── */
+        .mobile-notice {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            border: 2px solid var(--ink);
+            padding: 20px 18px;
+            background: var(--paper-dark);
+            box-shadow: 4px 4px 0 var(--ink);
+            margin-top: 4px;
+        }
+        .mobile-notice-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+        .mobile-notice-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--ink);
+            letter-spacing: 0.05em;
+        }
+        .mobile-notice-text {
+            font-size: 12px;
+            color: var(--ink-mid);
+            line-height: 1.7;
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="page-header">
+            <a href="../" class="back-link">
+                <i class="ri-arrow-left-line"></i> back to init_ovi
+            </a>
+            <h1>Settings</h1>
+            <p class="page-subtitle">personalise your experience</p>
+        </div>
+
+        <!-- THEME SECTION -->
+        <div class="settings-section">
+            <div class="settings-section-title">Color Theme</div>
+            <div class="settings-section-label">Choose your aesthetic</div>
+            <p class="settings-section-desc">
+                Select a color palette for the site.
+            </p>
+
+            <div class="cursor-grid" id="theme-grid">
+                <button class="cursor-card theme-card" data-theme-id="manga" onclick="selectTheme('manga')">
+                    <span class="cursor-card-icon"><i class="ri-book-open-line"></i></span>
+                    <span class="cursor-card-name">Manga</span>
+                    <span class="cursor-card-desc">Black ink on vintage paper. The classic look.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card theme-card" data-theme-id="midnight" onclick="selectTheme('midnight')">
+                    <span class="cursor-card-icon"><i class="ri-moon-clear-line"></i></span>
+                    <span class="cursor-card-name">Midnight</span>
+                    <span class="cursor-card-desc">Silver ink on dark charcoal paper. For night owls.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- CURSOR EFFECT SECTION -->
+        <div class="settings-section">
+            <div class="settings-section-title">Cursor Effect</div>
+            <div class="settings-section-label">Choose your cursor style</div>
+            <p class="settings-section-desc">
+                Pick how your cursor looks across the entire site.
+                Settings are saved in your browser and apply on every page.
+            </p>
+
+            <div class="mobile-notice" id="mobile-notice">
+                <span class="mobile-notice-icon"><i class="ri-cursor-line"></i></span>
+                <span class="mobile-notice-title">cursor effects — not available on mobile</span>
+                <span class="mobile-notice-text">
+                    cursor effects require a mouse or trackpad.<br>
+                    visit this page on a desktop browser to pick a cursor style.
+                </span>
+            </div>
+
+            <div class="cursor-grid" id="cursor-grid">
+
+                <button class="cursor-card" data-effect="default" id="card-default" onclick="selectCursor('default')">
+                    <span class="cursor-card-icon"><i class="ri-cursor-line"></i></span>
+                    <span class="cursor-card-name">Default</span>
+                    <span class="cursor-card-desc">System cursor. No frills, no magic.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card" data-effect="dot" id="card-dot" onclick="selectCursor('dot')">
+                    <span class="cursor-card-icon"><i class="ri-focus-3-line"></i></span>
+                    <span class="cursor-card-name">Ink Dot</span>
+                    <span class="cursor-card-desc">A clean, solid ink dot follows you around.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card" data-effect="crosshair" id="card-crosshair" onclick="selectCursor('crosshair')">
+                    <span class="cursor-card-icon"><i class="ri-crosshair-2-line"></i></span>
+                    <span class="cursor-card-name">Crosshair</span>
+                    <span class="cursor-card-desc">Manga-style crosshair target reticle.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card" data-effect="ink" id="card-ink" onclick="selectCursor('ink')">
+                    <span class="cursor-card-icon"><i class="ri-quill-pen-line"></i></span>
+                    <span class="cursor-card-name">Ink Trail</span>
+                    <span class="cursor-card-desc">Ink splatters follow your every move.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card" data-effect="samurai" id="card-samurai" onclick="selectCursor('samurai')">
+                    <span class="cursor-card-icon"><i class="ri-sword-line"></i></span>
+                    <span class="cursor-card-name">Samurai Slash</span>
+                    <span class="cursor-card-desc">A katana slash line trails behind your cursor.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card" data-effect="none" id="card-none" onclick="selectCursor('none')">
+                    <span class="cursor-card-icon"><i class="ri-ghost-line"></i></span>
+                    <span class="cursor-card-name">Hidden</span>
+                    <span class="cursor-card-desc">No cursor at all. For the brave.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+            </div>
+        </div>
+
+        <div class="page-footer">
+            more settings coming soon — stay tuned.
+        </div>
+
+    </div>
+
+    <!-- Toast -->
+    <div class="settings-toast" id="settings-toast"></div>
+
+    <!-- Cursor engine -->
+    <script src="../assets/cursor.js"></script>
+
+    <script>
+        function updateCards() {
+            var current = window.OviCursor.getEffect();
+            document.querySelectorAll('.cursor-card').forEach(function(card) {
+                card.classList.toggle('active', card.dataset.effect === current);
+            });
+        }
+
+        function selectCursor(effect) {
+            window.OviCursor.apply(effect);
+            updateCards();
+            showToast('cursor set to [ ' + effect + ' ]');
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('settings-toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 2200);
+        }
+
+        // ── Device detection ─────────────────────────────────────────────
+        // A "real cursor" device has hover + fine pointer (mouse/trackpad).
+        // Touch-only devices (phones, tablets) get the notice instead.
+        function hasCursor() {
+            // matchMedia check: pointer:fine = mouse/trackpad, hover:hover = can hover
+            var finePointer = window.matchMedia('(pointer: fine)').matches;
+            var canHover    = window.matchMedia('(hover: hover)').matches;
+            return finePointer && canHover;
+        }
+
+        function applyDeviceUI() {
+            var grid   = document.getElementById('cursor-grid');
+            var notice = document.getElementById('mobile-notice');
+            var desc   = document.querySelector('.settings-section-desc');
+
+            if (hasCursor()) {
+                // desktop / laptop — show the cursor cards
+                grid.style.display   = 'grid';
+                notice.style.display = 'none';
+                if (desc) desc.style.display = '';
+            } else {
+                // touch-only device — hide cards, show notice
+                grid.style.display   = 'none';
+                notice.style.display = 'flex';
+                if (desc) desc.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            applyDeviceUI();
+            updateCards();
+            updateThemeCards();
+        });
+
+        function updateThemeCards() {
+            var current = window.OviTheme.getTheme();
+            document.querySelectorAll('.theme-card').forEach(function(card) {
+                card.classList.toggle('active', card.dataset.themeId === current);
+            });
+        }
+
+        function selectTheme(theme) {
+            window.OviTheme.apply(theme);
+            updateThemeCards();
+            showToast('theme set to [ ' + theme + ' ]');
+        }
+    </script>
+</body>
+
+</html>
