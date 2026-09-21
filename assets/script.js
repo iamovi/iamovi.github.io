@@ -177,7 +177,7 @@
 
   // On load, restore section from sessionStorage
   document.addEventListener('DOMContentLoaded', function () {
-    const valid = ['about', 'projects', 'blog', 'claude', 'guestbook'];
+    const valid = ['about', 'projects', 'blog', 'claude', 'guestbook', 'contact'];
     const saved = sessionStorage.getItem('section');
     if (saved && valid.includes(saved)) {
       showSection(saved);
@@ -864,6 +864,14 @@
         charsEl.textContent = msgEl.value.length;
       });
     }
+
+    const ctMsgEl = document.getElementById('ct-message');
+    const ctCharsEl = document.getElementById('ct-chars');
+    if (ctMsgEl && ctCharsEl) {
+      ctMsgEl.addEventListener('input', () => {
+        ctCharsEl.textContent = ctMsgEl.value.length;
+      });
+    }
   });
 
   // lazy load guestbook when section becomes visible
@@ -875,6 +883,84 @@
       gbLoaded = true;
       loadGuestbook();
     }
+  };
+
+  window.submitContact = function () {
+    const nameEl = document.getElementById('ct-name');
+    const emailEl = document.getElementById('ct-email');
+    const msgEl = document.getElementById('ct-message');
+    const botcheckEl = document.getElementById('ct-botcheck');
+    const statusEl = document.getElementById('ct-status');
+    const btn = document.getElementById('ct-submit');
+
+    const name = nameEl ? nameEl.value.trim() : '';
+    const email = emailEl ? emailEl.value.trim() : '';
+    const message = msgEl ? msgEl.value.trim() : '';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!name) {
+      statusEl.textContent = '[ please enter your name ]';
+      statusEl.className = 'gb-status error';
+      return;
+    }
+
+    if (!email || !emailRegex.test(email)) {
+      statusEl.textContent = email ? '[ please enter a valid email ]' : '[ please enter your email ]';
+      statusEl.className = 'gb-status error';
+      return;
+    }
+
+    if (!message) {
+      statusEl.textContent = '[ please enter your message ]';
+      statusEl.className = 'gb-status error';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '[ sending... ]';
+    statusEl.className = 'gb-status';
+
+    const payload = {
+      access_key: 'a74fd729-8de0-4f29-8b14-6a3e8d1f0239',
+      subject: 'New message from iamovi.github.io',
+      from_name: name,
+      name: name,
+      email: email,
+      message: message,
+      botcheck: botcheckEl ? botcheckEl.checked : false
+    };
+
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          statusEl.textContent = "[ sent! thanks, i'll get back to you ]";
+          statusEl.className = 'gb-status success';
+          if (nameEl) nameEl.value = '';
+          if (emailEl) emailEl.value = '';
+          if (msgEl) msgEl.value = '';
+          if (botcheckEl) botcheckEl.checked = false;
+          const charsEl = document.getElementById('ct-chars');
+          if (charsEl) charsEl.textContent = '0';
+        } else {
+          statusEl.textContent = '[ something went wrong, try again ]';
+          statusEl.className = 'gb-status error';
+        }
+      })
+      .catch(() => {
+        statusEl.textContent = '[ something went wrong, try again ]';
+        statusEl.className = 'gb-status error';
+      })
+      .finally(() => {
+        if (btn) btn.disabled = false;
+      });
   };
 
   // Passive event listeners for better scroll performance
