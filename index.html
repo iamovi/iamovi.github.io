@@ -105,6 +105,10 @@
                     onclick="showSection('guestbook'); toggleMenu(); return false;">
                     <span class="menu-link-text">Guestbook</span>
                 </a>
+                <a href="#" class="menu-link" id="contact-link"
+                    onclick="showSection('contact'); toggleMenu(); return false;">
+                    <span class="menu-link-text">Send me a message</span>
+                </a>
                 <a href="../game/" class="menu-link">
                     <span class="menu-link-text">Waifu or Not</span>
                 </a>
@@ -452,6 +456,26 @@
                 <!-- MESSAGES LIST -->
                 <div class="gb-messages" id="gb-messages">
                     <div class="gb-loading" id="gb-loading">[ loading messages... ]</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT SECTION -->
+        <div id="contact-section" class="section">
+            <div class="guestbook-content">
+                <div class="guestbook-header-row">
+                    <span class="guestbook-label">[ send me a message ]</span>
+                </div>
+                <p class="guestbook-intro">this goes straight to my inbox. leave your email if you want a reply.</p>
+
+                <div class="guestbook-form-wrap">
+                    <input type="text" id="ct-name" class="gb-input ct-field" maxlength="60" placeholder="your name" />
+                    <input type="email" id="ct-email" class="gb-input ct-field" maxlength="100" placeholder="your email" />
+                    <textarea id="ct-message" class="gb-textarea" maxlength="1000" rows="6" placeholder="your message..."></textarea>
+                    <input type="checkbox" id="ct-botcheck" style="display:none;" tabindex="-1" />
+                    <div class="gb-char-count"><span id="ct-chars">0</span> / 1000</div>
+                    <button id="ct-submit" class="gb-submit ct-submit" onclick="submitContact()">[ send ]</button>
+                    <div id="ct-status" class="gb-status"></div>
                 </div>
             </div>
         </div>

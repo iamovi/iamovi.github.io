@@ -1042,6 +1042,9 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
 .gb-submit:hover { background: transparent; color: var(--ink); }
 .gb-submit:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.ct-field { display: block; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+.ct-submit { display: block; margin-top: 6px; }
+
 .gb-status {
     font-size: 12px;
     margin-top: 8px;
