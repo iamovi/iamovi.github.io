@@ -68,6 +68,10 @@ async function handleNotify(request, env, corsHeaders) {
     text = `📩 New message\nName: ${clip(body.name, 60)}\nEmail: ${clip(body.email, 100)}\n\n${clip(body.message, 1000)}`;
   } else if (body.type === 'guestbook') {
     text = `📖 New guestbook entry\nName: ${clip(body.name, 40)}\n\n${clip(body.message, 300)}`;
+  } else if (body.type === 'reply') {
+    text = `💬 New reply\nName: ${clip(body.name, 40)}\n\n${clip(body.message, 300)}`;
+  } else if (body.type === 'reaction') {
+    text = `👍 New reaction: ${clip(body.reaction, 10)} on ${clip(body.target_type, 20)}:${clip(body.target_id, 40)}`;
   } else {
     return json({ ok: false }, 400);
   }

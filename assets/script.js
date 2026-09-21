@@ -592,7 +592,11 @@
       method: 'POST',
       headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
       body: JSON.stringify({ target_type: type, target_id: id, reaction: key })
-    }).catch(() => {
+    })
+      .then(() => {
+        notifyTelegram({ type: 'reaction', reaction: key, target_type: type, target_id: id });
+      })
+      .catch(() => {
       // rollback on failure
       btn.classList.remove('reacted');
       if (countEl) {
@@ -806,6 +810,7 @@
     })
       .then(r => {
         if (!r.ok) throw new Error('Failed');
+        notifyTelegram({ type: 'reply', name, message });
         loadGuestbook();
       })
       .catch(() => {
