@@ -16,6 +16,7 @@ export default {
 
     // Get the path after /proxy (e.g. /rest/v1/guestbook)
     const url = new URL(request.url);
+    if (url.pathname === '/notify') { return handleNotify(request, env, corsHeaders); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
 
@@ -45,3 +46,39 @@ export default {
     return newResponse;
   },
 };
+
+async function handleNotify(request, env, corsHeaders) {
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  if (request.method !== 'POST') return json({ ok: false }, 405);
+  if (request.headers.get('Origin') !== 'https://iamovi.github.io') {
+    return json({ ok: false }, 403);
+  }
+
+  let body;
+  try { body = await request.json(); } catch { return json({ ok: false }, 400); }
+
+  const clip = (v, n) => String(v ?? '').slice(0, n);
+  let text;
+  if (body.type === 'contact') {
+    text = `📩 New message\nName: ${clip(body.name, 60)}\nEmail: ${clip(body.email, 100)}\n\n${clip(body.message, 1000)}`;
+  } else if (body.type === 'guestbook') {
+    text = `📖 New guestbook entry\nName: ${clip(body.name, 40)}\n\n${clip(body.message, 300)}`;
+  } else {
+    return json({ ok: false }, 400);
+  }
+
+  const res = await fetch(
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
+    }
+  );
+  return json({ ok: res.ok }, res.ok ? 200 : 502);
+}
