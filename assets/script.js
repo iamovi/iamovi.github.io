@@ -841,6 +841,7 @@
     })
       .then(r => {
         if (!r.ok) throw new Error('Failed');
+        notifyTelegram({ type: 'guestbook', name, message });
         statusEl.textContent = '[ message posted! ]';
         statusEl.className = 'gb-status success';
         nameEl.value = '';
@@ -884,6 +885,15 @@
       loadGuestbook();
     }
   };
+
+const NOTIFY_URL = 'https://iamovi-github-io.oviren-human.workers.dev/notify';
+function notifyTelegram(payload) {
+  fetch(NOTIFY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(() => {});
+}
 
   window.submitContact = function () {
     const nameEl = document.getElementById('ct-name');
@@ -941,6 +951,7 @@
       .then(r => r.json())
       .then(data => {
         if (data.success) {
+          notifyTelegram({ type: 'contact', name, email, message });
           statusEl.textContent = "[ sent! thanks, i'll get back to you ]";
           statusEl.className = 'gb-status success';
           if (nameEl) nameEl.value = '';
