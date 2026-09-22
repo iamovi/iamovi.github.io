@@ -17,6 +17,7 @@ export default {
     // Get the path after /proxy (e.g. /rest/v1/guestbook)
     const url = new URL(request.url);
     if (url.pathname === '/notify') { return handleNotify(request, env, corsHeaders); }
+    if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
 
@@ -85,4 +86,52 @@ async function handleNotify(request, env, corsHeaders) {
     }
   );
   return json({ ok: res.ok }, res.ok ? 200 : 502);
+}
+
+async function handleWebhook(request, env, corsHeaders) {
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  if (request.method !== 'POST') return json({ ok: false }, 405);
+
+  let update;
+  try { update = await request.json(); } catch { return json({ ok: false }, 400); }
+
+  const message = update?.message;
+  if (!message) return json({ ok: true }); // ignore non-message updates
+
+  const chatId = message.chat?.id;
+  const text = message.text?.trim() ?? '';
+
+  // Handle /about command
+  if (text === '/about' || text.startsWith('/about@')) {
+    const replyText =
+`🤖 iamovi site bot
+
+I'm the notification bot for iamovi.github.io — Maruf's personal site.
+
+Here's what I notify about:
+📩 Contact form — when someone sends a message via the site
+📖 Guestbook — when someone signs the guestbook
+💬 Replies — when someone replies to a guestbook entry
+👍 Reactions — when someone reacts with an emoji
+
+🔒 All notifications are private — they only go to the creator of this bot (Maruf). Nobody else receives them.
+
+I'm run on a Cloudflare Worker and talk to Telegram via webhook.`;
+
+    await fetch(
+      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: replyText }),
+      }
+    );
+  }
+
+  return json({ ok: true });
 }
