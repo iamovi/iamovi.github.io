@@ -205,6 +205,7 @@ Notifications:
 
   // Handle /ping command
   if (text === '/ping' || text.startsWith('/ping@')) {
+    const pingStart = performance.now();
     const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
     const ANON_KEY = env.SUPABASE_ANON_KEY;
 
@@ -226,7 +227,8 @@ Notifications:
       return { status, ms };
     };
 
-    const [site, db, imagekit, umami, fonts, jsdelivr] = await Promise.all([
+    const [cfEdge, site, db, imagekit, umami, fonts, jsdelivr] = await Promise.all([
+      checkPing('https://1.1.1.1/dns-query?name=cloudflare.com', { method: 'HEAD' }),
       checkPing('https://iamovi.github.io/', { method: 'GET' }),
       checkPing(`${SUPABASE_URL}/rest/v1/status?select=id&limit=1`, {
         headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY }
@@ -237,11 +239,13 @@ Notifications:
       checkPing('https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css', { method: 'HEAD' })
     ]);
 
+    const execMs = Math.round(performance.now() - pingStart);
+
     const replyText =
       `⚡ Complete Infrastructure Health & Latency Check
 
 ⚡ Cloudflare Worker Edge:
-• Status: 🟢 Active
+• Status: 🟢 Active (${execMs}ms exec | ${cfEdge.ms}ms core edge)
 • Datacenter: ${cfColo} ${cfCountry ? '(' + cfCountry + ')' : ''}
 
 🌐 Portfolio (iamovi.github.io):
