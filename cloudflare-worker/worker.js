@@ -231,7 +231,7 @@ Notifications:
       checkPing(`${SUPABASE_URL}/rest/v1/status?select=id&limit=1`, {
         headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY }
       }),
-      checkPing('https://ik.imagekit.io/', { method: 'HEAD' }),
+      checkPing('https://ik.imagekit.io/iamovi/nyan_cat.gif', { method: 'HEAD' }),
       checkPing('https://cloud.umami.is/script.js', { method: 'HEAD' }),
       checkPing('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap', { method: 'HEAD' }),
       checkPing('https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css', { method: 'HEAD' })
