@@ -114,6 +114,7 @@ async function handleWebhook(request, env, corsHeaders) {
 I'm the notification bot for iamovi.github.io — Maruf's personal site.
 
 Commands:
+✏️ /status <msg> — Update site status banner (Owner only)
 📊 /stats — View live site statistics & daily visit counts
 ℹ️ /about — Show this information
 
@@ -123,16 +124,9 @@ Notifications:
 💬 Replies — when someone replies to a guestbook entry
 👍 Reactions — when someone reacts with an emoji
 
-🔒 All notifications are private to the bot owner.`;
+🔒 All notifications & controls are private to the bot owner.`;
 
-    await fetch(
-      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: replyText }),
-      }
-    );
+    await sendTg(chatId, replyText, env);
   }
 
   // Handle /stats command
@@ -171,25 +165,78 @@ Notifications:
 👍 Total Reactions: ${totalReactions}
 💬 Current Status: "${currentStatus}"`;
 
-      await fetch(
-        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text: replyText }),
-        }
-      );
+      await sendTg(chatId, replyText, env);
     } catch (err) {
-      await fetch(
-        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text: '❌ Failed to fetch site stats.' }),
+      await sendTg(chatId, '❌ Failed to fetch site stats.', env);
+    }
+  }
+
+  // Handle /status command (Owner only)
+  if (text === '/status' || text.startsWith('/status ') || text.startsWith('/status@')) {
+    const isOwner = String(chatId) === String(env.TELEGRAM_CHAT_ID);
+    if (!isOwner) {
+      await sendTg(chatId, '⛔ Unauthorized. Only the site owner can update status.', env);
+      return json({ ok: true });
+    }
+
+    const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+    const AUTH_KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const headers = {
+      'Content-Type': 'application/json',
+      'apikey': AUTH_KEY,
+      'Authorization': 'Bearer ' + AUTH_KEY,
+      'Prefer': 'return=minimal'
+    };
+
+    const arg = text.replace(/^\/status(@\w+)?\s*/i, '').trim();
+
+    try {
+      if (!arg) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/status?select=message&id=eq.1`, { headers });
+        const data = await res.json();
+        const currentMsg = data?.[0]?.message || '(none/empty)';
+        const replyText =
+`💬 Current site status:
+"${currentMsg}"
+
+To update status:
+/status <new message>
+
+To clear status:
+/status clear`;
+        await sendTg(chatId, replyText, env);
+      } else {
+        const newMsg = arg.toLowerCase() === 'clear' ? '' : arg;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/status?id=eq.1`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ message: newMsg, updated_at: new Date().toISOString() })
+        });
+
+        if (res.ok) {
+          const replyText = newMsg
+            ? `✅ Site status updated to:\n"${newMsg}"`
+            : `🧹 Site status cleared (banner hidden).`;
+          await sendTg(chatId, replyText, env);
+        } else {
+          await sendTg(chatId, `❌ Failed to update status (HTTP ${res.status}).`, env);
         }
-      );
+      }
+    } catch (err) {
+      await sendTg(chatId, '❌ Error updating status.', env);
     }
   }
 
   return json({ ok: true });
+}
+
+async function sendTg(chatId, text, env) {
+  return fetch(
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    }
+  );
 }
