@@ -106,6 +106,33 @@ async function handleWebhook(request, env, corsHeaders) {
   const chatId = message.chat?.id;
   const text = message.text?.trim() ?? '';
 
+  // Handle /help and /start commands
+  if (text === '/help' || text.startsWith('/help@') || text === '/start' || text.startsWith('/start@')) {
+    const helpText =
+`🤖 iamovi site bot — help & commands
+
+Available Commands (4):
+
+✏️ /status <message>
+• Updates top banner message ("ovi says —")
+• Example: /status Building awesome tools 🚀
+• Clear banner: /status clear
+• (Restricted to site owner)
+
+📊 /stats
+• Live view of today's visits, guestbook count, reactions, & current status
+
+ℹ️ /about
+• Site bot overview & notification details
+
+❓ /help
+• Shows this command manual
+
+🔒 Administrative controls are restricted to the verified bot owner.`;
+
+    await sendTg(chatId, helpText, env);
+  }
+
   // Handle /about command
   if (text === '/about' || text.startsWith('/about@')) {
     const replyText =
@@ -117,6 +144,7 @@ Commands:
 ✏️ /status <msg> — Update site status banner (Owner only)
 📊 /stats — View live site statistics & daily visit counts
 ℹ️ /about — Show this information
+❓ /help — List all commands and usage guide
 
 Notifications:
 📩 Contact form — when someone sends a message
