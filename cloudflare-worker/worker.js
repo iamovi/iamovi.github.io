@@ -109,9 +109,12 @@ async function handleWebhook(request, env, corsHeaders) {
   // Handle /help and /start commands
   if (text === '/help' || text.startsWith('/help@') || text === '/start' || text.startsWith('/start@')) {
     const helpText =
-`🤖 iamovi site bot — help & commands
+      `🤖 iamovi site bot — help & commands
 
-Available Commands (4):
+Available Commands (5):
+
+🏓 /ping
+• Live latency & uptime health check for site and database
 
 ✏️ /status <message>
 • Updates top banner message ("ovi says —")
@@ -136,11 +139,12 @@ Available Commands (4):
   // Handle /about command
   if (text === '/about' || text.startsWith('/about@')) {
     const replyText =
-`🤖 iamovi site bot
+      `🤖 iamovi site bot
 
 I'm the notification bot for iamovi.github.io — Maruf's personal site.
 
 Commands:
+🏓 /ping — Health & latency check
 ✏️ /status <msg> — Update site status banner (Owner only)
 📊 /stats — View live site statistics & daily visit counts
 ℹ️ /about — Show this information
@@ -186,7 +190,7 @@ Notifications:
       const currentStatus = statusData?.[0]?.message || '(none)';
 
       const replyText =
-`📊 iamovi site stats
+        `📊 iamovi site stats
 
 👀 Today's Visits: ${visitsCount.trim()}
 📖 Total Guestbook Entries: ${totalGuestbook}
@@ -197,6 +201,68 @@ Notifications:
     } catch (err) {
       await sendTg(chatId, '❌ Failed to fetch site stats.', env);
     }
+  }
+
+  // Handle /ping command
+  if (text === '/ping' || text.startsWith('/ping@')) {
+    const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+    const ANON_KEY = env.SUPABASE_ANON_KEY;
+
+    const cfColo = request.cf?.colo || 'Edge';
+    const cfCountry = request.cf?.country || '';
+
+    const checkPing = async (url, options = {}) => {
+      let status = '🔴 Offline';
+      let ms = 0;
+      try {
+        const t0 = performance.now();
+        const res = await fetch(url, options);
+        ms = Math.round(performance.now() - t0);
+        if (res.ok) status = '🟢 Online';
+        else status = `⚠️ HTTP ${res.status}`;
+      } catch {
+        status = '🔴 Error';
+      }
+      return { status, ms };
+    };
+
+    const [site, db, imagekit, umami, fonts, jsdelivr] = await Promise.all([
+      checkPing('https://iamovi.github.io/', { method: 'GET' }),
+      checkPing(`${SUPABASE_URL}/rest/v1/status?select=id&limit=1`, {
+        headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY }
+      }),
+      checkPing('https://ik.imagekit.io/', { method: 'HEAD' }),
+      checkPing('https://cloud.umami.is/script.js', { method: 'HEAD' }),
+      checkPing('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap', { method: 'HEAD' }),
+      checkPing('https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css', { method: 'HEAD' })
+    ]);
+
+    const replyText =
+      `⚡ Complete Infrastructure Health & Latency Check
+
+⚡ Cloudflare Worker Edge:
+• Status: 🟢 Active
+• Datacenter: ${cfColo} ${cfCountry ? '(' + cfCountry + ')' : ''}
+
+🌐 Portfolio (iamovi.github.io):
+• Status: ${site.status} (${site.ms}ms)
+
+🗄️ Supabase DB (supabase.co):
+• Status: ${db.status} (${db.ms}ms)
+
+🎵 ImageKit CDN (ik.imagekit.io):
+• Status: ${imagekit.status} (${imagekit.ms}ms)
+
+📊 Umami Analytics (cloud.umami.is):
+• Status: ${umami.status} (${umami.ms}ms)
+
+🔤 Google Fonts CDN (fonts.googleapis.com):
+• Status: ${fonts.status} (${fonts.ms}ms)
+
+📦 jsDelivr Icons CDN (cdn.jsdelivr.net):
+• Status: ${jsdelivr.status} (${jsdelivr.ms}ms)`;
+
+    await sendTg(chatId, replyText, env);
   }
 
   // Handle /status command (Owner only)
@@ -224,7 +290,7 @@ Notifications:
         const data = await res.json();
         const currentMsg = data?.[0]?.message || '(none/empty)';
         const replyText =
-`💬 Current site status:
+          `💬 Current site status:
 "${currentMsg}"
 
 To update status:
