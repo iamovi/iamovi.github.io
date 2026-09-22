@@ -113,15 +113,17 @@ async function handleWebhook(request, env, corsHeaders) {
 
 I'm the notification bot for iamovi.github.io — Maruf's personal site.
 
-Here's what I notify about:
-📩 Contact form — when someone sends a message via the site
+Commands:
+📊 /stats — View live site statistics & daily visit counts
+ℹ️ /about — Show this information
+
+Notifications:
+📩 Contact form — when someone sends a message
 📖 Guestbook — when someone signs the guestbook
 💬 Replies — when someone replies to a guestbook entry
 👍 Reactions — when someone reacts with an emoji
 
-🔒 All notifications are private — they only go to the creator of this bot (Maruf). Nobody else receives them.
-
-I'm run on a Cloudflare Worker and talk to Telegram via webhook.`;
+🔒 All notifications are private to the bot owner.`;
 
     await fetch(
       `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -131,6 +133,62 @@ I'm run on a Cloudflare Worker and talk to Telegram via webhook.`;
         body: JSON.stringify({ chat_id: chatId, text: replyText }),
       }
     );
+  }
+
+  // Handle /stats command
+  if (text === '/stats' || text.startsWith('/stats@')) {
+    const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+    const ANON_KEY = env.SUPABASE_ANON_KEY;
+    const headers = {
+      'apikey': ANON_KEY,
+      'Authorization': 'Bearer ' + ANON_KEY,
+      'Prefer': 'count=exact'
+    };
+
+    try {
+      const [visitsRes, guestbookRes, reactionsRes, statusRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_today_visit_count`, { method: 'POST', headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/guestbook?select=id`, { headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/reactions?select=id`, { headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/status?select=message&id=eq.1`, { headers })
+      ]);
+
+      const visitsCount = await visitsRes.text();
+      const guestbookRange = guestbookRes.headers.get('content-range') || '';
+      const totalGuestbook = guestbookRange.split('/')[1] ?? '0';
+
+      const reactionsRange = reactionsRes.headers.get('content-range') || '';
+      const totalReactions = reactionsRange.split('/')[1] ?? '0';
+
+      const statusData = await statusRes.json();
+      const currentStatus = statusData?.[0]?.message || '(none)';
+
+      const replyText =
+`📊 iamovi site stats
+
+👀 Today's Visits: ${visitsCount.trim()}
+📖 Total Guestbook Entries: ${totalGuestbook}
+👍 Total Reactions: ${totalReactions}
+💬 Current Status: "${currentStatus}"`;
+
+      await fetch(
+        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text: replyText }),
+        }
+      );
+    } catch (err) {
+      await fetch(
+        `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text: '❌ Failed to fetch site stats.' }),
+        }
+      );
+    }
   }
 
   return json({ ok: true });
