@@ -17,6 +17,7 @@ export default {
     // Get the path after /proxy (e.g. /rest/v1/guestbook)
     const url = new URL(request.url);
     if (url.pathname === '/notify') { return handleNotify(request, env, corsHeaders); }
+    if (url.pathname === '/contact-file') { return handleContactFile(request, env, corsHeaders); }
     if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
@@ -85,6 +86,53 @@ async function handleNotify(request, env, corsHeaders) {
       body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
     }
   );
+  return json({ ok: res.ok }, res.ok ? 200 : 502);
+}
+
+async function handleContactFile(request, env, corsHeaders) {
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  if (request.method !== 'POST') return json({ ok: false }, 405);
+  if (request.headers.get('Origin') !== 'https://iamovi.github.io') {
+    return json({ ok: false }, 403);
+  }
+
+  let formData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return json({ ok: false }, 400);
+  }
+
+  const file = formData.get('file');
+  if (!file || typeof file === 'string' || file.size > 10 * 1024 * 1024) {
+    return json({ ok: false }, 400);
+  }
+
+  const clip = (v, n) => String(v ?? '').slice(0, n);
+  const name = clip(formData.get('name'), 60);
+  const email = clip(formData.get('email'), 100);
+  const message = clip(formData.get('message'), 800);
+
+  const caption = clip(`📩 New message + attachment\nName: ${name}\nEmail: ${email}\n\n${message}`, 1024);
+
+  const tgFormData = new FormData();
+  tgFormData.append('chat_id', env.TELEGRAM_CHAT_ID);
+  tgFormData.append('caption', caption);
+  tgFormData.append('document', file);
+
+  const res = await fetch(
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendDocument`,
+    {
+      method: 'POST',
+      body: tgFormData,
+    }
+  );
+
   return json({ ok: res.ok }, res.ok ? 200 : 502);
 }
 

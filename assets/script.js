@@ -912,6 +912,7 @@ function notifyTelegram(payload) {
     const emailEl = document.getElementById('ct-email');
     const msgEl = document.getElementById('ct-message');
     const botcheckEl = document.getElementById('ct-botcheck');
+    const fileEl = document.getElementById('ct-file');
     const statusEl = document.getElementById('ct-status');
     const btn = document.getElementById('ct-submit');
 
@@ -919,6 +920,7 @@ function notifyTelegram(payload) {
     const email = emailEl ? emailEl.value.trim() : '';
     const message = msgEl ? msgEl.value.trim() : '';
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const file = fileEl && fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
 
     if (!name) {
       statusEl.textContent = '[ please enter your name ]';
@@ -934,6 +936,12 @@ function notifyTelegram(payload) {
 
     if (!message) {
       statusEl.textContent = '[ please enter your message ]';
+      statusEl.className = 'gb-status error';
+      return;
+    }
+
+    if (file && file.size > 10 * 1024 * 1024) {
+      statusEl.textContent = '[ file too big, max 10 MB ]';
       statusEl.className = 'gb-status error';
       return;
     }
@@ -963,12 +971,25 @@ function notifyTelegram(payload) {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          notifyTelegram({ type: 'contact', name, email, message });
+          if (file) {
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('message', message);
+            formData.append('file', file);
+            fetch(NOTIFY_URL.replace('/notify', '/contact-file'), {
+              method: 'POST',
+              body: formData
+            }).catch(() => {});
+          } else {
+            notifyTelegram({ type: 'contact', name, email, message });
+          }
           statusEl.textContent = "[ sent! thanks, i'll get back to you ]";
           statusEl.className = 'gb-status success';
           if (nameEl) nameEl.value = '';
           if (emailEl) emailEl.value = '';
           if (msgEl) msgEl.value = '';
+          if (fileEl) fileEl.value = '';
           if (botcheckEl) botcheckEl.checked = false;
           const charsEl = document.getElementById('ct-chars');
           if (charsEl) charsEl.textContent = '0';
