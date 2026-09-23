@@ -177,7 +177,7 @@
 
   // On load, restore section from sessionStorage
   document.addEventListener('DOMContentLoaded', function () {
-    const valid = ['about', 'projects', 'blog', 'claude', 'guestbook', 'contact'];
+    const valid = ['about', 'projects', 'blog', 'chatguys', 'claude', 'guestbook', 'contact'];
     const saved = sessionStorage.getItem('section');
     if (saved && valid.includes(saved)) {
       showSection(saved);
@@ -882,12 +882,19 @@
 
   // lazy load guestbook when section becomes visible
   let gbLoaded = false;
+  let chatPollTimer = null;
+
   const _origShowSectionForGb = window.showSection;
   window.showSection = function (sectionName) {
     _origShowSectionForGb(sectionName);
     if (sectionName === 'guestbook' && !gbLoaded) {
       gbLoaded = true;
       loadGuestbook();
+    }
+    if (sectionName === 'chatguys') {
+      initChatguysSection();
+    } else {
+      stopChatPolling();
     }
   };
 
@@ -1015,4 +1022,393 @@ function notifyTelegram(payload) {
       window.scrollTo(0, scrollY);
     });
   };
+
+  // ── CHATGUYS CHATROOM MODULE ──
+  const CHATGUYS_NICK_KEY = 'chatguys_nickname';
+  const RESTRICTED_PATTERNS = [/ovi/i, /admin/i, /administrator/i, /maruf/i, /moderator/i, /^mod$/i, /^system$/i];
+
+  function isRestrictedName(name) {
+    if (!name) return true;
+    const clean = name.trim().toLowerCase();
+    const normalized = clean.replace(/[^a-z0-9]/g, '');
+    return RESTRICTED_PATTERNS.some(p => p.test(clean) || p.test(normalized));
+  }
+
+  function getSavedNickname() {
+    try {
+      return localStorage.getItem(CHATGUYS_NICK_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setSavedNickname(name) {
+    try {
+      localStorage.setItem(CHATGUYS_NICK_KEY, name);
+    } catch (e) {}
+  }
+
+  function initChatguysSection() {
+    const name = getSavedNickname();
+    const joinView = document.getElementById('chatguys-join-view');
+    const roomView = document.getElementById('chatguys-room-view');
+    if (!joinView || !roomView) return;
+
+    if (name) {
+      joinView.style.display = 'none';
+      roomView.style.display = 'block';
+      const handleEl = document.getElementById('chatguys-current-name');
+      if (handleEl) handleEl.textContent = name;
+      purgeOldChatMessages();
+      loadChatMessages();
+      startChatPolling();
+    } else {
+      stopChatPolling();
+      joinView.style.display = 'block';
+      roomView.style.display = 'none';
+    }
+  }
+
+  function hasAdminSession() {
+    try {
+      return !!(localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token') || localStorage.getItem('chatguys_admin_auth'));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function authenticateAdminWithSupabase(email, password) {
+    if (!email || !password) return false;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: gbHeaders(),
+        body: JSON.stringify({ email: email.trim(), password: password.trim() })
+      });
+      const data = await res.json();
+      if (res.ok && data && data.access_token) {
+        try { localStorage.setItem('chatguys_admin_auth', data.access_token); } catch (e) {}
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  window.joinChatguys = async function () {
+    const input = document.getElementById('chatguys-join-name');
+    const errEl = document.getElementById('chatguys-join-error');
+    const passWrap = document.getElementById('chatguys-join-pass-wrap');
+    const emailInput = document.getElementById('chatguys-admin-email');
+    const passInput = document.getElementById('chatguys-admin-pass');
+    if (!input || !errEl) return;
+
+    const val = input.value.trim();
+    if (!val) {
+      errEl.textContent = '[ please enter a nickname ]';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (val.length < 2) {
+      errEl.textContent = '[ nickname must be at least 2 characters ]';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if (isRestrictedName(val)) {
+      if (!hasAdminSession()) {
+        const emailVal = emailInput ? emailInput.value.trim() : '';
+        const passVal = passInput ? passInput.value.trim() : '';
+
+        if (!emailVal || !passVal) {
+          if (passWrap) passWrap.style.display = 'block';
+          errEl.textContent = '[ "Ovi" & "admin" handles are reserved. Enter admin email & password to claim: ]';
+          errEl.style.display = 'block';
+          if (emailInput && !emailVal) emailInput.focus();
+          else if (passInput) passInput.focus();
+          return;
+        }
+
+        errEl.textContent = '[ authenticating admin... ]';
+        errEl.style.display = 'block';
+        const ok = await authenticateAdminWithSupabase(emailVal, passVal);
+        if (!ok) {
+          errEl.textContent = '[ authentication failed! Invalid admin credentials. ]';
+          errEl.style.display = 'block';
+          return;
+        }
+      }
+      try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) {}
+    } else {
+      try { localStorage.removeItem('chatguys_is_admin'); } catch (e) {}
+    }
+
+    errEl.style.display = 'none';
+    if (passWrap) passWrap.style.display = 'none';
+    setSavedNickname(val);
+    initChatguysSection();
+  };
+
+  window.openChangeNameModal = function () {
+    const modal = document.getElementById('chatguys-name-modal');
+    const input = document.getElementById('chatguys-new-name-input');
+    const errEl = document.getElementById('chatguys-modal-error');
+    const passWrap = document.getElementById('chatguys-modal-pass-wrap');
+    if (!modal) return;
+    if (errEl) errEl.style.display = 'none';
+    if (passWrap) passWrap.style.display = 'none';
+    if (input) input.value = getSavedNickname();
+    modal.style.display = 'flex';
+  };
+
+  window.closeChangeNameModal = function () {
+    const modal = document.getElementById('chatguys-name-modal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.saveNewName = async function () {
+    const input = document.getElementById('chatguys-new-name-input');
+    const errEl = document.getElementById('chatguys-modal-error');
+    const passWrap = document.getElementById('chatguys-modal-pass-wrap');
+    const emailInput = document.getElementById('chatguys-modal-email');
+    const passInput = document.getElementById('chatguys-modal-pass');
+    if (!input || !errEl) return;
+
+    const val = input.value.trim();
+    if (!val) {
+      errEl.textContent = '[ please enter a nickname ]';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (val.length < 2) {
+      errEl.textContent = '[ nickname must be at least 2 characters ]';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if (isRestrictedName(val)) {
+      if (!hasAdminSession()) {
+        const emailVal = emailInput ? emailInput.value.trim() : '';
+        const passVal = passInput ? passInput.value.trim() : '';
+
+        if (!emailVal || !passVal) {
+          if (passWrap) passWrap.style.display = 'block';
+          errEl.textContent = '[ "Ovi" & "admin" handles are reserved. Enter admin email & password: ]';
+          errEl.style.display = 'block';
+          if (emailInput && !emailVal) emailInput.focus();
+          else if (passInput) passInput.focus();
+          return;
+        }
+
+        errEl.textContent = '[ authenticating admin... ]';
+        errEl.style.display = 'block';
+        const ok = await authenticateAdminWithSupabase(emailVal, passVal);
+        if (!ok) {
+          errEl.textContent = '[ authentication failed! Invalid admin credentials. ]';
+          errEl.style.display = 'block';
+          return;
+        }
+      }
+      try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) {}
+    } else {
+      try { localStorage.removeItem('chatguys_is_admin'); } catch (e) {}
+    }
+
+    errEl.style.display = 'none';
+    if (passWrap) passWrap.style.display = 'none';
+    setSavedNickname(val);
+    closeChangeNameModal();
+    initChatguysSection();
+  };
+
+  function startChatPolling() {
+    stopChatPolling();
+    chatPollTimer = setInterval(loadChatMessages, 3500);
+  }
+
+  function stopChatPolling() {
+    if (chatPollTimer) {
+      clearInterval(chatPollTimer);
+      chatPollTimer = null;
+    }
+  }
+
+  function purgeOldChatMessages() {
+    const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=lt.${encodeURIComponent(oneWeekAgoIso)}`, {
+      method: 'DELETE',
+      headers: gbHeaders()
+    }).catch(() => {});
+  }
+
+  let isFetchingChat = false;
+  function loadChatMessages() {
+    const container = document.getElementById('chatguys-messages');
+    const loadingEl = document.getElementById('chatguys-loading');
+    if (!container || isFetchingChat) return;
+
+    isFetchingChat = true;
+    const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const myName = getSavedNickname();
+
+    fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=gte.${encodeURIComponent(oneWeekAgoIso)}&order=created_at.asc`, {
+      headers: gbHeaders()
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = `<p class="gb-empty">[ no messages yet — start the conversation ]</p>`;
+          return;
+        }
+
+        const isAtBottom = isChatScrolledToBottom();
+        container.innerHTML = data.map(m => {
+          const isMe = m.name === myName;
+          const isAdmin = isRestrictedName(m.name);
+          const badgeHtml = isAdmin ? `<span class="chatguys-admin-badge">[★ OVI]</span>` : '';
+          const cls = 'chatguys-msg-item' + (isMe ? ' own-msg' : '');
+          return `
+            <div class="${cls}">
+              <div class="chatguys-msg-meta">
+                <span class="chatguys-msg-name${isMe ? ' is-me' : ''}">${badgeHtml}${escapeHtml(m.name)}</span>
+                <span class="chatguys-msg-date">${timeAgo(m.created_at)}</span>
+              </div>
+              <div class="chatguys-msg-text">${escapeHtml(m.message)}</div>
+            </div>
+          `;
+        }).join('');
+
+        if (isAtBottom) {
+          scrollChatToBottom();
+          setTimeout(scrollChatToBottom, 60);
+        }
+      })
+      .catch(() => {
+        if (loadingEl) loadingEl.style.display = 'none';
+      })
+      .finally(() => {
+        isFetchingChat = false;
+      });
+  }
+
+  function isChatScrolledToBottom() {
+    const wrap = document.getElementById('chatguys-messages-wrap');
+    if (!wrap) return true;
+    return wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80;
+  }
+
+  function scrollChatToBottom() {
+    const wrap = document.getElementById('chatguys-messages-wrap');
+    if (wrap) wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  window.sendChatMessage = function () {
+    const input = document.getElementById('chatguys-msg-input');
+    const statusEl = document.getElementById('chatguys-send-status');
+    const btn = document.getElementById('chatguys-send-btn');
+    const name = getSavedNickname();
+
+    if (!input || !name) return;
+    const message = input.value.trim();
+
+    if (!message) {
+      if (statusEl) {
+        statusEl.textContent = '[ message cannot be empty ]';
+        statusEl.className = 'gb-status error';
+      }
+      return;
+    }
+
+    if (btn) btn.disabled = true;
+    if (statusEl) {
+      statusEl.textContent = '[ sending... ]';
+      statusEl.className = 'gb-status';
+    }
+
+    fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
+      method: 'POST',
+      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ name, message })
+    })
+      .then(r => {
+        if (!r.ok) throw new Error('Failed');
+        input.value = '';
+        const chars = document.getElementById('chatguys-chars');
+        if (chars) chars.textContent = '0';
+        if (statusEl) {
+          statusEl.textContent = '';
+          statusEl.className = 'gb-status';
+        }
+        loadChatMessages();
+        setTimeout(scrollChatToBottom, 150);
+      })
+      .catch(() => {
+        if (statusEl) {
+          statusEl.textContent = '[ failed to send message ]';
+          statusEl.className = 'gb-status error';
+        }
+      })
+      .finally(() => {
+        if (btn) btn.disabled = false;
+      });
+  };
+
+  // Event listeners for chat inputs
+  document.addEventListener('DOMContentLoaded', function () {
+    const chatMsgInput = document.getElementById('chatguys-msg-input');
+    const chatChars = document.getElementById('chatguys-chars');
+    if (chatMsgInput) {
+      chatMsgInput.addEventListener('input', () => {
+        if (chatChars) chatChars.textContent = chatMsgInput.value.length;
+      });
+      chatMsgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+    }
+
+    const joinInput = document.getElementById('chatguys-join-name');
+    if (joinInput) {
+      joinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          joinChatguys();
+        }
+      });
+    }
+
+    const newNameInput = document.getElementById('chatguys-new-name-input');
+    if (newNameInput) {
+      newNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveNewName();
+        }
+      });
+    }
+
+    const adminPassInput = document.getElementById('chatguys-admin-pass');
+    if (adminPassInput) {
+      adminPassInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          joinChatguys();
+        }
+      });
+    }
+
+    const modalPassInput = document.getElementById('chatguys-modal-pass');
+    if (modalPassInput) {
+      modalPassInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveNewName();
+        }
+      });
+    }
+  });
 })();

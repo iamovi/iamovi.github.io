@@ -1304,3 +1304,183 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
+
+/* ── CHATGUYS CHATROOM ── */
+.chatguys-badge {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    border: 1px solid var(--ink-faint);
+    padding: 2px 6px;
+}
+
+.chatguys-join-card {
+    border: 1.5px solid var(--ink);
+    padding: 20px;
+    background: var(--paper);
+    margin-top: 16px;
+    position: relative;
+}
+
+.chatguys-card-header {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    text-transform: lowercase;
+}
+
+.chatguys-card-sub {
+    font-size: 12px;
+    color: var(--ink-mid);
+    margin-top: 4px;
+}
+
+.chatguys-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    margin-bottom: 14px;
+}
+
+.chatguys-user-tag {
+    font-size: 12px;
+    color: var(--ink-mid);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chatguys-handle-highlight {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.chatguys-change-name-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-mid);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: color var(--speed);
+}
+
+.chatguys-change-name-btn:hover {
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+.chatguys-messages-wrap {
+    height: 380px;
+    max-height: 55vh;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    padding: 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chatguys-messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chatguys-msg-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    border: 1px solid var(--ink-faint);
+    background: rgba(0, 0, 0, 0.02);
+    position: relative;
+    max-width: 88%;
+    word-break: break-word;
+    align-self: flex-start;
+}
+
+.chatguys-msg-item.own-msg {
+    align-self: flex-end;
+    border-color: var(--ink);
+    background: var(--paper);
+    box-shadow: -3px 3px 0px var(--ink-faint);
+}
+
+.chatguys-msg-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+
+.chatguys-msg-name {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.chatguys-msg-name.is-me {
+    color: var(--ink);
+}
+
+.chatguys-admin-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 1px 5px;
+    letter-spacing: 0.06em;
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.chatguys-msg-date {
+    font-size: 10px;
+    color: var(--ink-faint);
+}
+
+.chatguys-msg-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ink);
+    white-space: pre-wrap;
+}
+
+/* Modal for name change */
+.chatguys-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(2px);
+}
+
+.chatguys-modal-card {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 20px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 6px 6px 0px var(--ink);
+    position: relative;
+}
+
+.chatguys-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+

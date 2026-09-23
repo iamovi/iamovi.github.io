@@ -97,6 +97,9 @@
                 <a href="#" class="menu-link" id="blog-link" onclick="showSection('blog'); toggleMenu(); return false;">
                     <span class="menu-link-text">Blog</span>
                 </a>
+                <a href="#" class="menu-link" id="chatguys-link" onclick="showSection('chatguys'); toggleMenu(); return false;">
+                    <span class="menu-link-text">chatguys 💬</span>
+                </a>
                 <a href="#" class="menu-link" id="claude-link"
                     onclick="showSection('claude'); toggleMenu(); return false;">
                     <span class="menu-link-text">Claude said about me</span>
@@ -426,6 +429,88 @@
                             onclick="openSsLightbox(this.src)" />
                         <img src="./assets/claude-ss-3.png" alt="Claude screenshot 3"
                             onclick="openSsLightbox(this.src)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHATGUYS SECTION -->
+        <div id="chatguys-section" class="section">
+            <div class="guestbook-content">
+                <div class="guestbook-header-row">
+                    <span class="guestbook-label">[ chatguys ]</span>
+                    <span class="chatguys-badge">[ live chat ]</span>
+                </div>
+                <p class="guestbook-intro">public chatroom — messages are automatically cleared after 1 week.</p>
+
+                <!-- JOIN VIEW (Prompt for display name) -->
+                <div id="chatguys-join-view" class="chatguys-join-card">
+                    <div class="chatguys-card-header">enter your nickname to join</div>
+                    <p class="chatguys-card-sub">Choose a display name (restricted names like "Ovi" and "admin" are reserved).</p>
+                    <div class="guestbook-form-row" style="margin-top: 14px;">
+                        <input type="text" id="chatguys-join-name" class="gb-input" placeholder="e.g. cyber_samurai" maxlength="24" autocomplete="off" />
+                        <button class="gb-submit" onclick="joinChatguys()">[ join chat ]</button>
+                    </div>
+                    <!-- ADMIN LOGIN FORM (Shown when reserved name selected) -->
+                    <div id="chatguys-join-pass-wrap" style="display:none; margin-top: 12px; border-top: 1px dashed var(--ink-faint); padding-top: 10px;">
+                        <p class="chatguys-card-sub" style="color: var(--ink); font-weight: 700;">👑 Reserved handle! Sign in as Admin to claim:</p>
+                        <div class="guestbook-form-row" style="margin-top: 8px; flex-direction: column; align-items: stretch; gap: 8px;">
+                            <input type="email" id="chatguys-admin-email" class="gb-input" placeholder="admin email..." autocomplete="off" />
+                            <input type="password" id="chatguys-admin-pass" class="gb-input" placeholder="admin password..." autocomplete="off" />
+                            <button class="gb-submit" onclick="joinChatguys()">[ authenticate & claim ]</button>
+                        </div>
+                    </div>
+                    <div id="chatguys-join-error" class="gb-status error" style="display:none; margin-top: 10px;"></div>
+                </div>
+
+                <!-- ROOM VIEW (Active Chatroom) -->
+                <div id="chatguys-room-view" style="display:none;">
+                    <div class="chatguys-bar">
+                        <div class="chatguys-user-tag">
+                            <i class="ri-user-3-line"></i> handle: <span id="chatguys-current-name" class="chatguys-handle-highlight">anon</span>
+                        </div>
+                        <button class="chatguys-change-name-btn" onclick="openChangeNameModal()">[ change name ]</button>
+                    </div>
+
+                    <!-- MESSAGES CONTAINER -->
+                    <div class="chatguys-messages-wrap" id="chatguys-messages-wrap">
+                        <div class="gb-loading" id="chatguys-loading">[ connecting to chat... ]</div>
+                        <div id="chatguys-messages" class="chatguys-messages-list"></div>
+                    </div>
+
+                    <!-- SEND FORM -->
+                    <div class="guestbook-form-wrap" style="margin-top: 16px;">
+                        <div class="guestbook-form-row">
+                            <input type="text" id="chatguys-msg-input" class="gb-input" placeholder="type a message..." maxlength="300" autocomplete="off" />
+                            <button class="gb-submit" id="chatguys-send-btn" onclick="sendChatMessage()">[ send ]</button>
+                        </div>
+                        <div class="gb-char-count" style="margin-top: 6px;"><span id="chatguys-chars">0</span> / 300</div>
+                        <div id="chatguys-send-status" class="gb-status"></div>
+                    </div>
+                </div>
+
+                <!-- NICKNAME CHANGE MODAL/DIALOG -->
+                <div id="chatguys-name-modal" class="chatguys-modal-overlay" style="display:none;" onclick="closeChangeNameModal()">
+                    <div class="chatguys-modal-card" onclick="event.stopPropagation()">
+                        <div class="chatguys-modal-header">
+                            <span>[ change display name ]</span>
+                            <button class="lightbox-close" onclick="closeChangeNameModal()">&times;</button>
+                        </div>
+                        <p class="chatguys-card-sub" style="margin-top:8px;">Enter a new nickname:</p>
+                        <div class="guestbook-form-row" style="margin-top: 12px;">
+                            <input type="text" id="chatguys-new-name-input" class="gb-input" placeholder="new nickname..." maxlength="24" autocomplete="off" />
+                            <button class="gb-submit" onclick="saveNewName()">[ save ]</button>
+                        </div>
+                        <!-- ADMIN LOGIN FORM FOR MODAL -->
+                        <div id="chatguys-modal-pass-wrap" style="display:none; margin-top: 12px; border-top: 1px dashed var(--ink-faint); padding-top: 10px;">
+                            <p class="chatguys-card-sub" style="color: var(--ink); font-weight: 700;">👑 Reserved handle! Sign in as Admin:</p>
+                            <div class="guestbook-form-row" style="margin-top: 8px; flex-direction: column; align-items: stretch; gap: 8px;">
+                                <input type="email" id="chatguys-modal-email" class="gb-input" placeholder="admin email..." autocomplete="off" />
+                                <input type="password" id="chatguys-modal-pass" class="gb-input" placeholder="admin password..." autocomplete="off" />
+                                <button class="gb-submit" onclick="saveNewName()">[ authenticate & save ]</button>
+                            </div>
+                        </div>
+                        <div id="chatguys-modal-error" class="gb-status error" style="display:none; margin-top:10px;"></div>
                     </div>
                 </div>
             </div>
