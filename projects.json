@@ -74,7 +74,7 @@
   {
     "name": "nychthemeron",
     "url": "https://github.com/iamovi/nychthemeron",
-    "description": "An open source 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, zero clutter. Built with Supabase and deployed on Vercel.",
+    "description": "(Previously Genjutsu). An open source 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, zero clutter. Built with Supabase and deployed on Vercel.",
     "date": "First Commit on March 2026"
   }
 ]
