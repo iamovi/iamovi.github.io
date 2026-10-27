@@ -42,15 +42,39 @@
     "date": "First Commit on February 2026"
   },
   {
+    "name": "glitch",
+    "url": "https://github.com/iamovi/glitch",
+    "description": "An animated developer portfolio template built with React, Vite, and GSAP. Features smooth transitions, bold styling, and interactive component animations.",
+    "date": "First Commit on January 2026"
+  },
+  {
+    "name": "AnimeILikeToWatch",
+    "url": "https://github.com/iamovi/AnimeILikeToWatch",
+    "description": "A clean, lightweight anime tracker to manage and discover anime. Keep your watchlists stored locally in your browser with backup and restore support.",
+    "date": "First Commit on March 2026"
+  },
+  {
+    "name": "kooked",
+    "url": "https://github.com/iamovi/kooked",
+    "description": "An AI-powered website roaster that delivers brutally honest, hilarious critiques of your landing page and design. Built with Next.js and Supabase.",
+    "date": "First Commit on April 2026"
+  },
+  {
+    "name": "tfish",
+    "url": "https://github.com/iamovi/tfish",
+    "description": "A Windows-themed interactive desktop portfolio with a boot sequence, terminal, desktop icons, and customizable wallpapers. Built with React and TypeScript.",
+    "date": "First Commit on February 2026"
+  },
+  {
     "name": "KeysAndFingers",
     "url": "https://github.com/iamovi/KeysAndFingers",
     "description": "A glitch-themed typing speed test. Measure your WPM and accuracy, and actually get better at typing — wrapped in a aesthetic that makes practice feel less like a chore.",
     "date": "First Commit on March 2026"
   },
   {
-    "name": "genjutsu",
-    "url": "https://github.com/iamovi/genjutsu",
-    "description": "A 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, manga aesthetic, zero clutter. Built with Supabase and deployed on Vercel.",
+    "name": "nychthemeron",
+    "url": "https://github.com/iamovi/nychthemeron",
+    "description": "An open source 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, zero clutter. Built with Supabase and deployed on Vercel.",
     "date": "First Commit on March 2026"
   }
 ]
