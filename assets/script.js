@@ -524,12 +524,21 @@
     { key: 'lol',   label: '[ lol ]' },
   ];
 
+  // Aliases for renamed items so past reactions are preserved
+  const REACTION_ALIASES = {
+    'project:nychthemeron': ['project:genjutsu'],
+  };
+
   function slugify(str) {
     return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
   function hasReacted(type, id, key) {
-    try { return localStorage.getItem('r:' + type + ':' + id + ':' + key) === '1'; } catch(e) { return false; }
+    try {
+      if (localStorage.getItem('r:' + type + ':' + id + ':' + key) === '1') return true;
+      const aliases = REACTION_ALIASES[type + ':' + id] || [];
+      return aliases.some(a => localStorage.getItem('r:' + a + ':' + key) === '1');
+    } catch(e) { return false; }
   }
 
   function markReacted(type, id, key) {
@@ -548,8 +557,24 @@
 
   function loadReactionCounts(targets) {
     if (!targets || targets.length === 0) return;
-    // build filter: (target_type.eq.blog,target_id.eq.my-slug),(...)
-    const filters = targets.map(t => 'and(target_type.eq.' + t.type + ',target_id.eq.' + t.id + ')').join(',');
+
+    // Expand targets with any aliases to query both current and legacy IDs
+    const allQueryTargets = [];
+    const seen = new Set();
+    targets.forEach(t => {
+      const k = t.type + ':' + t.id;
+      if (!seen.has(k)) { seen.add(k); allQueryTargets.push(t); }
+      const aliases = REACTION_ALIASES[k] || [];
+      aliases.forEach(a => {
+        if (!seen.has(a)) {
+          seen.add(a);
+          const [aliasType, aliasId] = a.split(':');
+          allQueryTargets.push({ type: aliasType, id: aliasId });
+        }
+      });
+    });
+
+    const filters = allQueryTargets.map(t => 'and(target_type.eq.' + t.type + ',target_id.eq.' + t.id + ')').join(',');
     fetch(SUPABASE_URL + '/rest/v1/reactions?select=target_type,target_id,reaction&or=(' + encodeURIComponent(filters) + ')', {
       headers: gbHeaders()
     })
@@ -562,12 +587,16 @@
           const k = row.target_type + ':' + row.target_id + ':' + row.reaction;
           counts[k] = (counts[k] || 0) + 1;
         });
-        // fill in the spans
+        // fill in the spans (summing counts across target and any aliases)
         targets.forEach(t => {
+          const aliasKeys = (REACTION_ALIASES[t.type + ':' + t.id] || []).concat([t.type + ':' + t.id]);
           REACTIONS.forEach(r => {
             const el = document.getElementById('rc-' + t.type + '-' + t.id + '-' + r.key);
             if (el) {
-              const n = counts[t.type + ':' + t.id + ':' + r.key] || 0;
+              let n = 0;
+              aliasKeys.forEach(ak => {
+                n += (counts[ak + ':' + r.key] || 0);
+              });
               el.textContent = n > 0 ? n : '·';
             }
           });
