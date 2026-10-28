@@ -44,7 +44,7 @@
         }
 
         html {
-            overflow-x: hidden;
+            height: 100%;
             scroll-behavior: smooth;
         }
 
@@ -54,10 +54,12 @@
             background-size: 20px 20px;
             color: var(--ink);
             font-family: 'Share Tech Mono', monospace;
-            min-height: 100vh;
+            height: 100%;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            padding: 24px 16px 40px;
+            padding: 16px;
+            box-sizing: border-box;
         }
 
         .container {
@@ -67,6 +69,8 @@
             display: flex;
             flex-direction: column;
             flex: 1;
+            height: 100%;
+            min-height: 0;
         }
 
         /* ── HEADER NAVIGATION ── */
@@ -74,9 +78,10 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
             border-bottom: 2px solid var(--ink);
+            flex-shrink: 0;
         }
 
         .back-link {
@@ -96,36 +101,10 @@
             transform: translateX(-2px);
         }
 
-        .page-badge {
-            font-size: 11px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--ink-mid);
-            border: 1px solid var(--ink-faint);
-            padding: 3px 8px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .live-dot {
-            width: 7px;
-            height: 7px;
-            background-color: #10b981;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
-            animation: pulse-dot 1.8s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.6; }
-        }
-
         /* ── CHAT TITLE SECTION ── */
         .chat-hero {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
 
         .chat-title-row {
@@ -136,27 +115,29 @@
         }
 
         .chat-title {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 700;
             letter-spacing: -0.02em;
             color: var(--ink);
+            line-height: 1.1;
         }
 
         .chat-sub {
-            font-size: 12px;
+            font-size: 11.5px;
             color: var(--ink-mid);
-            margin-top: 6px;
-            line-height: 1.5;
+            margin-top: 4px;
+            line-height: 1.4;
         }
 
         /* ── JOIN CARD ── */
         .chatguys-join-card {
             border: 2px solid var(--ink);
-            padding: 28px 24px;
+            padding: 24px 20px;
             background: var(--paper);
-            box-shadow: 5px 5px 0px var(--ink);
-            margin-top: 20px;
+            box-shadow: 4px 4px 0px var(--ink);
+            margin-top: 10px;
             position: relative;
+            flex-shrink: 0;
         }
 
         .chatguys-card-header {
@@ -177,7 +158,7 @@
         .form-row {
             display: flex;
             gap: 10px;
-            margin-top: 16px;
+            margin-top: 14px;
         }
 
         .chat-input {
@@ -185,7 +166,7 @@
             background: var(--paper);
             border: 1.5px solid var(--ink);
             color: var(--ink);
-            padding: 10px 14px;
+            padding: 9px 12px;
             font-size: 14px;
             outline: none;
             transition: border-color var(--speed), box-shadow var(--speed);
@@ -199,7 +180,7 @@
             background: var(--ink);
             color: var(--paper);
             border: 1.5px solid var(--ink);
-            padding: 10px 18px;
+            padding: 9px 16px;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 0.05em;
@@ -228,19 +209,19 @@
             flex-direction: column;
             border: 2px solid var(--ink);
             background: var(--paper);
-            box-shadow: 5px 5px 0px var(--ink);
-            overflow: hidden;
+            box-shadow: 4px 4px 0px var(--ink);
             flex: 1;
-            min-height: 520px;
+            min-height: 0;
         }
 
         .chat-topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: var(--paper);
             border-bottom: 1.5px solid var(--ink);
+            flex-shrink: 0;
         }
 
         .chat-user-tag {
@@ -274,14 +255,19 @@
         /* ── MESSAGES LIST ── */
         .chat-messages-wrap {
             flex: 1;
-            min-height: 380px;
-            max-height: 60vh;
-            padding: 18px 16px;
+            min-height: 0;
+            padding: 14px 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
             background: rgba(0, 0, 0, 0.015);
+        }
+
+        #chatguys-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
         }
 
         .chat-msg-item {
@@ -290,22 +276,22 @@
             padding: 9px 13px;
             border: 1px solid var(--ink-faint);
             background: var(--paper);
-            max-width: 85%;
+            max-width: 75%;
+            min-width: 120px;
+            width: fit-content;
             word-break: break-word;
             align-self: flex-start;
-            animation: msg-appear 0.2s ease-out;
-        }
-
-        @keyframes msg-appear {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+            margin-right: auto;
         }
 
         .chat-msg-item.own-msg {
             align-self: flex-end;
+            margin-left: auto;
+            margin-right: 0;
             border-color: var(--ink);
-            background: var(--paper);
-            box-shadow: -3px 3px 0px var(--ink-faint);
+            border-width: 1.5px;
+            background: color-mix(in srgb, var(--ink) 8%, var(--paper));
+            box-shadow: 3px 3px 0px var(--ink);
         }
 
         .chat-msg-meta {
@@ -315,6 +301,7 @@
             gap: 12px;
             margin-bottom: 5px;
             font-size: 11px;
+            flex-wrap: wrap;
         }
 
         .chat-msg-name {
@@ -323,6 +310,8 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .chat-admin-badge {
@@ -333,6 +322,7 @@
             padding: 1px 5px;
             letter-spacing: 0.06em;
             display: inline-block;
+            flex-shrink: 0;
         }
 
         .chat-msg-date {
@@ -340,6 +330,7 @@
             color: var(--ink-mid);
             opacity: 0.75;
             white-space: nowrap;
+            margin-left: auto;
         }
 
         .chat-msg-text {
@@ -347,6 +338,7 @@
             line-height: 1.45;
             color: var(--ink);
             white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .chat-msg-text a {
@@ -438,26 +430,128 @@
             color: var(--ink);
         }
 
-        /* ── FOOTER ── */
-        .footer-closing {
-            margin-top: 36px;
-            text-align: center;
-            font-size: 12px;
-            color: var(--ink-mid);
-        }
-
         @media (max-width: 600px) {
             body {
-                padding: 16px 12px 28px;
+                padding: 10px 8px;
             }
-            .chat-msg-item {
-                max-width: 92%;
+
+            .page-nav {
+                margin-bottom: 8px;
+                padding-bottom: 8px;
             }
+
+            .chat-hero {
+                margin-bottom: 8px;
+            }
+
             .chat-title {
-                font-size: 22px;
+                font-size: 20px;
             }
+
+            .chat-sub {
+                font-size: 11px;
+            }
+
+            .chatguys-join-card {
+                padding: 16px 12px;
+                box-shadow: 3px 3px 0px var(--ink);
+            }
+
+            .chat-panel {
+                box-shadow: 3px 3px 0px var(--ink);
+            }
+
+            .chat-topbar {
+                padding: 8px 10px;
+            }
+
+            .chat-user-tag {
+                font-size: 12px;
+                max-width: calc(100% - 110px);
+                overflow: hidden;
+            }
+
+            .chat-handle {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .change-name-btn {
+                font-size: 11px;
+                padding: 2px 4px;
+            }
+
             .chat-messages-wrap {
-                min-height: 320px;
+                padding: 10px 8px;
+            }
+
+            .chat-msg-item {
+                max-width: 88%;
+                min-width: 85px;
+                padding: 7px 9px;
+            }
+
+            .chat-msg-meta {
+                gap: 8px;
+                font-size: 10px;
+                margin-bottom: 3px;
+            }
+
+            .chat-admin-badge {
+                font-size: 9px;
+                padding: 1px 3px;
+            }
+
+            .chat-msg-date {
+                font-size: 9px;
+            }
+
+            .chat-msg-text {
+                font-size: 12.5px;
+            }
+
+            .chat-send-wrap {
+                padding: 8px 10px;
+            }
+
+            .form-row {
+                gap: 6px;
+            }
+
+            .chat-input {
+                font-size: 16px; /* Prevents iOS auto-zoom on input focus */
+                padding: 8px 10px;
+            }
+
+            .chat-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .modal-card {
+                padding: 16px 12px;
+                box-shadow: 3px 3px 0px var(--ink);
+            }
+        }
+
+        @media (max-width: 380px) {
+            body {
+                padding: 8px 6px;
+            }
+
+            .chat-title {
+                font-size: 18px;
+            }
+
+            .chat-msg-item {
+                max-width: 93%;
+                padding: 6px 8px;
+            }
+
+            .chat-btn {
+                padding: 8px 10px;
+                font-size: 11px;
             }
         }
     </style>
@@ -470,16 +564,12 @@
             <a href="../" class="back-link">
                 <i class="ri-arrow-left-line"></i> back to init_ovi
             </a>
-            <span class="page-badge">
-                <span class="live-dot"></span> live room
-            </span>
         </nav>
 
         <!-- TITLE HERO -->
         <header class="chat-hero">
             <div class="chat-title-row">
                 <h1 class="chat-title">[ chatguys ]</h1>
-                <span class="page-badge">beta</span>
             </div>
             <p class="chat-sub">public live chatroom — messages are automatically cleared after 1 week.</p>
         </header>
@@ -492,16 +582,6 @@
                 <input type="text" id="chatguys-join-name" class="chat-input" placeholder="e.g. cyber_samurai"
                     maxlength="24" autocomplete="off" autofocus />
                 <button class="chat-btn" onclick="joinChatguys()">[ join chat ]</button>
-            </div>
-            <!-- ADMIN LOGIN FORM (Shown when reserved name selected) -->
-            <div id="chatguys-join-pass-wrap"
-                style="display:none; margin-top: 16px; border-top: 1px dashed var(--ink-faint); padding-top: 14px;">
-                <p class="chatguys-card-sub" style="color: var(--ink); font-weight: 700;">👑 Reserved handle! Sign in as Admin to claim:</p>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                    <input type="email" id="chatguys-admin-email" class="chat-input" placeholder="admin email..." autocomplete="off" />
-                    <input type="password" id="chatguys-admin-pass" class="chat-input" placeholder="admin password..." autocomplete="off" />
-                    <button class="chat-btn" onclick="joinChatguys()">[ authenticate & claim ]</button>
-                </div>
             </div>
             <div id="chatguys-join-error" class="status-msg error" style="display:none; margin-top: 10px;"></div>
         </div>
@@ -525,7 +605,7 @@
             <!-- SEND FORM -->
             <div class="chat-send-wrap">
                 <div class="form-row" style="margin-top: 0;">
-                    <input type="text" id="chatguys-msg-input" class="chat-input" placeholder="type a message... (Press Enter to send)"
+                    <input type="text" id="chatguys-msg-input" class="chat-input" placeholder="type a message..."
                         maxlength="300" autocomplete="off" />
                     <button class="chat-btn" id="chatguys-send-btn" onclick="sendChatMessage()">[ send ]</button>
                 </div>
@@ -549,23 +629,9 @@
                         maxlength="24" autocomplete="off" />
                     <button class="chat-btn" onclick="saveNewName()">[ save ]</button>
                 </div>
-                <!-- ADMIN LOGIN FORM FOR MODAL -->
-                <div id="chatguys-modal-pass-wrap"
-                    style="display:none; margin-top: 14px; border-top: 1px dashed var(--ink-faint); padding-top: 12px;">
-                    <p class="chatguys-card-sub" style="color: var(--ink); font-weight: 700;">👑 Reserved handle! Sign in as Admin:</p>
-                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-                        <input type="email" id="chatguys-modal-email" class="chat-input" placeholder="admin email..." autocomplete="off" />
-                        <input type="password" id="chatguys-modal-pass" class="chat-input" placeholder="admin password..." autocomplete="off" />
-                        <button class="chat-btn" onclick="saveNewName()">[ authenticate & save ]</button>
-                    </div>
-                </div>
                 <div id="chatguys-modal-error" class="status-msg error" style="display:none; margin-top:10px;"></div>
             </div>
         </div>
-
-        <footer class="footer-closing">
-            <p>chatguys by Hasan Ovi — please keep it friendly and respectful.</p>
-        </footer>
     </div>
 
     <!-- Optional audio & cursor enhancements -->
@@ -582,6 +648,7 @@
 
             let chatPollTimer = null;
             let isFetchingChat = false;
+            let lastChatSnapshot = '';
 
             function gbHeaders() {
                 return {
@@ -667,6 +734,7 @@
             }
 
             function initChatguysSection() {
+                lastChatSnapshot = '';
                 const name = getSavedNickname();
                 const joinView = document.getElementById('chatguys-join-view');
                 const roomView = document.getElementById('chatguys-room-view');
@@ -691,12 +759,9 @@
                 }
             }
 
-            window.joinChatguys = async function () {
+            window.joinChatguys = function () {
                 const input = document.getElementById('chatguys-join-name');
                 const errEl = document.getElementById('chatguys-join-error');
-                const passWrap = document.getElementById('chatguys-join-pass-wrap');
-                const emailInput = document.getElementById('chatguys-admin-email');
-                const passInput = document.getElementById('chatguys-admin-pass');
                 if (!input || !errEl) return;
 
                 const val = input.value.trim();
@@ -712,35 +777,21 @@
                 }
 
                 if (isRestrictedName(val)) {
-                    if (!hasAdminSession()) {
-                        const emailVal = emailInput ? emailInput.value.trim() : '';
-                        const passVal = passInput ? passInput.value.trim() : '';
-
-                        if (!emailVal || !passVal) {
-                            if (passWrap) passWrap.style.display = 'block';
-                            errEl.textContent = '[ "Ovi" & "admin" handles are reserved. Enter admin email & password to claim: ]';
-                            errEl.style.display = 'block';
-                            if (emailInput && !emailVal) emailInput.focus();
-                            else if (passInput) passInput.focus();
-                            return;
-                        }
-
-                        errEl.textContent = '[ authenticating admin... ]';
+                    // Check if already logged in as admin
+                    if (hasAdminSession()) {
+                        // Already authenticated — allow claim immediately
+                        try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
+                    } else {
+                        // Not logged in — block with a clear message, no credential form
+                        errEl.textContent = '[ 👑 "' + val + '" is a reserved handle. Please login as admin first to use this name. ]';
                         errEl.style.display = 'block';
-                        const ok = await authenticateAdminWithSupabase(emailVal, passVal);
-                        if (!ok) {
-                            errEl.textContent = '[ authentication failed! Invalid admin credentials. ]';
-                            errEl.style.display = 'block';
-                            return;
-                        }
+                        return;
                     }
-                    try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
                 } else {
                     try { localStorage.removeItem('chatguys_is_admin'); } catch (e) { }
                 }
 
                 errEl.style.display = 'none';
-                if (passWrap) passWrap.style.display = 'none';
                 setSavedNickname(val);
                 initChatguysSection();
             };
@@ -749,10 +800,8 @@
                 const modal = document.getElementById('chatguys-name-modal');
                 const input = document.getElementById('chatguys-new-name-input');
                 const errEl = document.getElementById('chatguys-modal-error');
-                const passWrap = document.getElementById('chatguys-modal-pass-wrap');
                 if (!modal) return;
                 if (errEl) errEl.style.display = 'none';
-                if (passWrap) passWrap.style.display = 'none';
                 if (input) {
                     input.value = getSavedNickname();
                     setTimeout(() => input.focus(), 60);
@@ -765,12 +814,9 @@
                 if (modal) modal.style.display = 'none';
             };
 
-            window.saveNewName = async function () {
+            window.saveNewName = function () {
                 const input = document.getElementById('chatguys-new-name-input');
                 const errEl = document.getElementById('chatguys-modal-error');
-                const passWrap = document.getElementById('chatguys-modal-pass-wrap');
-                const emailInput = document.getElementById('chatguys-modal-email');
-                const passInput = document.getElementById('chatguys-modal-pass');
                 if (!input || !errEl) return;
 
                 const val = input.value.trim();
@@ -786,35 +832,21 @@
                 }
 
                 if (isRestrictedName(val)) {
-                    if (!hasAdminSession()) {
-                        const emailVal = emailInput ? emailInput.value.trim() : '';
-                        const passVal = passInput ? passInput.value.trim() : '';
-
-                        if (!emailVal || !passVal) {
-                            if (passWrap) passWrap.style.display = 'block';
-                            errEl.textContent = '[ "Ovi" & "admin" handles are reserved. Enter admin email & password: ]';
-                            errEl.style.display = 'block';
-                            if (emailInput && !emailVal) emailInput.focus();
-                            else if (passInput) passInput.focus();
-                            return;
-                        }
-
-                        errEl.textContent = '[ authenticating admin... ]';
+                    // Check if already logged in as admin
+                    if (hasAdminSession()) {
+                        // Already authenticated — allow claim immediately
+                        try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
+                    } else {
+                        // Not logged in — block with a clear message, no credential form
+                        errEl.textContent = '[ 👑 "' + val + '" is a reserved handle. Please login as admin first to use this name. ]';
                         errEl.style.display = 'block';
-                        const ok = await authenticateAdminWithSupabase(emailVal, passVal);
-                        if (!ok) {
-                            errEl.textContent = '[ authentication failed! Invalid admin credentials. ]';
-                            errEl.style.display = 'block';
-                            return;
-                        }
+                        return;
                     }
-                    try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
                 } else {
                     try { localStorage.removeItem('chatguys_is_admin'); } catch (e) { }
                 }
 
                 errEl.style.display = 'none';
-                if (passWrap) passWrap.style.display = 'none';
                 setSavedNickname(val);
                 closeChangeNameModal();
                 initChatguysSection();
@@ -867,9 +899,19 @@
                     .then(data => {
                         if (loadingEl) loadingEl.style.display = 'none';
                         if (!Array.isArray(data) || data.length === 0) {
-                            container.innerHTML = `<p class="chat-empty">[ no messages yet — start the conversation ]</p>`;
+                            if (lastChatSnapshot !== 'empty') {
+                                lastChatSnapshot = 'empty';
+                                container.innerHTML = `<p class="chat-empty">[ no messages yet — start the conversation ]</p>`;
+                            }
                             return;
                         }
+
+                        // Avoid flickering/re-rendering if messages haven't changed
+                        const snapshot = JSON.stringify(data) + '::' + myName;
+                        if (snapshot === lastChatSnapshot) {
+                            return;
+                        }
+                        lastChatSnapshot = snapshot;
 
                         const isAtBottom = isChatScrolledToBottom();
                         container.innerHTML = data.map(m => {
@@ -938,6 +980,7 @@
                             statusEl.textContent = '';
                             statusEl.className = 'status-msg';
                         }
+                        lastChatSnapshot = '';
                         loadChatMessages();
                         setTimeout(scrollChatToBottom, 150);
                     })
