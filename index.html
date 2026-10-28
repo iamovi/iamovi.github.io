@@ -483,10 +483,18 @@
                         placeholder="your email" />
                     <textarea id="ct-message" class="gb-textarea" maxlength="1000" rows="6"
                         placeholder="your message..."></textarea>
-                    <input type="checkbox" id="ct-botcheck" style="display:none;" tabindex="-1" />
-                    <input type="file" id="ct-file" class="gb-input ct-field" accept="image/*,.pdf,.zip,.txt"
-                        style="margin-top: 10px;" />
                     <div class="gb-char-count"><span id="ct-chars">0</span> / 1000</div>
+                    <input type="checkbox" id="ct-botcheck" style="display:none;" tabindex="-1" />
+                    
+                    <div class="ct-file-wrapper" id="ct-file-wrapper">
+                        <input type="file" id="ct-file" class="ct-file-input" accept="image/*,.pdf,.zip,.txt" />
+                        <label for="ct-file" class="ct-file-box" id="ct-file-box">
+                            <span class="ct-file-btn">[ + choose file ]</span>
+                            <span class="ct-file-name" id="ct-file-name">attach file (optional)</span>
+                            <span class="ct-file-hint" id="ct-file-hint">max 10mb</span>
+                        </label>
+                        <button type="button" id="ct-file-clear" class="ct-file-clear" title="remove file" aria-label="remove file" style="display: none;">[ &times; ]</button>
+                    </div>
                     <button id="ct-submit" class="gb-submit ct-submit" onclick="submitContact()">[ send ]</button>
                     <div id="ct-status" class="gb-status"></div>
                 </div>

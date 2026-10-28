@@ -912,6 +912,73 @@
         ctCharsEl.textContent = ctMsgEl.value.length;
       });
     }
+
+    // Contact form file attachment handling
+    const ctFileEl = document.getElementById('ct-file');
+    const ctFileNameEl = document.getElementById('ct-file-name');
+    const ctFileHintEl = document.getElementById('ct-file-hint');
+    const ctFileClearBtn = document.getElementById('ct-file-clear');
+    const ctFileWrapper = document.getElementById('ct-file-wrapper');
+
+    window.updateContactFileDisplay = function () {
+      if (!ctFileEl || !ctFileNameEl) return;
+      const f = ctFileEl.files && ctFileEl.files[0];
+      if (f) {
+        let sizeStr = '';
+        if (f.size < 1024) sizeStr = f.size + ' B';
+        else if (f.size < 1024 * 1024) sizeStr = (f.size / 1024).toFixed(1) + ' KB';
+        else sizeStr = (f.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+        ctFileNameEl.textContent = f.name;
+        if (ctFileHintEl) ctFileHintEl.textContent = sizeStr;
+        if (ctFileClearBtn) ctFileClearBtn.style.display = 'inline-flex';
+        if (ctFileWrapper) ctFileWrapper.classList.add('has-file');
+      } else {
+        ctFileNameEl.textContent = 'attach file (optional)';
+        if (ctFileHintEl) ctFileHintEl.textContent = 'max 10mb';
+        if (ctFileClearBtn) ctFileClearBtn.style.display = 'none';
+        if (ctFileWrapper) ctFileWrapper.classList.remove('has-file');
+      }
+    };
+
+    if (ctFileEl) {
+      ctFileEl.addEventListener('change', window.updateContactFileDisplay);
+    }
+
+    if (ctFileClearBtn) {
+      ctFileClearBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.sfx_click) window.sfx_click();
+        if (ctFileEl) {
+          ctFileEl.value = '';
+          window.updateContactFileDisplay();
+        }
+      });
+    }
+
+    if (ctFileWrapper && ctFileEl) {
+      ['dragenter', 'dragover'].forEach(evt => {
+        ctFileWrapper.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          ctFileWrapper.classList.add('drag-over');
+        });
+      });
+      ['dragleave', 'drop'].forEach(evt => {
+        ctFileWrapper.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          ctFileWrapper.classList.remove('drag-over');
+        });
+      });
+      ctFileWrapper.addEventListener('drop', (e) => {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          ctFileEl.files = e.dataTransfer.files;
+          window.updateContactFileDisplay();
+        }
+      });
+    }
   });
 
   // lazy load guestbook when section becomes visible
@@ -1022,6 +1089,7 @@ function notifyTelegram(payload) {
           if (emailEl) emailEl.value = '';
           if (msgEl) msgEl.value = '';
           if (fileEl) fileEl.value = '';
+          if (window.updateContactFileDisplay) window.updateContactFileDisplay();
           if (botcheckEl) botcheckEl.checked = false;
           const charsEl = document.getElementById('ct-chars');
           if (charsEl) charsEl.textContent = '0';
