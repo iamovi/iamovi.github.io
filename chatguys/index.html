@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chatguys 💬 — init_ovi</title>
+    <link rel="icon" href="../samurai-jack.png">
+    <meta name="description" content="chatguys — a public, temporary chat room by Maruf Hasan Ovi.">
+    <meta name="author" content="Maruf Hasan Ovi">
+    <meta name="robots" content="index, follow">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Scrollbar & Theme -->
+    <link rel="stylesheet" href="../assets/bar.css">
+    <link rel="stylesheet" href="../assets/theme.css">
+    <script src="../assets/theme.js"></script>
+
+    <!-- Analytics -->
+    <script defer src="https://cloud.umami.is/script.js"
+        data-website-id="b7b467a9-8c97-4fc0-a1b5-8fd1b11e254a"></script>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: 'Share Tech Mono', monospace;
+            color: inherit;
+        }
+
+        html {
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--paper);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: var(--ink);
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px 40px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 780px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* ── HEADER NAVIGATION ── */
+        .page-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--ink);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: color var(--speed), transform var(--speed);
+        }
+
+        .back-link:hover {
+            color: var(--ink);
+            transform: translateX(-2px);
+        }
+
+        .page-badge {
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+            border: 1px solid var(--ink-faint);
+            padding: 3px 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        /* ── CHAT TITLE SECTION ── */
+        .chat-hero {
+            margin-bottom: 20px;
+        }
+
+        .chat-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chat-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+
+        .chat-sub {
+            font-size: 12px;
+            color: var(--ink-mid);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        /* ── JOIN CARD ── */
+        .chatguys-join-card {
+            border: 2px solid var(--ink);
+            padding: 28px 24px;
+            background: var(--paper);
+            box-shadow: 5px 5px 0px var(--ink);
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .chatguys-card-header {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--ink);
+            text-transform: lowercase;
+        }
+
+        .chatguys-card-sub {
+            font-size: 12px;
+            color: var(--ink-mid);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--paper);
+            border: 1.5px solid var(--ink);
+            color: var(--ink);
+            padding: 10px 14px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color var(--speed), box-shadow var(--speed);
+        }
+
+        .chat-input:focus {
+            box-shadow: 3px 3px 0px var(--ink);
+        }
+
+        .chat-btn {
+            background: var(--ink);
+            color: var(--paper);
+            border: 1.5px solid var(--ink);
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background var(--speed), color var(--speed), transform var(--speed);
+            white-space: nowrap;
+        }
+
+        .chat-btn:hover {
+            background: var(--paper);
+            color: var(--ink);
+        }
+
+        .chat-btn:active {
+            transform: translate(1px, 1px);
+        }
+
+        .chat-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── CHATROOM VIEW ── */
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            border: 2px solid var(--ink);
+            background: var(--paper);
+            box-shadow: 5px 5px 0px var(--ink);
+            overflow: hidden;
+            flex: 1;
+            min-height: 520px;
+        }
+
+        .chat-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--paper);
+            border-bottom: 1.5px solid var(--ink);
+        }
+
+        .chat-user-tag {
+            font-size: 13px;
+            color: var(--ink-mid);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chat-handle {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .change-name-btn {
+            background: transparent;
+            border: none;
+            color: var(--ink-mid);
+            font-size: 12px;
+            cursor: pointer;
+            transition: color var(--speed);
+            padding: 4px 6px;
+        }
+
+        .change-name-btn:hover {
+            color: var(--ink);
+            text-decoration: underline;
+        }
+
+        /* ── MESSAGES LIST ── */
+        .chat-messages-wrap {
+            flex: 1;
+            min-height: 380px;
+            max-height: 60vh;
+            padding: 18px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.015);
+        }
+
+        .chat-msg-item {
+            display: flex;
+            flex-direction: column;
+            padding: 9px 13px;
+            border: 1px solid var(--ink-faint);
+            background: var(--paper);
+            max-width: 85%;
+            word-break: break-word;
+            align-self: flex-start;
+            animation: msg-appear 0.2s ease-out;
+        }
+
+        @keyframes msg-appear {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-msg-item.own-msg {
+            align-self: flex-end;
+            border-color: var(--ink);
+            background: var(--paper);
+            box-shadow: -3px 3px 0px var(--ink-faint);
+        }
+
+        .chat-msg-meta {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .chat-msg-name {
+            font-weight: 700;
+            color: var(--ink);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-admin-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--paper);
+            background: var(--ink);
+            padding: 1px 5px;
+            letter-spacing: 0.06em;
+            display: inline-block;
+        }
+
+        .chat-msg-date {
+            font-size: 10px;
+            color: var(--ink-mid);
+            opacity: 0.75;
+            white-space: nowrap;
+        }
+
+        .chat-msg-text {
+            font-size: 13.5px;
+            line-height: 1.45;
+            color: var(--ink);
+            white-space: pre-wrap;
+        }
+
+        .chat-msg-text a {
+            color: var(--ink);
+            text-decoration: underline;
+            word-break: break-all;
+        }
+
+        .chat-empty, .chat-loading {
+            text-align: center;
+            padding: 30px 10px;
+            font-size: 13px;
+            color: var(--ink-mid);
+            letter-spacing: 0.05em;
+        }
+
+        /* ── SEND BAR ── */
+        .chat-send-wrap {
+            padding: 14px 16px;
+            border-top: 1.5px solid var(--ink);
+            background: var(--paper);
+        }
+
+        .chat-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--ink-mid);
+        }
+
+        .status-msg {
+            font-size: 11px;
+            letter-spacing: 0.04em;
+        }
+
+        .status-msg.error {
+            color: #dc2626;
+        }
+
+        .status-msg.success {
+            color: #16a34a;
+        }
+
+        /* ── NICKNAME CHANGE MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-card {
+            background: var(--paper);
+            border: 2px solid var(--ink);
+            padding: 24px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 6px 6px 0px var(--ink);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--ink);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--ink-mid);
+            line-height: 1;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: var(--ink);
+        }
+
+        /* ── FOOTER ── */
+        .footer-closing {
+            margin-top: 36px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--ink-mid);
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 16px 12px 28px;
+            }
+            .chat-msg-item {
+                max-width: 92%;
+            }
+            .chat-title {
+                font-size: 22px;
+            }
+            .chat-messages-wrap {
+                min-height: 320px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- TOP NAVIGATION -->
+        <nav class="page-nav">
+            <a href="../" class="back-link">
+                <i class="ri-arrow-left-line"></i> back to init_ovi
+            </a>
+            <span class="page-badge">
+                <span class="live-dot"></span> live room
+            </span>
+        </nav>
+
+        <!-- TITLE HERO -->
+        <header class="chat-hero">
+            <div class="chat-title-row">
+                <h1 class="chat-title">[ chatguys ]</h1>
+                <span class="page-badge">beta</span>
+            </div>
+            <p class="chat-sub">public live chatroom — messages are automatically cleared after 1 week.</p>
+        </header>
+
+        <!-- JOIN VIEW (Shown when no nickname is saved) -->
+        <div id="chatguys-join-view" class="chatguys-join-card" style="display:none;">
+            <div class="chatguys-card-header">enter your nickname to join</div>
+            <p class="chatguys-card-sub">Choose a display name (restricted names like "Ovi" and "admin" are reserved).</p>
+            <div class="form-row">
+                <input type="text" id="chatguys-join-name" class="chat-input" placeholder="e.g. cyber_samurai"
+                    maxlength="24" autocomplete="off" autofocus />
+                <button class="chat-btn" onclick="joinChatguys()">[ join chat ]</button>
+            </div>
+            <!-- ADMIN LOGIN FORM (Shown when reserved name selected) -->
+            <div id="chatguys-join-pass-wrap"
+                style="display:none; margin-top: 16px; border-top: 1px dashed var(--ink-faint); padding-top: 14px;">
+                <p class="chatguys-card-sub" style="color: var(--ink); font-weight: 700;">👑 Reserved handle! Sign in as Admin to claim:</p>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                    <input type="email" id="chatguys-admin-email" class="chat-input" placeholder="admin email..." autocomplete="off" />
+                    <input type="password" id="chatguys-admin-pass" class="chat-input" placeholder="admin password..." autocomplete="off" />
+                    <button class="chat-btn" onclick="joinChatguys()">[ authenticate & claim ]</button>
+                </div>
+            </div>
+            <div id="chatguys-join-error" class="status-msg error" style="display:none; margin-top: 10px;"></div>
+        </div>
+
+        <!-- CHAT PANEL (Active Chatroom) -->
+        <main id="chatguys-room-view" class="chat-panel" style="display:none;">
+            <!-- TOP BAR -->
+            <div class="chat-topbar">
+                <div class="chat-user-tag">
+                    <i class="ri-user-3-line"></i> handle: <span id="chatguys-current-name" class="chat-handle">anon</span>
+                </div>
+                <button class="change-name-btn" onclick="openChangeNameModal()">[ change name ]</button>
+            </div>
+
+            <!-- MESSAGES CONTAINER -->
+            <div class="chat-messages-wrap" id="chatguys-messages-wrap">
+                <div class="chat-loading" id="chatguys-loading">[ connecting to chat... ]</div>
+                <div id="chatguys-messages"></div>
+            </div>
+
+            <!-- SEND FORM -->
+            <div class="chat-send-wrap">
+                <div class="form-row" style="margin-top: 0;">
+                    <input type="text" id="chatguys-msg-input" class="chat-input" placeholder="type a message... (Press Enter to send)"
+                        maxlength="300" autocomplete="off" />
+                    <button class="chat-btn" id="chatguys-send-btn" onclick="sendChatMessage()">[ send ]</button>
+                </div>
+                <div class="chat-info-row">
+                    <span id="chatguys-send-status" class="status-msg"></span>
+                    <div><span id="chatguys-chars">0</span> / 300</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- NICKNAME CHANGE MODAL -->
+        <div id="chatguys-name-modal" class="modal-overlay" style="display:none;" onclick="closeChangeNameModal()">
+            <div class="modal-card" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <span>[ change display name ]</span>
+                    <button class="modal-close" onclick="closeChangeNameModal()">&times;</button>
+                </div>
+                <p class="chatguys-card-sub" style="margin-top:8px;">Enter a new nickname:</p>
+                <div class="form-row">
+                    <input type="text" id="chatguys-new-name-input" class="chat-input" placeholder="new nickname..."
+                        maxlength="24" autocomplete="off" />
+                    <button class="chat-btn" onclick="saveNewName()">[ save ]</button>
+                </div>
+                <!-- ADMIN LOGIN FORM FOR MODAL -->
+                <div id="chatguys-modal-pass-wrap"
+                    style="display:none; margin-top: 14px; border-top: 1px dashed var(--ink-faint); padding-top: 12px;">
+                    <p class="chatguys-card-sub" style="color: var(--ink); font-weight: 700;">👑 Reserved handle! Sign in as Admin:</p>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                        <input type="email" id="chatguys-modal-email" class="chat-input" placeholder="admin email..." autocomplete="off" />
+                        <input type="password" id="chatguys-modal-pass" class="chat-input" placeholder="admin password..." autocomplete="off" />
+                        <button class="chat-btn" onclick="saveNewName()">[ authenticate & save ]</button>
+                    </div>
+                </div>
+                <div id="chatguys-modal-error" class="status-msg error" style="display:none; margin-top:10px;"></div>
+            </div>
+        </div>
+
+        <footer class="footer-closing">
+            <p>chatguys by Hasan Ovi — please keep it friendly and respectful.</p>
+        </footer>
+    </div>
+
+    <!-- Optional audio & cursor enhancements -->
+    <script src="../assets/sounds.js"></script>
+    <script src="../assets/cursor.js"></script>
+
+    <!-- CHATROOM ENGINE -->
+    <script>
+        (function () {
+            const SUPABASE_URL = 'https://iamovi-github-io.oviren-human.workers.dev/proxy';
+            const SUPABASE_ANON_KEY = '';
+            const CHATGUYS_NICK_KEY = 'chatguys_nickname';
+            const RESTRICTED_PATTERNS = [/ovi/i, /admin/i, /administrator/i, /maruf/i, /moderator/i, /^mod$/i, /^system$/i];
+
+            let chatPollTimer = null;
+            let isFetchingChat = false;
+
+            function gbHeaders() {
+                return {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                };
+            }
+
+            function isRestrictedName(name) {
+                if (!name) return true;
+                const clean = name.trim().toLowerCase();
+                const normalized = clean.replace(/[^a-z0-9]/g, '');
+                return RESTRICTED_PATTERNS.some(p => p.test(clean) || p.test(normalized));
+            }
+
+            function getSavedNickname() {
+                try {
+                    return localStorage.getItem(CHATGUYS_NICK_KEY) || '';
+                } catch (e) {
+                    return '';
+                }
+            }
+
+            function setSavedNickname(name) {
+                try {
+                    localStorage.setItem(CHATGUYS_NICK_KEY, name);
+                } catch (e) { }
+            }
+
+            function hasAdminSession() {
+                try {
+                    return !!(localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token') || localStorage.getItem('chatguys_admin_auth'));
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            async function authenticateAdminWithSupabase(email, password) {
+                if (!email || !password) return false;
+                try {
+                    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                        method: 'POST',
+                        headers: gbHeaders(),
+                        body: JSON.stringify({ email: email.trim(), password: password.trim() })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data && data.access_token) {
+                        try { localStorage.setItem('chatguys_admin_auth', data.access_token); } catch (e) { }
+                        return true;
+                    }
+                    return false;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            function timeAgo(dateStr) {
+                const diff = Date.now() - new Date(dateStr).getTime();
+                const mins = Math.floor(diff / 60000);
+                if (mins < 1) return 'just now';
+                if (mins < 60) return mins + 'm ago';
+                const hrs = Math.floor(mins / 60);
+                if (hrs < 24) return hrs + 'h ago';
+                const days = Math.floor(hrs / 24);
+                if (days < 30) return days + 'd ago';
+                return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+
+            function escapeHtml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function formatMessageText(text) {
+                const escaped = escapeHtml(text);
+                // Autolink URLs safely
+                return escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+            }
+
+            function initChatguysSection() {
+                const name = getSavedNickname();
+                const joinView = document.getElementById('chatguys-join-view');
+                const roomView = document.getElementById('chatguys-room-view');
+                if (!joinView || !roomView) return;
+
+                if (name) {
+                    joinView.style.display = 'none';
+                    roomView.style.display = 'flex';
+                    const handleEl = document.getElementById('chatguys-current-name');
+                    if (handleEl) handleEl.textContent = name;
+                    purgeOldChatMessages();
+                    loadChatMessages();
+                    startChatPolling();
+                    const input = document.getElementById('chatguys-msg-input');
+                    if (input) setTimeout(() => input.focus(), 80);
+                } else {
+                    stopChatPolling();
+                    joinView.style.display = 'block';
+                    roomView.style.display = 'none';
+                    const joinInput = document.getElementById('chatguys-join-name');
+                    if (joinInput) setTimeout(() => joinInput.focus(), 80);
+                }
+            }
+
+            window.joinChatguys = async function () {
+                const input = document.getElementById('chatguys-join-name');
+                const errEl = document.getElementById('chatguys-join-error');
+                const passWrap = document.getElementById('chatguys-join-pass-wrap');
+                const emailInput = document.getElementById('chatguys-admin-email');
+                const passInput = document.getElementById('chatguys-admin-pass');
+                if (!input || !errEl) return;
+
+                const val = input.value.trim();
+                if (!val) {
+                    errEl.textContent = '[ please enter a nickname ]';
+                    errEl.style.display = 'block';
+                    return;
+                }
+                if (val.length < 2) {
+                    errEl.textContent = '[ nickname must be at least 2 characters ]';
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                if (isRestrictedName(val)) {
+                    if (!hasAdminSession()) {
+                        const emailVal = emailInput ? emailInput.value.trim() : '';
+                        const passVal = passInput ? passInput.value.trim() : '';
+
+                        if (!emailVal || !passVal) {
+                            if (passWrap) passWrap.style.display = 'block';
+                            errEl.textContent = '[ "Ovi" & "admin" handles are reserved. Enter admin email & password to claim: ]';
+                            errEl.style.display = 'block';
+                            if (emailInput && !emailVal) emailInput.focus();
+                            else if (passInput) passInput.focus();
+                            return;
+                        }
+
+                        errEl.textContent = '[ authenticating admin... ]';
+                        errEl.style.display = 'block';
+                        const ok = await authenticateAdminWithSupabase(emailVal, passVal);
+                        if (!ok) {
+                            errEl.textContent = '[ authentication failed! Invalid admin credentials. ]';
+                            errEl.style.display = 'block';
+                            return;
+                        }
+                    }
+                    try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
+                } else {
+                    try { localStorage.removeItem('chatguys_is_admin'); } catch (e) { }
+                }
+
+                errEl.style.display = 'none';
+                if (passWrap) passWrap.style.display = 'none';
+                setSavedNickname(val);
+                initChatguysSection();
+            };
+
+            window.openChangeNameModal = function () {
+                const modal = document.getElementById('chatguys-name-modal');
+                const input = document.getElementById('chatguys-new-name-input');
+                const errEl = document.getElementById('chatguys-modal-error');
+                const passWrap = document.getElementById('chatguys-modal-pass-wrap');
+                if (!modal) return;
+                if (errEl) errEl.style.display = 'none';
+                if (passWrap) passWrap.style.display = 'none';
+                if (input) {
+                    input.value = getSavedNickname();
+                    setTimeout(() => input.focus(), 60);
+                }
+                modal.style.display = 'flex';
+            };
+
+            window.closeChangeNameModal = function () {
+                const modal = document.getElementById('chatguys-name-modal');
+                if (modal) modal.style.display = 'none';
+            };
+
+            window.saveNewName = async function () {
+                const input = document.getElementById('chatguys-new-name-input');
+                const errEl = document.getElementById('chatguys-modal-error');
+                const passWrap = document.getElementById('chatguys-modal-pass-wrap');
+                const emailInput = document.getElementById('chatguys-modal-email');
+                const passInput = document.getElementById('chatguys-modal-pass');
+                if (!input || !errEl) return;
+
+                const val = input.value.trim();
+                if (!val) {
+                    errEl.textContent = '[ please enter a nickname ]';
+                    errEl.style.display = 'block';
+                    return;
+                }
+                if (val.length < 2) {
+                    errEl.textContent = '[ nickname must be at least 2 characters ]';
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                if (isRestrictedName(val)) {
+                    if (!hasAdminSession()) {
+                        const emailVal = emailInput ? emailInput.value.trim() : '';
+                        const passVal = passInput ? passInput.value.trim() : '';
+
+                        if (!emailVal || !passVal) {
+                            if (passWrap) passWrap.style.display = 'block';
+                            errEl.textContent = '[ "Ovi" & "admin" handles are reserved. Enter admin email & password: ]';
+                            errEl.style.display = 'block';
+                            if (emailInput && !emailVal) emailInput.focus();
+                            else if (passInput) passInput.focus();
+                            return;
+                        }
+
+                        errEl.textContent = '[ authenticating admin... ]';
+                        errEl.style.display = 'block';
+                        const ok = await authenticateAdminWithSupabase(emailVal, passVal);
+                        if (!ok) {
+                            errEl.textContent = '[ authentication failed! Invalid admin credentials. ]';
+                            errEl.style.display = 'block';
+                            return;
+                        }
+                    }
+                    try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
+                } else {
+                    try { localStorage.removeItem('chatguys_is_admin'); } catch (e) { }
+                }
+
+                errEl.style.display = 'none';
+                if (passWrap) passWrap.style.display = 'none';
+                setSavedNickname(val);
+                closeChangeNameModal();
+                initChatguysSection();
+            };
+
+            function startChatPolling() {
+                stopChatPolling();
+                chatPollTimer = setInterval(loadChatMessages, 3500);
+            }
+
+            function stopChatPolling() {
+                if (chatPollTimer) {
+                    clearInterval(chatPollTimer);
+                    chatPollTimer = null;
+                }
+            }
+
+            function purgeOldChatMessages() {
+                const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=lt.${encodeURIComponent(oneWeekAgoIso)}`, {
+                    method: 'DELETE',
+                    headers: gbHeaders()
+                }).catch(() => { });
+            }
+
+            function isChatScrolledToBottom() {
+                const wrap = document.getElementById('chatguys-messages-wrap');
+                if (!wrap) return true;
+                return wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80;
+            }
+
+            function scrollChatToBottom() {
+                const wrap = document.getElementById('chatguys-messages-wrap');
+                if (wrap) wrap.scrollTop = wrap.scrollHeight;
+            }
+
+            function loadChatMessages() {
+                const container = document.getElementById('chatguys-messages');
+                const loadingEl = document.getElementById('chatguys-loading');
+                if (!container || isFetchingChat) return;
+
+                isFetchingChat = true;
+                const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                const myName = getSavedNickname();
+
+                fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=gte.${encodeURIComponent(oneWeekAgoIso)}&order=created_at.asc`, {
+                    headers: gbHeaders()
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (loadingEl) loadingEl.style.display = 'none';
+                        if (!Array.isArray(data) || data.length === 0) {
+                            container.innerHTML = `<p class="chat-empty">[ no messages yet — start the conversation ]</p>`;
+                            return;
+                        }
+
+                        const isAtBottom = isChatScrolledToBottom();
+                        container.innerHTML = data.map(m => {
+                            const isMe = m.name === myName;
+                            const isAdmin = isRestrictedName(m.name);
+                            const badgeHtml = isAdmin ? `<span class="chat-admin-badge">[★ OVI]</span>` : '';
+                            const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '');
+                            return `
+                                <div class="${cls}">
+                                    <div class="chat-msg-meta">
+                                        <span class="chat-msg-name">${badgeHtml}${escapeHtml(m.name)}</span>
+                                        <span class="chat-msg-date">${timeAgo(m.created_at)}</span>
+                                    </div>
+                                    <div class="chat-msg-text">${formatMessageText(m.message)}</div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        if (isAtBottom) {
+                            scrollChatToBottom();
+                            setTimeout(scrollChatToBottom, 60);
+                        }
+                    })
+                    .catch(() => {
+                        if (loadingEl) loadingEl.style.display = 'none';
+                    })
+                    .finally(() => {
+                        isFetchingChat = false;
+                    });
+            }
+
+            window.sendChatMessage = function () {
+                const input = document.getElementById('chatguys-msg-input');
+                const statusEl = document.getElementById('chatguys-send-status');
+                const btn = document.getElementById('chatguys-send-btn');
+                const name = getSavedNickname();
+
+                if (!input || !name) return;
+                const message = input.value.trim();
+
+                if (!message) {
+                    if (statusEl) {
+                        statusEl.textContent = '[ message cannot be empty ]';
+                        statusEl.className = 'status-msg error';
+                    }
+                    return;
+                }
+
+                if (btn) btn.disabled = true;
+                if (statusEl) {
+                    statusEl.textContent = '[ sending... ]';
+                    statusEl.className = 'status-msg';
+                }
+
+                fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
+                    method: 'POST',
+                    headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ name, message })
+                })
+                    .then(r => {
+                        if (!r.ok) throw new Error('Failed');
+                        input.value = '';
+                        const chars = document.getElementById('chatguys-chars');
+                        if (chars) chars.textContent = '0';
+                        if (statusEl) {
+                            statusEl.textContent = '';
+                            statusEl.className = 'status-msg';
+                        }
+                        loadChatMessages();
+                        setTimeout(scrollChatToBottom, 150);
+                    })
+                    .catch(() => {
+                        if (statusEl) {
+                            statusEl.textContent = '[ failed to send message ]';
+                            statusEl.className = 'status-msg error';
+                        }
+                    })
+                    .finally(() => {
+                        if (btn) btn.disabled = false;
+                        input.focus();
+                    });
+            };
+
+            // Event listeners
+            document.addEventListener('DOMContentLoaded', function () {
+                initChatguysSection();
+
+                const chatMsgInput = document.getElementById('chatguys-msg-input');
+                const chatChars = document.getElementById('chatguys-chars');
+                if (chatMsgInput) {
+                    chatMsgInput.addEventListener('input', () => {
+                        if (chatChars) chatChars.textContent = chatMsgInput.value.length;
+                    });
+                    chatMsgInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            sendChatMessage();
+                        }
+                    });
+                }
+
+                const joinInput = document.getElementById('chatguys-join-name');
+                if (joinInput) {
+                    joinInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            joinChatguys();
+                        }
+                    });
+                }
+
+                const newNameInput = document.getElementById('chatguys-new-name-input');
+                if (newNameInput) {
+                    newNameInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveNewName();
+                        }
+                    });
+                }
+
+                // Pause polling when tab is not visible to save bandwidth, resume immediately on focus
+                document.addEventListener('visibilitychange', function () {
+                    if (document.hidden) {
+                        stopChatPolling();
+                    } else if (getSavedNickname()) {
+                        loadChatMessages();
+                        startChatPolling();
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>
