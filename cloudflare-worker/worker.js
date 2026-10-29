@@ -1,4 +1,4 @@
-export default {
+﻿export default {
   async fetch(request, env) {
     const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
     const ANON_KEY = env.SUPABASE_ANON_KEY;
@@ -21,6 +21,38 @@ export default {
     if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
+
+    // --- Reserved name guard for chat_messages inserts ---
+    if (request.method === 'POST' && supabasePath === '/rest/v1/chat_messages') {
+      let body;
+      try { body = await request.json(); } catch { body = {}; }
+      const RESERVED = [/ovi/i, /admin/i, /administrator/i, /moderator/i, /^mod$/i, /^system$/i];
+      const nameRaw = String(body.name ?? '').trim();
+      const nameNorm = nameRaw.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const isReserved = RESERVED.some(p => p.test(nameRaw.toLowerCase()) || p.test(nameNorm));
+      if (isReserved) {
+        return new Response(
+          JSON.stringify({ error: 'reserved_name', message: 'This name is reserved.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      // Re-serialize body since we already consumed the stream
+      const supabaseRequest = new Request(targetURL, {
+        method: request.method,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': ANON_KEY,
+          'Authorization': 'Bearer ' + ANON_KEY,
+          'Prefer': request.headers.get('Prefer') || '',
+        },
+        body: JSON.stringify(body),
+      });
+      const response = await fetch(supabaseRequest);
+      return new Response(response.body, {
+        status: response.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Forward the request to Supabase with auth headers
     const supabaseRequest = new Request(targetURL, {

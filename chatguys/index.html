@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -644,7 +644,8 @@
             const SUPABASE_URL = 'https://iamovi-github-io.oviren-human.workers.dev/proxy';
             const SUPABASE_ANON_KEY = '';
             const CHATGUYS_NICK_KEY = 'chatguys_nickname';
-            const RESTRICTED_PATTERNS = [/ovi/i, /admin/i, /administrator/i, /maruf/i, /moderator/i, /^mod$/i, /^system$/i];
+            const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
+            const RESTRICTED_PATTERNS = [/ovi/i, /admin/i, /administrator/i, /moderator/i, /^mod$/i, /^system$/i];
 
             let chatPollTimer = null;
             let isFetchingChat = false;
@@ -677,6 +678,23 @@
                 try {
                     localStorage.setItem(CHATGUYS_NICK_KEY, name);
                 } catch (e) { }
+            }
+
+            function getSessionId() {
+                try {
+                    let sid = localStorage.getItem(CHATGUYS_SESSION_KEY);
+                    if (!sid) {
+                        // Generate a random UUID using crypto API
+                        sid = 'cg-' + ([1e7] + -1e3 + -4e3 + -8e3 + -1e11)
+                            .replace(/[018]/g, c =>
+                                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                            );
+                        localStorage.setItem(CHATGUYS_SESSION_KEY, sid);
+                    }
+                    return sid;
+                } catch (e) {
+                    return 'fallback-' + Math.random().toString(36).slice(2);
+                }
             }
 
             function hasAdminSession() {
@@ -914,9 +932,10 @@
                         lastChatSnapshot = snapshot;
 
                         const isAtBottom = isChatScrolledToBottom();
+                        const mySessionId = getSessionId();
                         container.innerHTML = data.map(m => {
-                            const isMe = m.name === myName;
                             const isAdmin = isRestrictedName(m.name);
+                            const isMe = isAdmin ? m.name === myName : (m.session_id ? m.session_id === mySessionId : m.name === myName);
                             const badgeHtml = isAdmin ? `<span class="chat-admin-badge">[★ OVI]</span>` : '';
                             const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '');
                             return `
@@ -969,7 +988,7 @@
                 fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
                     method: 'POST',
                     headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
-                    body: JSON.stringify({ name, message })
+                    body: JSON.stringify({ name, message, session_id: getSessionId() })
                 })
                     .then(r => {
                         if (!r.ok) throw new Error('Failed');
