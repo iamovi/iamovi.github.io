@@ -645,7 +645,7 @@
             const SUPABASE_ANON_KEY = '';
             const CHATGUYS_NICK_KEY = 'chatguys_nickname';
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
-            const RESTRICTED_PATTERNS = [/ovi/i, /admin/i, /administrator/i, /moderator/i, /^mod$/i, /^system$/i];
+            const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
 
             let chatPollTimer = null;
             let isFetchingChat = false;
@@ -662,8 +662,11 @@
             function isRestrictedName(name) {
                 if (!name) return true;
                 const clean = name.trim().toLowerCase();
-                const normalized = clean.replace(/[^a-z0-9]/g, '');
-                return RESTRICTED_PATTERNS.some(p => p.test(clean) || p.test(normalized));
+                // Blocked if any separate word is reserved (digits ignored: "Ovi123"),
+                // or if the letters spelled out add up to a reserved word ("O.v.i", "a d m i n")
+                const words = clean.split(/[^a-z0-9]+/).filter(Boolean).map(w => w.replace(/[0-9]/g, ''));
+                const collapsed = clean.replace(/[^a-z]/g, '');
+                return words.some(w => RESERVED_WORDS.includes(w)) || RESERVED_WORDS.includes(collapsed);
             }
 
             function getSavedNickname() {
