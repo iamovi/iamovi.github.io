@@ -295,7 +295,7 @@
       // claude said blocks
       [1, 2, 3, 4].forEach(() => {
         html += `
-        <div class="skeleton-item" style="border-left:4px solid #ccc;padding-left:16px;border-bottom:none;margin-bottom:28px;">
+        <div class="skeleton-item" style="border-left:4px solid var(--ink-faint, #ccc);padding-left:16px;border-bottom:none;margin-bottom:28px;">
           <div class="skeleton-block" style="width:30%;height:11px;margin-bottom:10px;"></div>
           <div class="skeleton-block" style="width:100%;height:14px;margin-bottom:6px;"></div>
           <div class="skeleton-block" style="width:90%;height:14px;margin-bottom:6px;"></div>

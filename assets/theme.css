@@ -13,19 +13,184 @@
     --lb-bg: var(--paper);
     --lb-ink: var(--ink);
     --shadow: var(--ink);
+    --card-shadow: var(--ink);
+    --skeleton-base: var(--paper-dark);
+    --skeleton-shimmer: #d4be88;
+    --menu-border-left: 1.5px solid var(--ink);
+    --menu-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="midnight"] {
-    /* Midnight Theme - Soft silver ink on dark slate paper */
-    --ink: #d4d4d8;
-    --paper: #18181b;
-    --paper-dark: #27272a;
-    --ink-light: #f4f4f5;
-    --ink-mid: #a1a1aa;
-    --ink-faint: #71717a;
+    /* Midnight Theme - Refined dark obsidian ink aesthetic */
+    --ink: #e8e8ed;
+    --paper: #121215;
+    --paper-dark: #1b1b20;
+    --ink-light: #ffffff;
+    --ink-mid: #9ea1aa;
+    --ink-faint: #3d3e48;
     --speed: 0.15s;
-    --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%23d4d4d8' stroke-width='0.4' stroke-opacity='0.08' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%23d4d4d8' stroke-width='0.4' stroke-opacity='0.08' stroke-linecap='round'/%3E%3C/svg%3E");
+    --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%23ededf0' stroke-width='0.35' stroke-opacity='0.05' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%23ededf0' stroke-width='0.35' stroke-opacity='0.05' stroke-linecap='round'/%3E%3C/svg%3E");
     --lb-bg: var(--ink);
     --lb-ink: var(--paper);
-    --shadow: #000000;
+    --shadow: rgba(0, 0, 0, 0.85);
+    --card-shadow: #000000;
+    --skeleton-base: #1a1a1f;
+    --skeleton-shimmer: #2b2b34;
+    --menu-border-left: 1.5px solid var(--ink-faint);
+    --menu-shadow: -10px 0 30px rgba(0, 0, 0, 0.85);
+}
+
+/* ── MIDNIGHT DARK MODE POLISH ── */
+
+/* Menu side border & shadow: replaces the thick 8px stark white wall with a refined 1.5px border & dark depth */
+[data-theme="midnight"] .slide-menu {
+    border-left: 1.5px solid var(--ink-faint) !important;
+    box-shadow: none;
+}
+
+[data-theme="midnight"] .slide-menu.open {
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.85) !important;
+}
+
+[data-theme="midnight"] .menu-header {
+    border-bottom: 1.5px solid var(--ink-faint);
+}
+
+/* Menu links & buttons: clean 1.5px border with dark drop shadow instead of harsh double-white outline */
+[data-theme="midnight"] .menu-link,
+[data-theme="midnight"] .music-button,
+[data-theme="midnight"] .theme-toggle {
+    border: 1.5px solid var(--ink-faint);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+[data-theme="midnight"] .menu-link:hover,
+[data-theme="midnight"] .menu-link.active,
+[data-theme="midnight"] .music-button:hover,
+[data-theme="midnight"] .theme-toggle:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 2px 2px 0 var(--shadow);
+}
+
+/* Menu button in top header */
+[data-theme="midnight"] .menu-button {
+    border-color: var(--ink-faint);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+[data-theme="midnight"] .menu-button:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+/* Title text shadow: crisp ink drop shadow, eliminates muddy brown halo around serif letters */
+[data-theme="midnight"] .header-top-row h1,
+[data-theme="midnight"] .avatar-section h1,
+[data-theme="midnight"] h1 {
+    text-shadow: 2px 2px 0 #000000 !important;
+}
+
+/* Profile image & skeleton avatar */
+[data-theme="midnight"] .profile-image {
+    border-color: var(--ink-mid);
+    box-shadow: 4px 4px 0 #000000;
+}
+
+[data-theme="midnight"] .profile-image:hover {
+    box-shadow: 6px 6px 0 #000000;
+}
+
+[data-theme="midnight"] .skeleton-avatar {
+    border-color: var(--ink-faint);
+    box-shadow: 4px 4px 0 #000000;
+}
+
+/* Status banner & visitor counter */
+[data-theme="midnight"] .ovi-status {
+    border-color: var(--ink-faint);
+    background: var(--paper-dark);
+}
+
+[data-theme="midnight"] .ovi-status::after {
+    border-color: var(--ink-faint);
+}
+
+[data-theme="midnight"] .visitor-count {
+    border-color: var(--ink-faint);
+    background: var(--paper);
+}
+
+/* Search bar bracket and bottom border */
+[data-theme="midnight"] .search-wrap {
+    border-bottom-color: var(--ink-faint);
+}
+
+/* Waifu joke card & button */
+[data-theme="midnight"] .waifu-panel {
+    border-color: var(--ink-faint);
+    background: var(--paper-dark);
+    box-shadow: 5px 5px 0 #000000;
+}
+
+[data-theme="midnight"] .waifu-reload {
+    border-color: var(--ink-faint);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+[data-theme="midnight"] .waifu-reload:hover {
+    border-color: var(--ink);
+}
+
+/* Claude review quote card */
+[data-theme="midnight"] .claude-verdict {
+    border-left-color: var(--ink-mid);
+    background: var(--paper-dark);
+    box-shadow: 4px 4px 0 #000000;
+}
+
+/* Pagination buttons */
+[data-theme="midnight"] .page-btn {
+    border-color: var(--ink-faint);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+/* Reaction buttons */
+[data-theme="midnight"] .reaction-btn {
+    background: var(--paper-dark);
+    border-color: var(--ink-faint);
+}
+
+[data-theme="midnight"] .reaction-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+/* Guestbook form */
+[data-theme="midnight"] .guestbook-form-wrap {
+    border-color: var(--ink-faint);
+    background: var(--paper-dark);
+}
+
+[data-theme="midnight"] .guestbook-form-wrap::after {
+    border-color: var(--ink-faint);
+}
+
+/* Settings page cards */
+[data-theme="midnight"] .cursor-card {
+    border-color: var(--ink-faint);
+    box-shadow: 3px 3px 0 #000000;
+}
+
+[data-theme="midnight"] .cursor-card:hover {
+    border-color: var(--ink);
+    box-shadow: 4px 4px 0 #000000;
+}
+
+[data-theme="midnight"] .cursor-card.active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
 }
