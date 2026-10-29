@@ -730,6 +730,43 @@
                 return candidates.find(isJwtFresh) || candidates[0] || '';
             }
 
+            // Renews the admin access token using the saved refresh token (same storage the /admin page uses)
+            let adminRefreshPromise = null;
+            async function getFreshAdminToken() {
+                const KEY = 'sb-nusyixchzeiplwwmqlbw-auth-token';
+                let session = null;
+                try { session = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { }
+                const current = getAdminToken();
+                if (current && isJwtFresh(current)) return current;
+                const refreshToken = session && session.refresh_token;
+                if (!refreshToken) return current;
+                if (!adminRefreshPromise) {
+                    adminRefreshPromise = (async () => {
+                        try {
+                            const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+                                method: 'POST',
+                                headers: gbHeaders(),
+                                body: JSON.stringify({ refresh_token: refreshToken })
+                            });
+                            if (!res.ok) return null;
+                            const data = await res.json();
+                            if (!data || !data.access_token) return null;
+                            const merged = Object.assign({}, session, data, {
+                                expires_at: data.expires_at || (Math.floor(Date.now() / 1000) + (data.expires_in || 3600))
+                            });
+                            try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch (e) { }
+                            return data.access_token;
+                        } catch (e) {
+                            return null;
+                        } finally {
+                            setTimeout(() => { adminRefreshPromise = null; }, 0);
+                        }
+                    })();
+                }
+                const fresh = await adminRefreshPromise;
+                return fresh || current;
+            }
+
             async function authenticateAdminWithSupabase(email, password) {
                 if (!email || !password) return false;
                 try {
@@ -1011,16 +1048,16 @@
                     statusEl.className = 'status-msg';
                 }
 
-                const sendHeaders = { ...gbHeaders(), 'Prefer': 'return=minimal' };
-                if (isRestrictedName(name)) {
-                    const tok = getAdminToken();
-                    if (tok) sendHeaders['X-Admin-Token'] = tok;
-                }
+                const tokenPromise = isRestrictedName(name) ? getFreshAdminToken() : Promise.resolve('');
 
-                fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
-                    method: 'POST',
-                    headers: sendHeaders,
-                    body: JSON.stringify({ name, message, session_id: getSessionId() })
+                tokenPromise.then(tok => {
+                    const sendHeaders = { ...gbHeaders(), 'Prefer': 'return=minimal' };
+                    if (tok) sendHeaders['X-Admin-Token'] = tok;
+                    return fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
+                        method: 'POST',
+                        headers: sendHeaders,
+                        body: JSON.stringify({ name, message, session_id: getSessionId() })
+                    });
                 })
                     .then(r => {
                         if (r.status === 403 && isRestrictedName(name)) throw new Error('admin_expired');
@@ -1039,7 +1076,7 @@
                     .catch((err) => {
                         if (statusEl) {
                             statusEl.textContent = (err && err.message === 'admin_expired')
-                                ? '[ admin session expired — login again at /admin, then retry ]'
+                                ? '[ admin session expired — login at /admin once, then retry ]'
                                 : '[ failed to send message ]';
                             statusEl.className = 'status-msg error';
                         }
