@@ -7,7 +7,7 @@
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization, X-Admin-Token',
     };
 
     if (request.method === 'OPTIONS') {
@@ -31,7 +31,22 @@
       const nameNorm = nameRaw.toLowerCase().replace(/[^a-z0-9]/g, '');
       const isReserved = RESERVED.some(p => p.test(nameRaw.toLowerCase()) || p.test(nameNorm));
       if (isReserved) {
-        return new Response(
+        // Reserved names are allowed ONLY with a valid admin (Supabase) session token
+        const adminToken = request.headers.get('X-Admin-Token') || '';
+        let isAdmin = false;
+        if (adminToken) {
+          try {
+            const who = await fetch(SUPABASE_URL + '/auth/v1/user', {
+              headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + adminToken },
+            });
+            if (who.ok) {
+              const user = await who.json();
+              // Optional extra lock: set ADMIN_EMAIL secret in the worker
+              isAdmin = !!user && !!user.id && (!env.ADMIN_EMAIL || String(user.email).toLowerCase() === String(env.ADMIN_EMAIL).toLowerCase());
+            }
+          } catch { isAdmin = false; }
+        }
+        if (!isAdmin) return new Response(
           JSON.stringify({ error: 'reserved_name', message: 'This name is reserved.' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
