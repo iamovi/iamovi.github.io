@@ -705,6 +705,31 @@
                 }
             }
 
+            function isJwtFresh(t) {
+                try {
+                    const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+                    return !payload.exp || payload.exp * 1000 > Date.now() + 5000;
+                } catch (e) { return true; }
+            }
+
+            function getAdminToken() {
+                const candidates = [];
+                try {
+                    const raw = localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        const t = parsed && (parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token));
+                        if (t) candidates.push(t);
+                    }
+                } catch (e) { }
+                try {
+                    const t2 = localStorage.getItem('chatguys_admin_auth');
+                    if (t2) candidates.push(t2);
+                } catch (e) { }
+                // Prefer a token that hasn't expired; otherwise send the first so the server returns a clear 403
+                return candidates.find(isJwtFresh) || candidates[0] || '';
+            }
+
             async function authenticateAdminWithSupabase(email, password) {
                 if (!email || !password) return false;
                 try {
@@ -935,7 +960,8 @@
                         const mySessionId = getSessionId();
                         container.innerHTML = data.map(m => {
                             const isAdmin = isRestrictedName(m.name);
-                            const isMe = isAdmin ? m.name === myName : (m.session_id ? m.session_id === mySessionId : m.name === myName);
+                            // Only messages sent under the CURRENT name count as mine
+                            const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
                             const badgeHtml = isAdmin ? `<span class="chat-admin-badge">[★ OVI]</span>` : '';
                             const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '');
                             return `
@@ -985,12 +1011,19 @@
                     statusEl.className = 'status-msg';
                 }
 
+                const sendHeaders = { ...gbHeaders(), 'Prefer': 'return=minimal' };
+                if (isRestrictedName(name)) {
+                    const tok = getAdminToken();
+                    if (tok) sendHeaders['X-Admin-Token'] = tok;
+                }
+
                 fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
                     method: 'POST',
-                    headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+                    headers: sendHeaders,
                     body: JSON.stringify({ name, message, session_id: getSessionId() })
                 })
                     .then(r => {
+                        if (r.status === 403 && isRestrictedName(name)) throw new Error('admin_expired');
                         if (!r.ok) throw new Error('Failed');
                         input.value = '';
                         const chars = document.getElementById('chatguys-chars');
@@ -1003,9 +1036,11 @@
                         loadChatMessages();
                         setTimeout(scrollChatToBottom, 150);
                     })
-                    .catch(() => {
+                    .catch((err) => {
                         if (statusEl) {
-                            statusEl.textContent = '[ failed to send message ]';
+                            statusEl.textContent = (err && err.message === 'admin_expired')
+                                ? '[ admin session expired — login again at /admin, then retry ]'
+                                : '[ failed to send message ]';
                             statusEl.className = 'status-msg error';
                         }
                     })
