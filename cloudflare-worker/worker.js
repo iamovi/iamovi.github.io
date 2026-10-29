@@ -440,7 +440,7 @@ async function sendTg(chatId, text, env) {
 }
 
 
-// ---------- PRIVATE PHOTO VAULT (Workers KV) ----------
+// ---------- PRIVATE PHOTO VAULT (Backblaze B2) ----------
 // Every route requires a valid admin session AND the email in the ADMIN_EMAIL secret.
 async function handleVault(request, env, corsHeaders, url) {
   const json = (obj, status = 200) =>
@@ -449,8 +449,10 @@ async function handleVault(request, env, corsHeaders, url) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  // Fail closed: no KV binding or no ADMIN_EMAIL secret = vault stays locked
-  if (!env.VAULT || !env.ADMIN_EMAIL) return json({ error: 'vault_not_configured' }, 500);
+  // Fail closed: missing B2 config or ADMIN_EMAIL = vault stays locked
+  if (!env.B2_KEY_ID || !env.B2_APP_KEY || !env.B2_BUCKET || !env.B2_ENDPOINT || !env.B2_REGION || !env.ADMIN_EMAIL) {
+    return json({ error: 'vault_not_configured' }, 500);
+  }
 
   const token = request.headers.get('X-Admin-Token') || '';
   if (!token) return json({ error: 'unauthorized' }, 401);
@@ -474,66 +476,127 @@ async function handleVault(request, env, corsHeaders, url) {
     'Cache-Control': 'private, no-store',
   });
 
-  if (route === '/list' && request.method === 'GET') {
-    const items = [];
-    let cursor;
-    do {
-      const page = await env.VAULT.list({ prefix: 'photo:', cursor });
-      for (const k of page.keys) items.push({ id: k.name.slice(6), ...(k.metadata || {}) });
-      cursor = page.list_complete ? undefined : page.cursor;
-    } while (cursor);
-    items.sort((a, b) => (b.t || 0) - (a.t || 0));
-    return json({ items });
-  }
-
-  if (route.startsWith('/thumb/') && request.method === 'GET') {
-    const id = route.slice(7);
-    if (!validId(id)) return json({ error: 'bad_id' }, 400);
-    const data = await env.VAULT.get('thumb:' + id, 'arrayBuffer');
-    if (!data) return json({ error: 'not_found' }, 404);
-    return new Response(data, { headers: fileHeaders('image/jpeg') });
-  }
-
-  if (route.startsWith('/photo/') && request.method === 'GET') {
-    const id = route.slice(7);
-    if (!validId(id)) return json({ error: 'bad_id' }, 400);
-    const { value, metadata } = await env.VAULT.getWithMetadata('photo:' + id, { type: 'arrayBuffer' });
-    if (!value) return json({ error: 'not_found' }, 404);
-    return new Response(value, { headers: fileHeaders((metadata && metadata.type) || 'application/octet-stream') });
-  }
-
-  if (route === '/upload' && request.method === 'POST') {
-    let form;
-    try { form = await request.formData(); } catch { return json({ error: 'bad_request' }, 400); }
-    const file = form.get('file');
-    const thumb = form.get('thumb');
-    if (!file || typeof file === 'string') return json({ error: 'no_file' }, 400);
-    if (file.size > 25 * 1024 * 1024) return json({ error: 'too_big', message: 'Max 25 MB per photo' }, 413);
-    if (!String(file.type).startsWith('image/')) return json({ error: 'not_image' }, 400);
-
-    const rand = crypto.getRandomValues(new Uint8Array(6));
-    const id = Date.now().toString(36) + Array.from(rand, (b) => (b % 36).toString(36)).join('');
-    const meta = {
-      name: String(form.get('name') || file.name || 'photo').slice(0, 200),
-      type: file.type,
-      size: file.size,
-      t: Date.now(),
-    };
-    await env.VAULT.put('photo:' + id, await file.arrayBuffer(), { metadata: meta });
-    if (thumb && typeof thumb !== 'string' && thumb.size < 500 * 1024) {
-      await env.VAULT.put('thumb:' + id, await thumb.arrayBuffer());
+  try {
+    if (route === '/list' && request.method === 'GET') {
+      const items = await b2ReadIndex(env);
+      items.sort((a, b) => (b.t || 0) - (a.t || 0));
+      return json({ items });
     }
-    return json({ ok: true, id });
-  }
 
-  if (route === '/delete' && request.method === 'POST') {
-    let body;
-    try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
-    if (!validId(body.id)) return json({ error: 'bad_id' }, 400);
-    await env.VAULT.delete('photo:' + body.id);
-    await env.VAULT.delete('thumb:' + body.id);
-    return json({ ok: true });
+    if ((route.startsWith('/thumb/') || route.startsWith('/photo/')) && request.method === 'GET') {
+      const isThumb = route.startsWith('/thumb/');
+      const id = route.slice(7);
+      if (!validId(id)) return json({ error: 'bad_id' }, 400);
+      const r = await b2Fetch(env, 'GET', (isThumb ? 'thumb/' : 'photo/') + id);
+      if (r.status === 404) return json({ error: 'not_found' }, 404);
+      if (!r.ok) return json({ error: 'storage_error' }, 502);
+      const type = isThumb ? 'image/jpeg' : (r.headers.get('content-type') || 'application/octet-stream');
+      return new Response(r.body, { headers: fileHeaders(type) });
+    }
+
+    if (route === '/upload' && request.method === 'POST') {
+      let form;
+      try { form = await request.formData(); } catch { return json({ error: 'bad_request' }, 400); }
+      const file = form.get('file');
+      const thumb = form.get('thumb');
+      if (!file || typeof file === 'string') return json({ error: 'no_file' }, 400);
+      if (file.size > 25 * 1024 * 1024) return json({ error: 'too_big', message: 'Max 25 MB per photo' }, 413);
+      if (!String(file.type).startsWith('image/')) return json({ error: 'not_image' }, 400);
+
+      const rand = crypto.getRandomValues(new Uint8Array(6));
+      const id = Date.now().toString(36) + Array.from(rand, (b) => (b % 36).toString(36)).join('');
+      const meta = {
+        id,
+        name: String(form.get('name') || file.name || 'photo').slice(0, 200),
+        type: file.type,
+        size: file.size,
+        t: Date.now(),
+      };
+
+      const put = await b2Fetch(env, 'PUT', 'photo/' + id, { body: await file.arrayBuffer(), contentType: file.type });
+      if (!put.ok) return json({ error: 'storage_error' }, 502);
+      if (thumb && typeof thumb !== 'string' && thumb.size < 500 * 1024) {
+        await b2Fetch(env, 'PUT', 'thumb/' + id, { body: await thumb.arrayBuffer(), contentType: 'image/jpeg' });
+      }
+      const items = await b2ReadIndex(env);
+      items.push(meta);
+      await b2WriteIndex(env, items);
+      return json({ ok: true, id });
+    }
+
+    if (route === '/delete' && request.method === 'POST') {
+      let body;
+      try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
+      if (!validId(body.id)) return json({ error: 'bad_id' }, 400);
+      await b2Fetch(env, 'DELETE', 'photo/' + body.id);
+      await b2Fetch(env, 'DELETE', 'thumb/' + body.id);
+      const items = (await b2ReadIndex(env)).filter((it) => it.id !== body.id);
+      await b2WriteIndex(env, items);
+      return json({ ok: true });
+    }
+  } catch (e) {
+    return json({ error: 'storage_error', detail: String((e && e.message) || e).slice(0, 120) }, 502);
   }
 
   return json({ error: 'not_found' }, 404);
+}
+
+// ---------------------------------------------------------------------------
+// Backblaze B2 (S3-compatible API) helpers — AWS SigV4 using WebCrypto only.
+// ---------------------------------------------------------------------------
+const _enc = new TextEncoder();
+const _hex = (buf) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
+const _sha256Hex = async (data) => _hex(await crypto.subtle.digest('SHA-256', data));
+async function _hmac(keyBytes, data) {
+  const k = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return crypto.subtle.sign('HMAC', k, _enc.encode(data));
+}
+
+// Pure signer (easy to test). `headers` keys must be lowercase.
+async function sigV4({ method, host, path, query = '', headers, payloadHash, region, service = 's3', keyId, secret, amzDate }) {
+  const dateStamp = amzDate.slice(0, 8);
+  const all = { ...headers, host };
+  const names = Object.keys(all).sort();
+  const canonHeaders = names.map((n) => `${n}:${String(all[n]).trim()}\n`).join('');
+  const signedHeaders = names.join(';');
+  const canonical = [method, path, query, canonHeaders, signedHeaders, payloadHash].join('\n');
+  const scope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const toSign = ['AWS4-HMAC-SHA256', amzDate, scope, await _sha256Hex(_enc.encode(canonical))].join('\n');
+  let k = await _hmac(_enc.encode('AWS4' + secret), dateStamp);
+  k = await _hmac(k, region);
+  k = await _hmac(k, service);
+  k = await _hmac(k, 'aws4_request');
+  const sig = _hex(await _hmac(k, toSign));
+  return `AWS4-HMAC-SHA256 Credential=${keyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`;
+}
+
+// One signed request to the bucket. key e.g. "photo/abc123" (path-style URL).
+async function b2Fetch(env, method, key, { body, contentType } = {}) {
+  const host = env.B2_ENDPOINT; // e.g. s3.us-east-005.backblazeb2.com
+  const path = '/' + env.B2_BUCKET + '/' + key.split('/').map(encodeURIComponent).join('/');
+  const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
+  const payloadHash = await _sha256Hex(body ?? new Uint8Array(0));
+  const headers = { 'x-amz-content-sha256': payloadHash, 'x-amz-date': amzDate };
+  const authorization = await sigV4({
+    method, host, path, headers, payloadHash, amzDate,
+    region: env.B2_REGION, keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
+  });
+  const reqHeaders = { ...headers, Authorization: authorization };
+  if (contentType) reqHeaders['Content-Type'] = contentType;
+  return fetch('https://' + host + path, { method, headers: reqHeaders, body });
+}
+
+// index.json holds the photo list (B2 listings don't return custom metadata).
+async function b2ReadIndex(env) {
+  const r = await b2Fetch(env, 'GET', 'index.json');
+  if (r.status === 404) return [];
+  if (!r.ok) throw new Error('b2_index_read_' + r.status);
+  return r.json();
+}
+async function b2WriteIndex(env, items) {
+  const r = await b2Fetch(env, 'PUT', 'index.json', {
+    body: _enc.encode(JSON.stringify(items)),
+    contentType: 'application/json',
+  });
+  if (!r.ok) throw new Error('b2_index_write_' + r.status);
 }
