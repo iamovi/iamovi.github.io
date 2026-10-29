@@ -1,6 +1,6 @@
 name = "iamovi-github-io"
 main = "cloudflare-worker/worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-10-29"
 
 [vars]
 B2_ENDPOINT = "s3.us-east-005.backblazeb2.com"
