@@ -26,10 +26,14 @@
     if (request.method === 'POST' && supabasePath === '/rest/v1/chat_messages') {
       let body;
       try { body = await request.json(); } catch { body = {}; }
-      const RESERVED = [/ovi/i, /admin/i, /administrator/i, /moderator/i, /^mod$/i, /^system$/i];
+      const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
       const nameRaw = String(body.name ?? '').trim();
-      const nameNorm = nameRaw.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const isReserved = RESERVED.some(p => p.test(nameRaw.toLowerCase()) || p.test(nameNorm));
+      const cleanName = nameRaw.toLowerCase();
+      // Same rule as the chat page: reserved word as a separate word (digits ignored),
+      // or letters that spell a reserved word ("O.v.i", "a d m i n")
+      const nameWords = cleanName.split(/[^a-z0-9]+/).filter(Boolean).map(w => w.replace(/[0-9]/g, ''));
+      const nameCollapsed = cleanName.replace(/[^a-z]/g, '');
+      const isReserved = !nameRaw || nameWords.some(w => RESERVED_WORDS.includes(w)) || RESERVED_WORDS.includes(nameCollapsed);
       if (isReserved) {
         // Reserved names are allowed ONLY with a valid admin (Supabase) session token
         const adminToken = request.headers.get('X-Admin-Token') || '';
