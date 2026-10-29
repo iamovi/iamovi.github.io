@@ -1,4 +1,4 @@
-﻿export default {
+export default {
   async fetch(request, env) {
     const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
     const ANON_KEY = env.SUPABASE_ANON_KEY;
@@ -19,6 +19,7 @@
     if (url.pathname === '/notify') { return handleNotify(request, env, corsHeaders); }
     if (url.pathname === '/contact-file') { return handleContactFile(request, env, corsHeaders); }
     if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
+    if (url.pathname.startsWith('/vault/')) { return handleVault(request, env, corsHeaders, url); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
 
@@ -436,4 +437,103 @@ async function sendTg(chatId, text, env) {
       body: JSON.stringify({ chat_id: chatId, text }),
     }
   );
+}
+
+
+// ---------- PRIVATE PHOTO VAULT (Workers KV) ----------
+// Every route requires a valid admin session AND the email in the ADMIN_EMAIL secret.
+async function handleVault(request, env, corsHeaders, url) {
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  // Fail closed: no KV binding or no ADMIN_EMAIL secret = vault stays locked
+  if (!env.VAULT || !env.ADMIN_EMAIL) return json({ error: 'vault_not_configured' }, 500);
+
+  const token = request.headers.get('X-Admin-Token') || '';
+  if (!token) return json({ error: 'unauthorized' }, 401);
+  let ok = false;
+  try {
+    const who = await fetch('https://nusyixchzeiplwwmqlbw.supabase.co/auth/v1/user', {
+      headers: { apikey: env.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + token },
+    });
+    if (who.ok) {
+      const u = await who.json();
+      ok = !!u && !!u.id && String(u.email).toLowerCase() === String(env.ADMIN_EMAIL).toLowerCase();
+    }
+  } catch { ok = false; }
+  if (!ok) return json({ error: 'unauthorized' }, 401);
+
+  const route = url.pathname.replace('/vault', '');
+  const validId = (id) => /^[a-z0-9]{6,40}$/.test(id || '');
+  const fileHeaders = (type) => ({
+    ...corsHeaders,
+    'Content-Type': type,
+    'Cache-Control': 'private, no-store',
+  });
+
+  if (route === '/list' && request.method === 'GET') {
+    const items = [];
+    let cursor;
+    do {
+      const page = await env.VAULT.list({ prefix: 'photo:', cursor });
+      for (const k of page.keys) items.push({ id: k.name.slice(6), ...(k.metadata || {}) });
+      cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor);
+    items.sort((a, b) => (b.t || 0) - (a.t || 0));
+    return json({ items });
+  }
+
+  if (route.startsWith('/thumb/') && request.method === 'GET') {
+    const id = route.slice(7);
+    if (!validId(id)) return json({ error: 'bad_id' }, 400);
+    const data = await env.VAULT.get('thumb:' + id, 'arrayBuffer');
+    if (!data) return json({ error: 'not_found' }, 404);
+    return new Response(data, { headers: fileHeaders('image/jpeg') });
+  }
+
+  if (route.startsWith('/photo/') && request.method === 'GET') {
+    const id = route.slice(7);
+    if (!validId(id)) return json({ error: 'bad_id' }, 400);
+    const { value, metadata } = await env.VAULT.getWithMetadata('photo:' + id, { type: 'arrayBuffer' });
+    if (!value) return json({ error: 'not_found' }, 404);
+    return new Response(value, { headers: fileHeaders((metadata && metadata.type) || 'application/octet-stream') });
+  }
+
+  if (route === '/upload' && request.method === 'POST') {
+    let form;
+    try { form = await request.formData(); } catch { return json({ error: 'bad_request' }, 400); }
+    const file = form.get('file');
+    const thumb = form.get('thumb');
+    if (!file || typeof file === 'string') return json({ error: 'no_file' }, 400);
+    if (file.size > 25 * 1024 * 1024) return json({ error: 'too_big', message: 'Max 25 MB per photo' }, 413);
+    if (!String(file.type).startsWith('image/')) return json({ error: 'not_image' }, 400);
+
+    const rand = crypto.getRandomValues(new Uint8Array(6));
+    const id = Date.now().toString(36) + Array.from(rand, (b) => (b % 36).toString(36)).join('');
+    const meta = {
+      name: String(form.get('name') || file.name || 'photo').slice(0, 200),
+      type: file.type,
+      size: file.size,
+      t: Date.now(),
+    };
+    await env.VAULT.put('photo:' + id, await file.arrayBuffer(), { metadata: meta });
+    if (thumb && typeof thumb !== 'string' && thumb.size < 500 * 1024) {
+      await env.VAULT.put('thumb:' + id, await thumb.arrayBuffer());
+    }
+    return json({ ok: true, id });
+  }
+
+  if (route === '/delete' && request.method === 'POST') {
+    let body;
+    try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
+    if (!validId(body.id)) return json({ error: 'bad_id' }, 400);
+    await env.VAULT.delete('photo:' + body.id);
+    await env.VAULT.delete('thumb:' + body.id);
+    return json({ ok: true });
+  }
+
+  return json({ error: 'not_found' }, 404);
 }
