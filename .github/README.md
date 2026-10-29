@@ -1,6 +1,6 @@
-**this repository is mainly for: [https://iamovi.github.io](https://iamovi.github.io)**
-
 <img src="./preview.png" alt="Preview" width="400">
+
+**this repository is mainly for: [https://iamovi.github.io](https://iamovi.github.io)**
 
 ### License
 
