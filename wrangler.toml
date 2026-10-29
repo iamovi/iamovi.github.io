@@ -2,6 +2,10 @@ name = "iamovi-github-io"
 main = "cloudflare-worker/worker.js"
 compatibility_date = "2024-01-01"
 
-[[kv_namespaces]]
-binding = "VAULT"
-id = "039325469d794c6cad41c99ed9ddb691"
+[vars]
+B2_ENDPOINT = "s3.us-east-005.backblazeb2.com"
+B2_REGION = "us-east-005"
+B2_BUCKET = "iamovivault"
+
+# Secrets (set with `wrangler secret put`, never commit):
+#   B2_KEY_ID, B2_APP_KEY
