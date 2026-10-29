@@ -336,6 +336,7 @@
       <!-- ADMIN TABS -->
       <div style="display: flex; gap: 8px; margin-bottom: 24px;">
         <button class="btn" style="flex:1; margin:0;" id="tab-btn-content" onclick="switchAdminTab('content')">[ content ]</button>
+        <button class="btn btn-ghost" style="flex:1; margin:0;" id="tab-btn-vault" onclick="switchAdminTab('vault')">[ vault ]</button>
         <button class="btn btn-ghost" style="flex:1; margin:0;" id="tab-btn-security" onclick="switchAdminTab('security')">[ security ]</button>
       </div>
 
@@ -363,6 +364,22 @@
         </div>
       </div>
 
+      <!-- VAULT TAB -->
+      <div id="admin-tab-vault" style="display: none;">
+        <div class="box">
+          <div class="section-title">
+            <span>vault</span>
+            <span class="comment-count" id="vault-count"></span>
+          </div>
+          <label>add photos (originals, max 25 MB each)</label>
+          <input type="file" id="vault-file" accept="image/*" multiple />
+          <button class="btn" onclick="uploadVault()" id="vault-upload-btn">[ upload ]</button>
+          <div class="status-msg" id="vault-status"></div>
+          <div id="vault-grid"
+            style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; margin-top:20px;"></div>
+        </div>
+      </div>
+
       <!-- SECURITY TAB -->
       <div id="admin-tab-security" style="display: none;">
         <!-- CHANGE PASSWORD -->
@@ -385,6 +402,15 @@
           <div class="status-msg" id="passkey-status"></div>
           <div class="comment-list" id="passkey-list"
             style="margin-top: 24px; border-top: 1px solid var(--ink-faint); padding-top: 16px;"></div>
+        </div>
+      </div>
+
+      <div id="vault-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:16px; gap:12px;">
+        <img id="vault-overlay-img" alt="" style="max-width:100%; max-height:80vh; object-fit:contain;" />
+        <div style="display:flex; gap:8px;">
+          <a class="btn" id="vault-overlay-dl" style="margin:0; text-decoration:none;">[ download ]</a>
+          <button class="btn btn-ghost" style="margin:0;" onclick="closeVaultPhoto()">[ close ]</button>
         </div>
       </div>
 
@@ -447,17 +473,133 @@
     }
 
     window.switchAdminTab = function (tab) {
-      if (tab === 'content') {
-        document.getElementById('admin-tab-content').style.display = 'block';
-        document.getElementById('admin-tab-security').style.display = 'none';
-        document.getElementById('tab-btn-content').className = 'btn';
-        document.getElementById('tab-btn-security').className = 'btn btn-ghost';
-      } else {
-        document.getElementById('admin-tab-content').style.display = 'none';
-        document.getElementById('admin-tab-security').style.display = 'block';
-        document.getElementById('tab-btn-content').className = 'btn btn-ghost';
-        document.getElementById('tab-btn-security').className = 'btn';
+      ['content', 'vault', 'security'].forEach(t => {
+        document.getElementById('admin-tab-' + t).style.display = t === tab ? 'block' : 'none';
+        document.getElementById('tab-btn-' + t).className = t === tab ? 'btn' : 'btn btn-ghost';
+      });
+      if (tab === 'vault') window.loadVault();
+    }
+
+    // ---------- VAULT (private photos in Cloudflare KV) ----------
+    const VAULT_URL = 'https://iamovi-github-io.oviren-human.workers.dev/vault';
+
+    async function vaultFetch(path, opts = {}) {
+      const { data } = await supabase.auth.getSession();
+      const token = (data.session && data.session.access_token) || accessToken;
+      return fetch(VAULT_URL + path, {
+        ...opts,
+        headers: { ...(opts.headers || {}), 'X-Admin-Token': token }
+      });
+    }
+
+    async function makeThumb(file) {
+      try {
+        const bmp = await createImageBitmap(file);
+        const scale = Math.min(1, 400 / Math.max(bmp.width, bmp.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(bmp.width * scale);
+        c.height = Math.round(bmp.height * scale);
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.7));
+      } catch { return null; } // e.g. HEIC the browser can't decode
+    }
+
+    window.loadVault = async function () {
+      const grid = document.getElementById('vault-grid');
+      const statusEl = document.getElementById('vault-status');
+      grid.querySelectorAll('img').forEach(i => URL.revokeObjectURL(i.src));
+      grid.innerHTML = '';
+      try {
+        const res = await vaultFetch('/list');
+        if (!res.ok) throw new Error((await res.json()).error || res.status);
+        const { items } = await res.json();
+        document.getElementById('vault-count').textContent = items.length ? items.length + ' photos' : '';
+        if (!items.length) { grid.innerHTML = '<div class="gb-loading-admin">[ empty ]</div>'; return; }
+        items.forEach(it => {
+          const cell = document.createElement('div');
+          cell.style.cssText = 'position:relative; aspect-ratio:1; border:1px solid var(--ink-faint); overflow:hidden; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px;';
+          cell.title = it.name || '';
+          cell.textContent = '...';
+          cell.onclick = () => window.openVaultPhoto(it);
+          const del = document.createElement('button');
+          del.textContent = 'x';
+          del.style.cssText = 'position:absolute; top:2px; right:2px; z-index:2; cursor:pointer;';
+          del.onclick = (e) => { e.stopPropagation(); window.deleteVaultPhoto(it.id); };
+          grid.appendChild(cell);
+          cell.appendChild(del);
+          vaultFetch('/thumb/' + it.id).then(async r => {
+            if (!r.ok) { cell.firstChild.textContent = 'no preview'; return; }
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(await r.blob());
+            img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+            cell.textContent = '';
+            cell.appendChild(img);
+            cell.appendChild(del);
+          }).catch(() => { });
+        });
+      } catch (e) {
+        statusEl.textContent = '[ could not load vault: ' + e.message + ' ]';
+        statusEl.className = 'status-msg err';
       }
+    }
+
+    window.uploadVault = async function () {
+      const input = document.getElementById('vault-file');
+      const statusEl = document.getElementById('vault-status');
+      const btn = document.getElementById('vault-upload-btn');
+      const files = Array.from(input.files);
+      if (!files.length) { statusEl.textContent = '[ pick photos first ]'; statusEl.className = 'status-msg err'; return; }
+      btn.disabled = true;
+      let done = 0, failed = 0;
+      for (const f of files) {
+        statusEl.textContent = '[ uploading ' + (done + failed + 1) + '/' + files.length + '... ]';
+        statusEl.className = 'status-msg';
+        try {
+          const fd = new FormData();
+          fd.append('file', f);
+          fd.append('name', f.name);
+          const th = await makeThumb(f);
+          if (th) fd.append('thumb', th, 'thumb.jpg');
+          const res = await vaultFetch('/upload', { method: 'POST', body: fd });
+          if (!res.ok) throw new Error();
+          done++;
+        } catch { failed++; }
+      }
+      input.value = '';
+      btn.disabled = false;
+      statusEl.textContent = '[ ' + done + ' uploaded' + (failed ? ', ' + failed + ' failed' : '') + ' ]';
+      statusEl.className = failed ? 'status-msg err' : 'status-msg ok';
+      window.loadVault();
+    }
+
+    window.openVaultPhoto = async function (it) {
+      const ov = document.getElementById('vault-overlay');
+      const img = document.getElementById('vault-overlay-img');
+      const dl = document.getElementById('vault-overlay-dl');
+      const res = await vaultFetch('/photo/' + it.id);
+      if (!res.ok) return;
+      const url = URL.createObjectURL(await res.blob());
+      img.src = url;
+      dl.href = url;
+      dl.download = it.name || 'photo';
+      ov.style.display = 'flex';
+    }
+
+    window.closeVaultPhoto = function () {
+      const img = document.getElementById('vault-overlay-img');
+      document.getElementById('vault-overlay').style.display = 'none';
+      URL.revokeObjectURL(img.src);
+      img.removeAttribute('src');
+    }
+
+    window.deleteVaultPhoto = async function (id) {
+      if (!confirm('Delete this photo permanently?')) return;
+      await vaultFetch('/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      window.loadVault();
     }
 
     // LOGIN
@@ -530,6 +672,8 @@
     }
 
     window.doLogout = async function () {
+      document.getElementById('vault-grid').innerHTML = '';
+      if (window.closeVaultPhoto) window.closeVaultPhoto();
       await supabase.auth.signOut();
       accessToken = null;
       document.getElementById('login-password').value = '';
