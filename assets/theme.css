@@ -1,6 +1,7 @@
 /* ── THEME VARIABLES ── */
 
-:root, [data-theme="manga"] {
+:root,
+[data-theme="manga"] {
     /* Manga Theme (Default) - Black ink on vintage paper */
     --ink: #1a0f00;
     --paper: #f2e6c8;
@@ -193,4 +194,159 @@
     border-color: var(--ink);
     background: var(--ink);
     color: var(--paper);
+}
+
+/* ── BLOG POSTS (MIDNIGHT THEME) ── */
+[data-theme="midnight"] .post-body pre,
+[data-theme="midnight"] .post-content pre {
+    background: #0d0d10;
+    color: #e4e4e7;
+    border-color: var(--ink-faint);
+    box-shadow: 4px 4px 0 #000000;
+}
+
+[data-theme="midnight"] .post-body pre code,
+[data-theme="midnight"] .post-content pre code {
+    color: #e4e4e7;
+}
+
+[data-theme="midnight"] .post-body th {
+    background: var(--paper-dark);
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink-faint);
+}
+
+[data-theme="midnight"] .letter-section {
+    border-color: var(--ink-faint);
+    box-shadow: 4px 4px 0 #000000;
+}
+
+[data-theme="midnight"] .post-body .note,
+[data-theme="midnight"] .post-content code {
+    border-color: var(--ink-faint);
+}
+
+[data-theme="midnight"] .highlight {
+    background: linear-gradient(180deg, transparent 60%, rgba(255, 255, 255, 0.14) 60%);
+}
+
+/* ── GAME PAGE (MIDNIGHT THEME) ── */
+[data-theme="midnight"] .card {
+    border-color: var(--ink-faint);
+    box-shadow: 6px 6px 0 #000000;
+}
+
+[data-theme="midnight"] .card:active {
+    box-shadow: 2px 2px 0 #000000;
+}
+
+[data-theme="midnight"] #game-ui .btn,
+[data-theme="midnight"] .btn-row .btn,
+[data-theme="midnight"] .game-over .btn,
+[data-theme="midnight"] .sfx-toggle.btn {
+    border-color: var(--ink-faint);
+    box-shadow: 3px 3px 0 #000000;
+}
+
+[data-theme="midnight"] #game-ui .btn:hover,
+[data-theme="midnight"] .btn-row .btn:hover,
+[data-theme="midnight"] .game-over .btn:hover,
+[data-theme="midnight"] .sfx-toggle.btn:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+}
+
+[data-theme="midnight"] .card-hint {
+    background: var(--paper-dark) !important;
+    color: var(--ink) !important;
+    border-color: var(--ink) !important;
+}
+
+[data-theme="midnight"] .reaction {
+    text-shadow: 3px 3px 0 #000000, 4px 4px 0 var(--ink-faint);
+}
+
+/* ── ADMIN PAGE (MIDNIGHT THEME) ── */
+
+/* Box shadow offset */
+[data-theme="midnight"] .box::after {
+    border-color: var(--ink-faint);
+}
+
+/* Base solid button (.btn) in admin */
+[data-theme="midnight"] .panel .btn {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1.5px solid var(--ink);
+    box-shadow: none;
+}
+
+[data-theme="midnight"] .panel .btn:hover {
+    background: var(--ink-mid);
+    border-color: var(--ink-mid);
+    color: var(--paper);
+}
+
+/* Ghost buttons: tab buttons, passkey, forgot password, logout */
+[data-theme="midnight"] .panel .btn.btn-ghost,
+[data-theme="midnight"] .panel .btn-ghost,
+[data-theme="midnight"] .btn-ghost {
+    background: transparent !important;
+    color: var(--ink-mid) !important;
+    border: 1.5px solid var(--ink-faint) !important;
+    box-shadow: none !important;
+}
+
+/* Ghost button hover: stays transparent, border & text illuminate */
+[data-theme="midnight"] .panel .btn.btn-ghost:hover,
+[data-theme="midnight"] .panel .btn-ghost:hover,
+[data-theme="midnight"] .btn-ghost:hover {
+    background: transparent !important;
+    color: var(--ink) !important;
+    border-color: var(--ink) !important;
+}
+
+/* Danger button */
+[data-theme="midnight"] .btn-danger {
+    background: transparent !important;
+    color: #cf6679 !important;
+    border: 1.5px solid #cf6679 !important;
+}
+
+[data-theme="midnight"] .btn-danger:hover {
+    background: #cf6679 !important;
+    color: var(--paper) !important;
+    border-color: #cf6679 !important;
+}
+
+/* Status messages */
+[data-theme="midnight"] .status-msg.ok {
+    color: #6bbf7a;
+}
+
+[data-theme="midnight"] .status-msg.err {
+    color: #cf6679;
+}
+
+/* Current status sidebar line */
+[data-theme="midnight"] .current-status {
+    border-left-color: var(--ink-faint);
+}
+
+/* ── 404 PAGE (MIDNIGHT THEME) ── */
+[data-theme="midnight"] .panel .speech-bubble {
+    background: var(--paper);
+}
+
+[data-theme="midnight"] .panel .speech-bubble::before {
+    border-top-color: var(--paper);
+}
+
+[data-theme="midnight"] .home-btn {
+    box-shadow: 4px 4px 0 #000000;
+}
+
+[data-theme="midnight"] .home-btn:hover {
+    box-shadow: 6px 6px 0 var(--ink-faint);
 }

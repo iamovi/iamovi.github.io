@@ -10,18 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/bar.css">
+    <link rel="stylesheet" href="../assets/theme.css">
+    <script src="../assets/theme.js"></script>
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root {
-            --ink: #1a0f00;
-            --paper: #f2e6c8;
-            --paper-dark: #e0d0a8;
-            --ink-mid: #6b5a3e;
-            --ink-faint: #b09a78;
-            --yes: #000;
-            --no: #000;
-        }
+        /* Variables are loaded from theme.css */
 
         html, body {
             height: 100%;
@@ -30,7 +24,7 @@
 
         body {
             background-color: var(--paper);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0 L20 20 M-2 18 L2 22 M18 -2 L22 2' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3Cpath d='M20 0 L0 20 M18 -2 L-2 18 M22 2 L2 22' stroke='%231a0f00' stroke-width='0.4' stroke-opacity='0.18' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-image: var(--bg-pattern);
             background-size: 20px 20px;
             font-family: 'Share Tech Mono', monospace;
             color: var(--ink);
@@ -144,7 +138,7 @@
         .card-skeleton {
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, var(--paper-dark) 25%, #d4be88 50%, var(--paper-dark) 75%);
+            background: linear-gradient(90deg, var(--skeleton-base, var(--paper-dark)) 25%, var(--skeleton-shimmer, #d4be88) 50%, var(--skeleton-base, var(--paper-dark)) 75%);
             background-size: 200% 100%;
             animation: sk 1.4s infinite;
         }
@@ -167,15 +161,15 @@
         }
         .card-hint.yes {
             left: 16px;
-            color: #000;
-            border-color: #000;
-            background: rgba(242,230,200,0.92);
+            color: var(--ink);
+            border-color: var(--ink);
+            background: var(--paper-dark);
         }
         .card-hint.no {
             right: 16px;
-            color: #000;
-            border-color: #000;
-            background: rgba(242,230,200,0.92);
+            color: var(--ink);
+            border-color: var(--ink);
+            background: var(--paper-dark);
         }
 
         /* swipe out animations */
@@ -241,8 +235,8 @@
         .btn:hover { background: var(--ink); color: var(--paper); }
         .btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
 
-        .btn-yes:hover { background: #000; }
-        .btn-no:hover  { background: #000; }
+        .btn-yes:hover { background: var(--ink); color: var(--paper); }
+        .btn-no:hover  { background: var(--ink); color: var(--paper); }
 
         /* ── HINT TEXT ── */
         .swipe-hint {
@@ -607,5 +601,6 @@
       };
     });
     </script>
+    <script src="../assets/cursor.js"></script>
 </body>
 </html>
