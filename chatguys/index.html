@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -660,13 +660,25 @@
             }
 
             function isRestrictedName(name) {
-                if (!name) return true;
+                if (!name) return false;
                 const clean = name.trim().toLowerCase();
-                // Blocked if any separate word is reserved (digits ignored: "Ovi123"),
-                // or if the letters spelled out add up to a reserved word ("O.v.i", "a d m i n")
-                const words = clean.split(/[^a-z0-9]+/).filter(Boolean).map(w => w.replace(/[0-9]/g, ''));
-                const collapsed = clean.replace(/[^a-z]/g, '');
-                return words.some(w => RESERVED_WORDS.includes(w)) || RESERVED_WORDS.includes(collapsed);
+                if (/\s+/.test(clean)) return false;
+                const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+                const collapsed = stripped.replace(/[^a-z]/g, '');
+                return RESERVED_WORDS.includes(stripped) || RESERVED_WORDS.includes(collapsed);
+            }
+
+            function getChatAdminBadge(name) {
+                if (!name) return '';
+                const clean = name.trim().toLowerCase();
+                if (/\s+/.test(clean)) return '';
+                const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+                const collapsed = stripped.replace(/[^a-z]/g, '');
+                if (collapsed === 'ovi') return '<span class="chat-admin-badge">[★ OVI]</span> ';
+                if (['admin', 'administrator', 'moderator', 'mod', 'system'].includes(stripped) || ['admin', 'administrator', 'moderator', 'mod', 'system'].includes(collapsed)) {
+                    return '<span class="chat-admin-badge">[★ ADMIN]</span> ';
+                }
+                return '';
             }
 
             function getSavedNickname() {
@@ -1002,7 +1014,7 @@
                             const isAdmin = isRestrictedName(m.name);
                             // Only messages sent under the CURRENT name count as mine
                             const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
-                            const badgeHtml = isAdmin ? `<span class="chat-admin-badge">[★ OVI]</span>` : '';
+                            const badgeHtml = getChatAdminBadge(m.name);
                             const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '');
                             return `
                                 <div class="${cls}">

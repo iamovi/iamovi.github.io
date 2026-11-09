@@ -23,18 +23,19 @@ export default {
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
 
-    // --- Reserved name guard for chat_messages inserts ---
-    if (request.method === 'POST' && supabasePath === '/rest/v1/chat_messages') {
+    // --- Reserved name guard for chat_messages and guestbook inserts ---
+    if (request.method === 'POST' && (supabasePath === '/rest/v1/chat_messages' || supabasePath === '/rest/v1/guestbook')) {
       let body;
       try { body = await request.json(); } catch { body = {}; }
       const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
       const nameRaw = String(body.name ?? '').trim();
-      const cleanName = nameRaw.toLowerCase();
-      // Same rule as the chat page: reserved word as a separate word (digits ignored),
-      // or letters that spell a reserved word ("O.v.i", "a d m i n")
-      const nameWords = cleanName.split(/[^a-z0-9]+/).filter(Boolean).map(w => w.replace(/[0-9]/g, ''));
-      const nameCollapsed = cleanName.replace(/[^a-z]/g, '');
-      const isReserved = !nameRaw || nameWords.some(w => RESERVED_WORDS.includes(w)) || RESERVED_WORDS.includes(nameCollapsed);
+      const checkName = nameRaw || (supabasePath === '/rest/v1/guestbook' ? 'anon' : '');
+      const cleanName = checkName.toLowerCase();
+      // Single name check: only exact single name "ovi" or "admin" (not multiple words/phrases like "GENJUTSU ADMIN 1")
+      const isMultiWord = /\s+/.test(cleanName);
+      const stripped = cleanName.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+      const collapsed = stripped.replace(/[^a-z]/g, '');
+      const isReserved = !checkName || (!isMultiWord && (RESERVED_WORDS.includes(stripped) || RESERVED_WORDS.includes(collapsed)));
       if (isReserved) {
         // Reserved names are allowed ONLY with a valid admin (Supabase) session token
         const adminToken = request.headers.get('X-Admin-Token') || '';

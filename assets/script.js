@@ -754,14 +754,106 @@
       .map(m => ({ ...m, children: buildTree(all, m.id) }));
   }
 
+  const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
+
+  function isRestrictedName(name) {
+    if (!name) return false;
+    const clean = name.trim().toLowerCase();
+    // Only exact single names (e.g. "ovi", "admin") - ignore multi-word phrases like "GENJUTSU ADMIN 1"
+    if (/\s+/.test(clean)) return false;
+    const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+    const collapsed = stripped.replace(/[^a-z]/g, '');
+    return RESERVED_WORDS.includes(stripped) || RESERVED_WORDS.includes(collapsed);
+  }
+
+  function getAdminBadge(name) {
+    if (!name) return '';
+    const clean = name.trim().toLowerCase();
+    if (/\s+/.test(clean)) return '';
+    const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+    const collapsed = stripped.replace(/[^a-z]/g, '');
+    if (collapsed === 'ovi') return '<span class="gb-admin-badge">[★ OVI]</span>';
+    if (['admin', 'administrator', 'moderator', 'mod', 'system'].includes(stripped) || ['admin', 'administrator', 'moderator', 'mod', 'system'].includes(collapsed)) {
+      return '<span class="gb-admin-badge">[★ ADMIN]</span>';
+    }
+    return '';
+  }
+
+  function isJwtFresh(t) {
+    try {
+      const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return !payload.exp || payload.exp * 1000 > Date.now() + 5000;
+    } catch (e) { return true; }
+  }
+
+  function hasAdminSession() {
+    try {
+      return !!(localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token') || localStorage.getItem('chatguys_admin_auth'));
+    } catch (e) { return false; }
+  }
+
+  function getAdminToken() {
+    const candidates = [];
+    try {
+      const raw = localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const t = parsed && (parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token));
+        if (t) candidates.push(t);
+      }
+    } catch (e) { }
+    try {
+      const t2 = localStorage.getItem('chatguys_admin_auth');
+      if (t2) candidates.push(t2);
+    } catch (e) { }
+    return candidates.find(isJwtFresh) || candidates[0] || '';
+  }
+
+  let adminRefreshPromise = null;
+  async function getFreshAdminToken() {
+    const KEY = 'sb-nusyixchzeiplwwmqlbw-auth-token';
+    let session = null;
+    try { session = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { }
+    const current = getAdminToken();
+    if (current && isJwtFresh(current)) return current;
+    const refreshToken = session && session.refresh_token;
+    if (!refreshToken) return current;
+    if (!adminRefreshPromise) {
+      adminRefreshPromise = (async () => {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+            method: 'POST',
+            headers: gbHeaders(),
+            body: JSON.stringify({ refresh_token: refreshToken })
+          });
+          if (!res.ok) return null;
+          const data = await res.json();
+          if (!data || !data.access_token) return null;
+          const merged = Object.assign({}, session, data, {
+            expires_at: data.expires_at || (Math.floor(Date.now() / 1000) + (data.expires_in || 3600))
+          });
+          try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch (e) { }
+          return data.access_token;
+        } catch (e) {
+          return null;
+        } finally {
+          setTimeout(() => { adminRefreshPromise = null; }, 0);
+        }
+      })();
+    }
+    const fresh = await adminRefreshPromise;
+    return fresh || current;
+  }
+
   function renderNode(m) {
     const childrenHtml = m.children.length
       ? `<div class="gb-replies">${m.children.map(c => renderNode(c)).join('')}</div>`
       : '';
+    const badgeHtml = getAdminBadge(m.name);
     return `
       <div class="gb-message-item" id="msg-${m.id}">
         <div class="gb-message-meta">
-          <span class="gb-message-name">${escapeHtml(m.name || 'anon')}</span>
+          <span class="gb-message-name">${escapeHtml(m.name || 'anon')}${badgeHtml}</span>
           <span class="gb-message-date">${timeAgo(m.created_at)}</span>
         </div>
         <p class="gb-message-text">${escapeHtml(m.message)}</p>
@@ -833,22 +925,44 @@
       return;
     }
 
+    if (isRestrictedName(name)) {
+      if (!hasAdminSession()) {
+        statusEl.textContent = '[ 👑 "' + name + '" is a reserved name. Only admin can use this name. ]';
+        statusEl.style.color = '#8b2020';
+        return;
+      }
+    }
+
     btn.disabled = true;
     statusEl.textContent = '[ posting... ]';
     statusEl.style.color = '';
 
-    fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
-      method: 'POST',
-      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ name, message, parent_id: parentId })
+    const tokenPromise = isRestrictedName(name) ? getFreshAdminToken() : Promise.resolve('');
+
+    tokenPromise.then(tok => {
+      const sendHeaders = { ...gbHeaders(), 'Prefer': 'return=minimal' };
+      if (tok) sendHeaders['X-Admin-Token'] = tok;
+
+      return fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
+        method: 'POST',
+        headers: sendHeaders,
+        body: JSON.stringify({ name, message, parent_id: parentId })
+      });
     })
-      .then(r => {
+      .then(async r => {
+        if (r.status === 403 && isRestrictedName(name)) {
+          throw new Error('reserved_name');
+        }
         if (!r.ok) throw new Error('Failed');
         notifyTelegram({ type: 'reply', name, message });
         loadGuestbook();
       })
-      .catch(() => {
-        statusEl.textContent = '[ something went wrong ]';
+      .catch(err => {
+        if (err && err.message === 'reserved_name') {
+          statusEl.textContent = '[ 👑 "' + name + '" is a reserved name. Please login at /admin first. ]';
+        } else {
+          statusEl.textContent = '[ something went wrong ]';
+        }
         statusEl.style.color = '#8b2020';
         btn.disabled = false;
       });
@@ -869,16 +983,34 @@
       return;
     }
 
+    if (isRestrictedName(name)) {
+      if (!hasAdminSession()) {
+        statusEl.textContent = '[ 👑 "' + name + '" is a reserved name. Only admin can post with this name. ]';
+        statusEl.className = 'gb-status error';
+        return;
+      }
+    }
+
     btn.disabled = true;
     statusEl.textContent = '[ posting... ]';
     statusEl.className = 'gb-status';
 
-    fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
-      method: 'POST',
-      headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ name, message })
+    const tokenPromise = isRestrictedName(name) ? getFreshAdminToken() : Promise.resolve('');
+
+    tokenPromise.then(tok => {
+      const sendHeaders = { ...gbHeaders(), 'Prefer': 'return=minimal' };
+      if (tok) sendHeaders['X-Admin-Token'] = tok;
+
+      return fetch(`${SUPABASE_URL}/rest/v1/guestbook`, {
+        method: 'POST',
+        headers: sendHeaders,
+        body: JSON.stringify({ name, message })
+      });
     })
-      .then(r => {
+      .then(async r => {
+        if (r.status === 403 && isRestrictedName(name)) {
+          throw new Error('reserved_name');
+        }
         if (!r.ok) throw new Error('Failed');
         notifyTelegram({ type: 'guestbook', name, message });
         statusEl.textContent = '[ message posted! ]';
@@ -888,8 +1020,12 @@
         document.getElementById('gb-chars').textContent = '0';
         loadGuestbook();
       })
-      .catch(() => {
-        statusEl.textContent = '[ something went wrong, try again ]';
+      .catch(err => {
+        if (err && err.message === 'reserved_name') {
+          statusEl.textContent = '[ 👑 "' + name + '" is a reserved name. Please login at /admin first. ]';
+        } else {
+          statusEl.textContent = '[ something went wrong, try again ]';
+        }
         statusEl.className = 'gb-status error';
       })
       .finally(() => { btn.disabled = false; });

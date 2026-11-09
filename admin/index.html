@@ -244,6 +244,20 @@
       font-weight: bold;
       color: var(--ink);
       font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .gb-admin-badge {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--paper);
+      background: var(--ink);
+      padding: 1px 4px;
+      letter-spacing: 0.06em;
+      display: inline-block;
+      line-height: 1.2;
     }
 
     .comment-reply-badge {
@@ -465,6 +479,29 @@
       if (days < 30) return days + 'd ago';
       return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
+
+    const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
+    window.isRestrictedName = function (name) {
+      if (!name) return false;
+      const clean = name.trim().toLowerCase();
+      if (/\s+/.test(clean)) return false;
+      const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+      const collapsed = stripped.replace(/[^a-z]/g, '');
+      return RESERVED_WORDS.includes(stripped) || RESERVED_WORDS.includes(collapsed);
+    };
+
+    window.getAdminBadge = function (name) {
+      if (!name) return '';
+      const clean = name.trim().toLowerCase();
+      if (/\s+/.test(clean)) return '';
+      const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+      const collapsed = stripped.replace(/[^a-z]/g, '');
+      if (collapsed === 'ovi') return ' <span class="gb-admin-badge">[★ OVI]</span>';
+      if (['admin', 'administrator', 'moderator', 'mod', 'system'].includes(stripped) || ['admin', 'administrator', 'moderator', 'mod', 'system'].includes(collapsed)) {
+        return ' <span class="gb-admin-badge">[★ ADMIN]</span>';
+      }
+      return '';
+    };
 
     window.escapeHtml = function (str) {
       return String(str)
@@ -929,10 +966,11 @@
 
         list.innerHTML = data.map(function (m) {
           const isReply = m.parent_id !== null;
+          const badgeHtml = window.getAdminBadge(m.name);
           return '<div class="comment-item" id="admin-msg-' + m.id + '">' +
             '<div class="comment-body">' +
             '<div class="comment-meta">' +
-            '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + '</span>' +
+            '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + badgeHtml + '</span>' +
             (isReply ? '<span class="comment-reply-badge">reply</span>' : '') +
             '<span>' + window.timeAgo(m.created_at) + '</span>' +
             (isReply ? '<span style="color:var(--ink-faint)">id:' + m.parent_id + '</span>' : '') +

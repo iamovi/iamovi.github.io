@@ -184,6 +184,10 @@
 }
 
 /* Guestbook form */
+[data-theme="midnight"] .gb-admin-badge {
+    box-shadow: 1px 1px 0 #000000;
+}
+
 [data-theme="midnight"] .guestbook-form-wrap {
     border-color: var(--ink-faint);
     background: var(--paper-dark);

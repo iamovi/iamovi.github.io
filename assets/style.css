@@ -1232,6 +1232,22 @@ input[type="file"]::file-selector-button:hover {
     font-weight: bold;
     color: var(--ink);
     letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.gb-admin-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 1px 5px;
+    letter-spacing: 0.06em;
+    display: inline-block;
+    flex-shrink: 0;
+    line-height: 1.2;
 }
 
 .gb-message-date {
