@@ -357,9 +357,18 @@
     <script src="../assets/cursor.js"></script>
 
     <script>
+        var _toastTimer = null;
+        function showToast(msg) {
+            var t = document.getElementById('settings-toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2200);
+        }
+
         function updateCards() {
             var current = window.OviCursor.getEffect();
-            document.querySelectorAll('.cursor-card').forEach(function(card) {
+            document.querySelectorAll('#cursor-grid .cursor-card').forEach(function(card) {
                 card.classList.toggle('active', card.dataset.effect === current);
             });
         }
@@ -370,11 +379,17 @@
             showToast('cursor set to [ ' + effect + ' ]');
         }
 
-        function showToast(msg) {
-            var t = document.getElementById('settings-toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(function() { t.classList.remove('show'); }, 2200);
+        function updateThemeCards() {
+            var current = window.OviTheme.getTheme();
+            document.querySelectorAll('#theme-grid .theme-card').forEach(function(card) {
+                card.classList.toggle('active', card.dataset.themeId === current);
+            });
+        }
+
+        function selectTheme(theme) {
+            window.OviTheme.apply(theme);
+            updateThemeCards();
+            showToast('theme set to [ ' + theme + ' ]');
         }
 
         // ── Device detection ─────────────────────────────────────────────
@@ -410,19 +425,6 @@
             updateCards();
             updateThemeCards();
         });
-
-        function updateThemeCards() {
-            var current = window.OviTheme.getTheme();
-            document.querySelectorAll('.theme-card').forEach(function(card) {
-                card.classList.toggle('active', card.dataset.themeId === current);
-            });
-        }
-
-        function selectTheme(theme) {
-            window.OviTheme.apply(theme);
-            updateThemeCards();
-            showToast('theme set to [ ' + theme + ' ]');
-        }
     </script>
     <script src="../assets/sounds.js"></script>
 </body>

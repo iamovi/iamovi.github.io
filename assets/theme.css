@@ -169,6 +169,20 @@
     color: var(--ink);
 }
 
+[data-theme="midnight"] .reaction-btn.reacted,
+[data-theme="midnight"] .reaction-btn.reacted:hover {
+    background: var(--ink) !important;
+    border-color: var(--ink) !important;
+    color: var(--paper) !important;
+}
+
+[data-theme="midnight"] .reaction-btn.reacted .reaction-count,
+[data-theme="midnight"] .reaction-btn.reacted:hover .reaction-count {
+    color: var(--paper) !important;
+    opacity: 0.95;
+    font-weight: bold;
+}
+
 /* Guestbook form */
 [data-theme="midnight"] .guestbook-form-wrap {
     border-color: var(--ink-faint);
@@ -349,4 +363,29 @@
 
 [data-theme="midnight"] .home-btn:hover {
     box-shadow: 6px 6px 0 var(--ink-faint);
+}
+
+/* ── CHATGUYS (MIDNIGHT THEME) ── */
+[data-theme="midnight"] .chat-panel {
+    border-color: var(--ink-faint);
+    box-shadow: 4px 4px 0px #000000;
+}
+
+[data-theme="midnight"] .chat-topbar {
+    border-bottom-color: var(--ink-faint);
+}
+
+[data-theme="midnight"] .chat-send-wrap {
+    border-top-color: var(--ink-faint);
+}
+
+[data-theme="midnight"] .chat-msg-item.own-msg {
+    border-color: var(--ink-mid);
+    box-shadow: 3px 3px 0px #000000;
+}
+
+[data-theme="midnight"] .modal-card,
+[data-theme="midnight"] .chat-join-card {
+    border-color: var(--ink-faint);
+    box-shadow: 6px 6px 0px #000000;
 }
