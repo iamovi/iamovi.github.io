@@ -972,7 +972,7 @@
     const nameEl = document.getElementById('gb-name');
     const msgEl = document.getElementById('gb-message');
     const statusEl = document.getElementById('gb-status');
-    const btn = document.querySelector('.gb-submit');
+    const btn = document.querySelector('.gb-submit[onclick="submitGuestbook()"]');
 
     const name = (nameEl.value.trim() || 'anon').slice(0, 40);
     const message = msgEl.value.trim();

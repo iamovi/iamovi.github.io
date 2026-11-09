@@ -170,7 +170,7 @@
       for (var i = 0; i < mutations.length; i++) {
         if (mutations[i].attributeName === 'data-theme') {
           var cur = getEffect();
-          if (cur === 'dot' || cur === 'crosshair') {
+          if (cur === 'dot' || cur === 'crosshair' || cur === 'ink' || cur === 'samurai') {
             apply(cur);
           }
           break;

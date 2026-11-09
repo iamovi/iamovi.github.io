@@ -389,7 +389,7 @@
 }
 
 [data-theme="midnight"] .modal-card,
-[data-theme="midnight"] .chat-join-card {
+[data-theme="midnight"] .chatguys-join-card {
     border-color: var(--ink-faint);
     box-shadow: 6px 6px 0px #000000;
 }
