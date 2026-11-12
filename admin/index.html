@@ -827,7 +827,6 @@
       document.getElementById('vault-grid').innerHTML = '';
       if (window.closeVaultPhoto) window.closeVaultPhoto();
       await supabase.auth.signOut();
-      try { localStorage.removeItem('chatguys_admin_auth'); } catch (e) { }
       accessToken = null;
       document.getElementById('login-password').value = '';
       document.getElementById('login-status').textContent = '';
@@ -927,7 +926,6 @@
         setTimeout(() => {
           history.replaceState(null, '', window.location.pathname);
           supabase.auth.signOut().then(() => {
-            try { localStorage.removeItem('chatguys_admin_auth'); } catch (e) { }
             accessToken = null;
             window.showLogin();
           });

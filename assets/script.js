@@ -439,7 +439,7 @@
       } else {
         list.innerHTML = slice.map(p => `
           <li>
-            <h2><a href="${p.url}" target="_blank">${p.name}</a></h2>
+            <h2><a href="${p.url}" target="_blank" rel="noopener noreferrer">${p.name}</a></h2>
             <p>${p.description}</p>
             <div class="date">${p.date}</div>
             ${reactionBar('project', slugify(p.name))}
@@ -790,7 +790,7 @@
 
   function hasAdminSession() {
     try {
-      return !!(localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token') || localStorage.getItem('chatguys_admin_auth'));
+      return !!localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token');
     } catch (e) { return false; }
   }
 
@@ -813,7 +813,7 @@
       if (!document.hidden) window.updateAdminMenu();
     });
     window.addEventListener('storage', function (e) {
-      if (e.key === 'sb-nusyixchzeiplwwmqlbw-auth-token' || e.key === 'chatguys_admin_auth') {
+      if (e.key === 'sb-nusyixchzeiplwwmqlbw-auth-token') {
         window.updateAdminMenu();
       }
     });
@@ -828,10 +828,6 @@
         const t = parsed && (parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token));
         if (t) candidates.push(t);
       }
-    } catch (e) { }
-    try {
-      const t2 = localStorage.getItem('chatguys_admin_auth');
-      if (t2) candidates.push(t2);
     } catch (e) { }
     return candidates.find(isJwtFresh) || candidates[0] || '';
   }
