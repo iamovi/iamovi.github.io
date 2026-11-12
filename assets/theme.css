@@ -81,6 +81,26 @@
     --menu-shadow: -10px 0 30px rgba(20, 34, 20, 0.2);
 }
 
+[data-theme="gameboy"] {
+    /* Game Boy DMG-01 Theme - 1989 4-shade LCD dot-matrix handheld nostalgia */
+    --ink: #0f380f;
+    --paper: #9bbc0f;
+    --paper-dark: #8bac0f;
+    --ink-light: #1f481f;
+    --ink-mid: #306230;
+    --ink-faint: #567a28;
+    --speed: 0.15s;
+    --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Crect width='7' height='7' fill='%239bbc0f'/%3E%3Crect x='7' width='1' height='8' fill='%238bac0f' fill-opacity='0.45'/%3E%3Crect y='7' width='8' height='1' fill='%238bac0f' fill-opacity='0.45'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23306230' fill-opacity='0.08'/%3E%3C/svg%3E");
+    --lb-bg: var(--paper);
+    --lb-ink: var(--ink);
+    --shadow: var(--ink);
+    --card-shadow: var(--ink);
+    --skeleton-base: var(--paper-dark);
+    --skeleton-shimmer: #a8c818;
+    --menu-border-left: 1.5px solid var(--ink);
+    --menu-shadow: -10px 0 30px rgba(15, 56, 15, 0.25);
+}
+
 /* ── MIDNIGHT DARK MODE POLISH ── */
 
 /* Menu side border & shadow: replaces the thick 8px stark white wall with a refined 1.5px border & dark depth */
@@ -246,6 +266,17 @@
 [data-theme="midnight"] .cursor-card:hover {
     border-color: var(--ink);
     box-shadow: 4px 4px 0 #000000;
+}
+
+/* Vault thumbnails */
+[data-theme="midnight"] .vault-thumb-cell {
+    border-color: var(--ink-faint);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+[data-theme="midnight"] .vault-thumb-del {
+    border-color: var(--ink-faint);
+    box-shadow: 1.5px 1.5px 0 #000000;
 }
 
 [data-theme="midnight"] .cursor-card.active {
@@ -598,4 +629,41 @@
 
 [data-theme="matcha"] * {
     scrollbar-color: #5a8546 rgba(244, 246, 236, 0.5);
+}
+
+/* ── GAME BOY THEME POLISH ── */
+
+[data-theme="gameboy"] body {
+    background-size: 8px 8px !important;
+}
+
+[data-theme="gameboy"] .highlight {
+    background: linear-gradient(180deg, transparent 60%, rgba(48, 98, 48, 0.4) 60%);
+}
+
+[data-theme="gameboy"] ::selection {
+    background: #306230;
+    color: #9bbc0f;
+}
+
+[data-theme="gameboy"] .reaction-btn.reacted,
+[data-theme="gameboy"] .reaction-btn.reacted:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+}
+
+[data-theme="gameboy"] .reaction-btn.reacted .reaction-count,
+[data-theme="gameboy"] .reaction-btn.reacted:hover .reaction-count {
+    color: var(--paper);
+    font-weight: bold;
+}
+
+[data-theme="gameboy"] ::-webkit-scrollbar-thumb {
+    background: #306230;
+    border: 2px solid #8bac0f;
+}
+
+[data-theme="gameboy"] * {
+    scrollbar-color: #306230 #9bbc0f;
 }

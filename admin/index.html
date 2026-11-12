@@ -7,6 +7,7 @@
   <title>admin / init_ovi</title>
   <link rel="icon" href="../samurai-jack.png">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="../assets/bar.css">
   <link rel="stylesheet" href="../assets/theme.css">
   <script src="../assets/theme.js"></script>
@@ -121,6 +122,117 @@
 
     input[type="password"] {
       letter-spacing: 0.2em;
+    }
+
+    /* File input styling that matches all themes */
+    input[type="file"] {
+      padding: 8px 12px;
+      cursor: pointer;
+      background: var(--paper-dark);
+      border: 1.5px dashed var(--ink-mid);
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      transition: border-color var(--speed), background var(--speed);
+    }
+
+    input[type="file"]:hover,
+    input[type="file"]:focus {
+      border-color: var(--ink);
+      border-style: solid;
+      background: var(--paper);
+    }
+
+    input[type="file"]::file-selector-button {
+      background: var(--ink);
+      color: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 6px 14px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      margin-right: 14px;
+      transition: background var(--speed), color var(--speed), border-color var(--speed);
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    input[type="file"]::-webkit-file-upload-button {
+      background: var(--ink);
+      color: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 6px 14px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      margin-right: 14px;
+      transition: background var(--speed), color var(--speed), border-color var(--speed);
+    }
+
+    input[type="file"]::-webkit-file-upload-button:hover {
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    /* Vault photo thumbnails & delete button */
+    .vault-thumb-cell {
+      position: relative;
+      aspect-ratio: 1;
+      border: 1.5px solid var(--ink);
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      background: var(--paper-dark);
+      box-shadow: 2px 2px 0 var(--ink);
+      transition: transform var(--speed), box-shadow var(--speed);
+    }
+
+    .vault-thumb-cell:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .vault-thumb-del {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      z-index: 2;
+      cursor: pointer;
+      width: 22px;
+      height: 22px;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      box-shadow: 1.5px 1.5px 0 var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      line-height: 1;
+      padding: 0;
+      transition: background var(--speed), color var(--speed), border-color var(--speed), transform var(--speed);
+    }
+
+    .vault-thumb-del:hover {
+      background: #dc2626 !important;
+      color: #ffffff !important;
+      border-color: #dc2626 !important;
+      transform: scale(1.12);
+    }
+
+    .vault-thumb-del i {
+      pointer-events: none;
+      font-size: 14px;
     }
 
     textarea {
@@ -382,15 +494,15 @@
       <div id="admin-tab-vault" style="display: none;">
         <div class="box">
           <div class="section-title">
-            <span>vault</span>
+            <span><i class="ri-archive-line"></i> vault</span>
             <span class="comment-count" id="vault-count"></span>
           </div>
-          <label>add photos (originals, max 25 MB each)</label>
+          <label><i class="ri-image-add-line"></i> add photos (originals, max 25 MB each)</label>
           <input type="file" id="vault-file" accept="image/*" multiple />
-          <button class="btn" onclick="uploadVault()" id="vault-upload-btn">[ upload ]</button>
+          <button class="btn" onclick="uploadVault()" id="vault-upload-btn"><i class="ri-upload-cloud-line"></i> [ upload ]</button>
           <div class="status-msg" id="vault-status"></div>
           <div id="vault-grid"
-            style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; margin-top:20px;"></div>
+            style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin-top:20px;"></div>
         </div>
       </div>
 
@@ -420,10 +532,11 @@
       </div>
 
       <div id="vault-overlay"
-        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:16px; gap:12px;">
-        <img id="vault-overlay-img" alt="" style="max-width:100%; max-height:80vh; object-fit:contain;" />
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:16px; gap:12px;">
+        <button class="vault-thumb-del" style="position:fixed; top:20px; right:20px; width:34px; height:34px; font-size:20px;" onclick="closeVaultPhoto()" title="close photo" aria-label="close photo"><i class="ri-close-line"></i></button>
+        <img id="vault-overlay-img" alt="" style="max-width:100%; max-height:80vh; object-fit:contain; border:2px solid var(--paper);" />
         <div style="display:flex; gap:8px;">
-          <a class="btn" id="vault-overlay-dl" style="margin:0; text-decoration:none;">[ download ]</a>
+          <a class="btn" id="vault-overlay-dl" style="margin:0; text-decoration:none;"><i class="ri-download-line"></i> [ download ]</a>
           <button class="btn btn-ghost" style="margin:0;" onclick="closeVaultPhoto()">[ close ]</button>
         </div>
       </div>
@@ -554,13 +667,15 @@
         if (!items.length) { grid.innerHTML = '<div class="gb-loading-admin">[ empty ]</div>'; return; }
         items.forEach(it => {
           const cell = document.createElement('div');
-          cell.style.cssText = 'position:relative; aspect-ratio:1; border:1px solid var(--ink-faint); overflow:hidden; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px;';
+          cell.className = 'vault-thumb-cell';
           cell.title = it.name || '';
           cell.textContent = '...';
           cell.onclick = () => window.openVaultPhoto(it);
           const del = document.createElement('button');
-          del.textContent = 'x';
-          del.style.cssText = 'position:absolute; top:2px; right:2px; z-index:2; cursor:pointer;';
+          del.className = 'vault-thumb-del';
+          del.innerHTML = '<i class="ri-close-line"></i>';
+          del.title = 'delete photo';
+          del.setAttribute('aria-label', 'delete photo');
           del.onclick = (e) => { e.stopPropagation(); window.deleteVaultPhoto(it.id); };
           grid.appendChild(cell);
           cell.appendChild(del);
@@ -568,7 +683,7 @@
             if (!r.ok) { cell.firstChild.textContent = 'no preview'; return; }
             const img = document.createElement('img');
             img.src = URL.createObjectURL(await r.blob());
-            img.style.cssText = 'width:100%; height:100%; object-fit:cover;';
+            img.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block;';
             cell.textContent = '';
             cell.appendChild(img);
             cell.appendChild(del);

@@ -131,6 +131,11 @@
         playTone({ type: 'sine', freq: 440, endFreq: 220, vol: 0.12, duration: 0.15 });
         playTone({ type: 'sine', freq: 660, endFreq: 330, vol: 0.07, duration: 0.12, delay: 0.04 });
         playNoise({ vol: 0.06, duration: 0.04, filterFreq: 1800 });
+      } else if (theme === 'gameboy') {
+        // Authentic 8-bit Nintendo DMG "ba-ding!" startup arpeggio
+        playTone({ type: 'square', freq: 523, endFreq: 523, vol: 0.08, duration: 0.06 });
+        playTone({ type: 'square', freq: 1046, endFreq: 1046, vol: 0.09, duration: 0.06, delay: 0.06 });
+        playTone({ type: 'square', freq: 2093, endFreq: 2093, vol: 0.08, duration: 0.16, delay: 0.12 });
       } else if (theme === 'midnight') {
         // Deep cosmic night pulse
         playTone({ type: 'sawtooth', freq: 220, endFreq: 440, vol: 0.07, duration: 0.18 });

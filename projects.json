@@ -72,6 +72,12 @@
     "date": "First Commit on March 2026"
   },
   {
+    "name": "zappp",
+    "url": "https://github.com/iamovi/zappp",
+    "description": "A lightning-fast static file server CLI with live reload, CSS hot-swap, SPA mode, gzip compression, and zero config. Built to make local web development effortless.",
+    "date": "First Commit on January 2026"
+  },
+  {
     "name": "nychthemeron",
     "url": "https://github.com/iamovi/nychthemeron",
     "description": "(Previously Genjutsu). An open source 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, zero clutter. Built with Supabase and deployed on Vercel.",
