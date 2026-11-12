@@ -148,11 +148,25 @@
     color: var(--paper);
 }
 
-/* Title text shadow: crisp ink drop shadow, eliminates muddy brown halo around serif letters */
+/* Title text shadow: same two-layer "printed ink" offset as the other themes,
+   but in visible greys (the old pure-black shadow vanished on the dark paper) */
 [data-theme="midnight"] .header-top-row h1,
 [data-theme="midnight"] .avatar-section h1,
 [data-theme="midnight"] h1 {
-    text-shadow: 2px 2px 0 #000000 !important;
+    text-shadow: 3px 3px 0 #2c2c36, 4px 4px 0 var(--border-soft) !important;
+}
+
+/* 404 big error code: same fix, keeps its larger offset */
+[data-theme="midnight"] .error-code {
+    text-shadow: 5px 5px 0 #2c2c36, 6px 6px 0 var(--border-soft);
+}
+
+/* Guestbook status + file-clear colours: the light-theme reds/greens are too dark on obsidian */
+[data-theme="midnight"] .gb-status.success { color: #6bbf7a; }
+[data-theme="midnight"] .gb-status.error { color: #cf6679; }
+[data-theme="midnight"] .ct-file-clear:hover {
+    border-color: #cf6679;
+    color: #cf6679;
 }
 
 /* Profile image & skeleton avatar */
@@ -354,7 +368,7 @@
 }
 
 [data-theme="midnight"] .reaction {
-    text-shadow: 3px 3px 0 #000000, 4px 4px 0 var(--ink-faint);
+    text-shadow: 3px 3px 0 #2c2c36, 4px 4px 0 var(--border-soft);
 }
 
 /* ── ADMIN PAGE (MIDNIGHT THEME) ── */
