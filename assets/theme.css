@@ -34,10 +34,11 @@
     --lb-bg: var(--ink);
     --lb-ink: var(--paper);
     --shadow: rgba(0, 0, 0, 0.85);
-    --card-shadow: #000000;
+    --card-shadow: #2c2c36;
+    --border-soft: #5c5d6b;
     --skeleton-base: #1a1a1f;
     --skeleton-shimmer: #2b2b34;
-    --menu-border-left: 1.5px solid var(--ink-faint);
+    --menu-border-left: 1.5px solid var(--border-soft);
     --menu-shadow: -10px 0 30px rgba(0, 0, 0, 0.85);
 }
 
@@ -105,7 +106,7 @@
 
 /* Menu side border & shadow: replaces the thick 8px stark white wall with a refined 1.5px border & dark depth */
 [data-theme="midnight"] .slide-menu {
-    border-left: 1.5px solid var(--ink-faint) !important;
+    border-left: 1.5px solid var(--border-soft) !important;
     box-shadow: none;
 }
 
@@ -114,15 +115,15 @@
 }
 
 [data-theme="midnight"] .menu-header {
-    border-bottom: 1.5px solid var(--ink-faint);
+    border-bottom: 1.5px solid var(--border-soft);
 }
 
 /* Menu links & buttons: clean 1.5px border with dark drop shadow instead of harsh double-white outline */
 [data-theme="midnight"] .menu-link,
 [data-theme="midnight"] .music-button,
 [data-theme="midnight"] .theme-toggle {
-    border: 1.5px solid var(--ink-faint);
-    box-shadow: 2px 2px 0 #000000;
+    border: 1.5px solid var(--border-soft);
+    box-shadow: 2px 2px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .menu-link:hover,
@@ -137,8 +138,8 @@
 
 /* Menu button in top header */
 [data-theme="midnight"] .menu-button {
-    border-color: var(--ink-faint);
-    box-shadow: 2px 2px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 2px 2px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .menu-button:hover {
@@ -157,48 +158,48 @@
 /* Profile image & skeleton avatar */
 [data-theme="midnight"] .profile-image {
     border-color: var(--ink-mid);
-    box-shadow: 4px 4px 0 #000000;
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .profile-image:hover {
-    box-shadow: 6px 6px 0 #000000;
+    box-shadow: 6px 6px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .skeleton-avatar {
-    border-color: var(--ink-faint);
-    box-shadow: 4px 4px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 /* Status banner & visitor counter */
 [data-theme="midnight"] .ovi-status {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
     background: var(--paper-dark);
 }
 
 [data-theme="midnight"] .ovi-status::after {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
 }
 
 [data-theme="midnight"] .visitor-count {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
     background: var(--paper);
 }
 
 /* Search bar bracket and bottom border */
 [data-theme="midnight"] .search-wrap {
-    border-bottom-color: var(--ink-faint);
+    border-bottom-color: var(--border-soft);
 }
 
 /* Waifu joke card & button */
 [data-theme="midnight"] .waifu-panel {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
     background: var(--paper-dark);
-    box-shadow: 5px 5px 0 #000000;
+    box-shadow: 5px 5px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .waifu-reload {
-    border-color: var(--ink-faint);
-    box-shadow: 2px 2px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 2px 2px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .waifu-reload:hover {
@@ -209,19 +210,19 @@
 [data-theme="midnight"] .claude-verdict {
     border-left-color: var(--ink-mid);
     background: var(--paper-dark);
-    box-shadow: 4px 4px 0 #000000;
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 /* Pagination buttons */
 [data-theme="midnight"] .page-btn {
-    border-color: var(--ink-faint);
-    box-shadow: 2px 2px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 2px 2px 0 var(--card-shadow);
 }
 
 /* Reaction buttons */
 [data-theme="midnight"] .reaction-btn {
     background: var(--paper-dark);
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
 }
 
 [data-theme="midnight"] .reaction-btn:hover {
@@ -245,38 +246,38 @@
 
 /* Guestbook form */
 [data-theme="midnight"] .gb-admin-badge {
-    box-shadow: 1px 1px 0 #000000;
+    box-shadow: 1px 1px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .guestbook-form-wrap {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
     background: var(--paper-dark);
 }
 
 [data-theme="midnight"] .guestbook-form-wrap::after {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
 }
 
 /* Settings page cards */
 [data-theme="midnight"] .cursor-card {
-    border-color: var(--ink-faint);
-    box-shadow: 3px 3px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 3px 3px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .cursor-card:hover {
     border-color: var(--ink);
-    box-shadow: 4px 4px 0 #000000;
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 /* Vault thumbnails */
 [data-theme="midnight"] .vault-thumb-cell {
-    border-color: var(--ink-faint);
-    box-shadow: 2px 2px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 2px 2px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .vault-thumb-del {
-    border-color: var(--ink-faint);
-    box-shadow: 1.5px 1.5px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 1.5px 1.5px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .cursor-card.active {
@@ -290,8 +291,8 @@
 [data-theme="midnight"] .post-content pre {
     background: #0d0d10;
     color: #e4e4e7;
-    border-color: var(--ink-faint);
-    box-shadow: 4px 4px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .post-body pre code,
@@ -302,17 +303,17 @@
 [data-theme="midnight"] .post-body th {
     background: var(--paper-dark);
     color: var(--ink);
-    border-bottom: 2px solid var(--ink-faint);
+    border-bottom: 2px solid var(--border-soft);
 }
 
 [data-theme="midnight"] .letter-section {
-    border-color: var(--ink-faint);
-    box-shadow: 4px 4px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .post-body .note,
 [data-theme="midnight"] .post-content code {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
 }
 
 [data-theme="midnight"] .highlight {
@@ -321,20 +322,20 @@
 
 /* ── GAME PAGE (MIDNIGHT THEME) ── */
 [data-theme="midnight"] .card {
-    border-color: var(--ink-faint);
-    box-shadow: 6px 6px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 6px 6px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .card:active {
-    box-shadow: 2px 2px 0 #000000;
+    box-shadow: 2px 2px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] #game-ui .btn,
 [data-theme="midnight"] .btn-row .btn,
 [data-theme="midnight"] .game-over .btn,
 [data-theme="midnight"] .sfx-toggle.btn {
-    border-color: var(--ink-faint);
-    box-shadow: 3px 3px 0 #000000;
+    border-color: var(--border-soft);
+    box-shadow: 3px 3px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] #game-ui .btn:hover,
@@ -360,7 +361,7 @@
 
 /* Box shadow offset */
 [data-theme="midnight"] .box::after {
-    border-color: var(--ink-faint);
+    border-color: var(--border-soft);
 }
 
 /* Base solid button (.btn) in admin */
@@ -383,7 +384,7 @@
 [data-theme="midnight"] .btn-ghost {
     background: transparent !important;
     color: var(--ink-mid) !important;
-    border: 1.5px solid var(--ink-faint) !important;
+    border: 1.5px solid var(--border-soft) !important;
     box-shadow: none !important;
 }
 
@@ -420,7 +421,7 @@
 
 /* Current status sidebar line */
 [data-theme="midnight"] .current-status {
-    border-left-color: var(--ink-faint);
+    border-left-color: var(--border-soft);
 }
 
 /* ── 404 PAGE (MIDNIGHT THEME) ── */
@@ -433,36 +434,36 @@
 }
 
 [data-theme="midnight"] .home-btn {
-    box-shadow: 4px 4px 0 #000000;
+    box-shadow: 4px 4px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .home-btn:hover {
-    box-shadow: 6px 6px 0 var(--ink-faint);
+    box-shadow: 6px 6px 0 var(--border-soft);
 }
 
 /* ── CHATGUYS (MIDNIGHT THEME) ── */
 [data-theme="midnight"] .chat-panel {
-    border-color: var(--ink-faint);
-    box-shadow: 4px 4px 0px #000000;
+    border-color: var(--border-soft);
+    box-shadow: 4px 4px 0px var(--card-shadow);
 }
 
 [data-theme="midnight"] .chat-topbar {
-    border-bottom-color: var(--ink-faint);
+    border-bottom-color: var(--border-soft);
 }
 
 [data-theme="midnight"] .chat-send-wrap {
-    border-top-color: var(--ink-faint);
+    border-top-color: var(--border-soft);
 }
 
 [data-theme="midnight"] .chat-msg-item.own-msg {
     border-color: var(--ink-mid);
-    box-shadow: 3px 3px 0px #000000;
+    box-shadow: 3px 3px 0px var(--card-shadow);
 }
 
 [data-theme="midnight"] .modal-card,
 [data-theme="midnight"] .chatguys-join-card {
-    border-color: var(--ink-faint);
-    box-shadow: 6px 6px 0px #000000;
+    border-color: var(--border-soft);
+    box-shadow: 6px 6px 0px var(--card-shadow);
 }
 
 /* ── SAKURA THEME POLISH ── */
