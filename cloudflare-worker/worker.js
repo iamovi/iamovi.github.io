@@ -242,7 +242,7 @@ Available Commands (5):
     const replyText =
       `🤖 iamovi site bot
 
-I'm the notification bot for iamovi.github.io — Maruf's personal site.
+I'm the notification bot for iamovi.github.io — Ovi's personal site.
 
 Commands:
 🏓 /ping — Health & latency check
