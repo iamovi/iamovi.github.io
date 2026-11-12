@@ -714,7 +714,7 @@
 
             function hasAdminSession() {
                 try {
-                    return !!(localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token') || localStorage.getItem('chatguys_admin_auth'));
+                    return !!localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token');
                 } catch (e) {
                     return false;
                 }
@@ -736,10 +736,6 @@
                         const t = parsed && (parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token));
                         if (t) candidates.push(t);
                     }
-                } catch (e) { }
-                try {
-                    const t2 = localStorage.getItem('chatguys_admin_auth');
-                    if (t2) candidates.push(t2);
                 } catch (e) { }
                 // Prefer a token that hasn't expired; otherwise send the first so the server returns a clear 403
                 return candidates.find(isJwtFresh) || candidates[0] || '';
@@ -780,25 +776,6 @@
                 }
                 const fresh = await adminRefreshPromise;
                 return fresh || current;
-            }
-
-            async function authenticateAdminWithSupabase(email, password) {
-                if (!email || !password) return false;
-                try {
-                    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-                        method: 'POST',
-                        headers: gbHeaders(),
-                        body: JSON.stringify({ email: email.trim(), password: password.trim() })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data && data.access_token) {
-                        try { localStorage.setItem('chatguys_admin_auth', data.access_token); } catch (e) { }
-                        return true;
-                    }
-                    return false;
-                } catch (e) {
-                    return false;
-                }
             }
 
             function timeAgo(dateStr) {
@@ -871,19 +848,10 @@
                     return;
                 }
 
-                if (isRestrictedName(val)) {
-                    // Check if already logged in as admin
-                    if (hasAdminSession()) {
-                        // Already authenticated — allow claim immediately
-                        try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
-                    } else {
-                        // Not logged in — block with a clear message, no credential form
-                        errEl.textContent = '[ 👑 "' + val + '" is a reserved handle. Please login as admin first to use this name. ]';
-                        errEl.style.display = 'block';
-                        return;
-                    }
-                } else {
-                    try { localStorage.removeItem('chatguys_is_admin'); } catch (e) { }
+                if (isRestrictedName(val) && !hasAdminSession()) {
+                    errEl.textContent = '[ 👑 "' + val + '" is a reserved handle. Please login as admin first to use this name. ]';
+                    errEl.style.display = 'block';
+                    return;
                 }
 
                 errEl.style.display = 'none';
@@ -926,19 +894,10 @@
                     return;
                 }
 
-                if (isRestrictedName(val)) {
-                    // Check if already logged in as admin
-                    if (hasAdminSession()) {
-                        // Already authenticated — allow claim immediately
-                        try { localStorage.setItem('chatguys_is_admin', '1'); } catch (e) { }
-                    } else {
-                        // Not logged in — block with a clear message, no credential form
-                        errEl.textContent = '[ 👑 "' + val + '" is a reserved handle. Please login as admin first to use this name. ]';
-                        errEl.style.display = 'block';
-                        return;
-                    }
-                } else {
-                    try { localStorage.removeItem('chatguys_is_admin'); } catch (e) { }
+                if (isRestrictedName(val) && !hasAdminSession()) {
+                    errEl.textContent = '[ 👑 "' + val + '" is a reserved handle. Please login as admin first to use this name. ]';
+                    errEl.style.display = 'block';
+                    return;
                 }
 
                 errEl.style.display = 'none';
