@@ -118,6 +118,32 @@
     playTone({ type: 'sine', freq: 784, endFreq: 1568, vol: 0.06, duration: 0.12, delay: 0.2 });
   };
 
+  window.sfx_themeChange = function (theme) {
+    if (!sfxEnabled) return;
+    try {
+      if (theme === 'sakura') {
+        // Delicate blossom wind chime (high, ethereal pentatonic bells)
+        playTone({ type: 'sine', freq: 880, endFreq: 1174, vol: 0.08, duration: 0.18 });
+        playTone({ type: 'sine', freq: 1318, endFreq: 1568, vol: 0.06, duration: 0.22, delay: 0.06 });
+        playTone({ type: 'sine', freq: 1760, endFreq: 2093, vol: 0.04, duration: 0.25, delay: 0.12 });
+      } else if (theme === 'matcha') {
+        // Warm resonant bamboo / zen temple wood block
+        playTone({ type: 'sine', freq: 440, endFreq: 220, vol: 0.12, duration: 0.15 });
+        playTone({ type: 'sine', freq: 660, endFreq: 330, vol: 0.07, duration: 0.12, delay: 0.04 });
+        playNoise({ vol: 0.06, duration: 0.04, filterFreq: 1800 });
+      } else if (theme === 'midnight') {
+        // Deep cosmic night pulse
+        playTone({ type: 'sawtooth', freq: 220, endFreq: 440, vol: 0.07, duration: 0.18 });
+        playTone({ type: 'sine', freq: 440, endFreq: 880, vol: 0.06, duration: 0.2, delay: 0.08 });
+      } else {
+        // Classic Manga crisp tactile chime
+        playTone({ type: 'sine', freq: 523, endFreq: 784, vol: 0.09, duration: 0.12 });
+        playTone({ type: 'sine', freq: 784, endFreq: 1046, vol: 0.07, duration: 0.14, delay: 0.06 });
+        playNoise({ vol: 0.05, duration: 0.03, filterFreq: 3500 });
+      }
+    } catch (e) {}
+  };
+
   // -- Helpers -----------------------------------------------------------
 
   function updateAllToggleBtns() {
@@ -161,10 +187,12 @@
 
     // Clicks
     document.addEventListener('click', function (e) {
-      const btn = e.target.closest('button, .page-btn, .menu-button, .music-button, .theme-toggle, .waifu-reload');
-      const link = e.target.closest('a');
       const sfxBtn = e.target.closest('.sfx-toggle');
       if (sfxBtn) return; // handled by toggleSfx
+      const themeBtn = e.target.closest('.theme-card');
+      if (themeBtn) return; // handled by selectTheme -> sfx_themeChange
+      const btn = e.target.closest('button, .page-btn, .menu-button, .music-button, .theme-toggle, .waifu-reload');
+      const link = e.target.closest('a');
       if (btn) sfx_click();
       else if (link) sfx_linkClick();
     });

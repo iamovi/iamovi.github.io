@@ -276,6 +276,20 @@
                     <span class="cursor-card-desc">Silver ink on dark charcoal paper. For night owls.</span>
                     <span class="active-badge">[ active ]</span>
                 </button>
+
+                <button class="cursor-card theme-card" data-theme-id="sakura" onclick="selectTheme('sakura')">
+                    <span class="cursor-card-icon"><i class="ri-flower-line"></i></span>
+                    <span class="cursor-card-name">Sakura</span>
+                    <span class="cursor-card-desc">Cherry blossoms & plum ink. Spring tranquility.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
+
+                <button class="cursor-card theme-card" data-theme-id="matcha" onclick="selectTheme('matcha')">
+                    <span class="cursor-card-icon"><i class="ri-leaf-line"></i></span>
+                    <span class="cursor-card-name">Matcha</span>
+                    <span class="cursor-card-desc">Bamboo grove & green tea washi. Edo serenity.</span>
+                    <span class="active-badge">[ active ]</span>
+                </button>
             </div>
         </div>
 
@@ -390,6 +404,7 @@
             window.OviTheme.apply(theme);
             updateThemeCards();
             showToast('theme set to [ ' + theme + ' ]');
+            if (window.sfx_themeChange) window.sfx_themeChange(theme);
         }
 
         // ── Device detection ─────────────────────────────────────────────

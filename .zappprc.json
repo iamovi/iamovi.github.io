@@ -1,0 +1,8 @@
+{
+    "port": 3000,
+    "wait": 150,
+    "ignore": "node_modules/**,.git/**,*.map",
+    "cors": false,
+    "spa": false,
+    "gzip": true
+}
