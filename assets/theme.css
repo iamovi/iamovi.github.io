@@ -113,6 +113,8 @@
     --speed: 0.15s;
     /* Full village backdrop (sky, sun, mountains, houses, windmill, trees, path) */
     --bg-pattern: url("./pixel_nature_scene.svg");
+    /* Translucent parchment sheet over the scene; lower = more village shows through */
+    --sheet: rgba(242, 236, 216, 0.55);
     --lb-bg: var(--paper);
     --lb-ink: var(--ink);
     --shadow: var(--ink);
@@ -718,7 +720,7 @@
 
 /* Readable sheet laid over the scene so body copy stays crisp */
 [data-theme="pixelnature"] .container {
-    background: rgba(242, 236, 216, 0.90);
+    background: var(--sheet);
     border: 2px solid var(--ink);
     box-shadow: 8px 8px 0 var(--card-shadow);
     padding: 26px 24px 34px;
