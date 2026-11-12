@@ -430,7 +430,7 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
 .claude-proof { margin-top:16px; }
 .proof-label { font-size:11px;color:var(--ink-faint);letter-spacing:0.1em;margin-bottom:14px;text-transform:uppercase; }
 .proof-screenshots { display:flex;gap:10px;overflow-x:auto;padding-bottom:8px; }
-.proof-screenshots img { width:160px;flex-shrink:0;border:2px solid var(--ink);opacity:0.9;cursor:pointer;transition:opacity var(--speed),box-shadow var(--speed); }
+.proof-screenshots img { width:160px;height:auto;flex-shrink:0;border:2px solid var(--ink);opacity:0.9;cursor:pointer;transition:opacity var(--speed),box-shadow var(--speed); }
 .proof-screenshots img:hover { opacity:1;box-shadow:4px 4px 0 var(--ink); }
 
 /* ── FOOTER ── */
