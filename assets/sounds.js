@@ -140,6 +140,12 @@
         // Deep cosmic night pulse
         playTone({ type: 'sawtooth', freq: 220, endFreq: 440, vol: 0.07, duration: 0.18 });
         playTone({ type: 'sine', freq: 440, endFreq: 880, vol: 0.06, duration: 0.2, delay: 0.08 });
+      } else if (theme === 'pixelnature') {
+        // Rustling leaves: a soft filtered noise gust with two bright bird chirps on top
+        playNoise({ vol: 0.14, duration: 0.32, filterFreq: 2600 });
+        playNoise({ vol: 0.08, duration: 0.22, filterFreq: 4200, delay: 0.12 });
+        playTone({ type: 'sine', freq: 1568, endFreq: 2093, vol: 0.05, duration: 0.09, delay: 0.06 });
+        playTone({ type: 'sine', freq: 1760, endFreq: 2349, vol: 0.045, duration: 0.1, delay: 0.18 });
       } else {
         // Classic Manga crisp tactile chime
         playTone({ type: 'sine', freq: 523, endFreq: 784, vol: 0.09, duration: 0.12 });

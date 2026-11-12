@@ -102,6 +102,26 @@
     --menu-shadow: -10px 0 30px rgba(15, 56, 15, 0.25);
 }
 
+[data-theme="pixelnature"] {
+    /* Pixel Nature Theme - 8-bit forest: leafy canopy, tall grass, wildflowers & earth on warm parchment */
+    --ink: #1d2b17;
+    --paper: #f2ecd8;
+    --paper-dark: #e0d7b8;
+    --ink-light: #2d4522;
+    --ink-mid: #55703f;
+    --ink-faint: #a3b183;
+    --speed: 0.15s;
+    --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='%232f7d32' fill-opacity='0.5'%3E%3Crect x='6' y='30' width='2' height='14'/%3E%3Crect x='9' y='26' width='2' height='18'/%3E%3Crect x='12' y='32' width='2' height='12'/%3E%3Crect x='30' y='28' width='2' height='16'/%3E%3Crect x='33' y='24' width='2' height='20'/%3E%3Crect x='36' y='31' width='2' height='13'/%3E%3C/g%3E%3Cg fill='%2366bb6a' fill-opacity='0.45'%3E%3Crect x='9' y='26' width='2' height='4'/%3E%3Crect x='33' y='24' width='2' height='4'/%3E%3C/g%3E%3Cg fill='%23f28db2' fill-opacity='0.55'%3E%3Crect x='20' y='17' width='2' height='2'/%3E%3Crect x='20' y='23' width='2' height='2'/%3E%3Crect x='17' y='20' width='2' height='2'/%3E%3Crect x='23' y='20' width='2' height='2'/%3E%3C/g%3E%3Crect x='20' y='20' width='2' height='2' fill='%23f7d94c' fill-opacity='0.7'/%3E%3Cg fill='%23f28db2' fill-opacity='0.5'%3E%3Crect x='41' y='35' width='2' height='2'/%3E%3Crect x='41' y='41' width='2' height='2'/%3E%3Crect x='38' y='38' width='2' height='2'/%3E%3Crect x='44' y='38' width='2' height='2'/%3E%3C/g%3E%3Crect x='41' y='38' width='2' height='2' fill='%23f7d94c' fill-opacity='0.65'/%3E%3C/svg%3E");
+    --lb-bg: var(--paper);
+    --lb-ink: var(--ink);
+    --shadow: var(--ink);
+    --card-shadow: var(--ink);
+    --skeleton-base: var(--paper-dark);
+    --skeleton-shimmer: #e9e0c4;
+    --menu-border-left: 1.5px solid var(--ink);
+    --menu-shadow: -10px 0 30px rgba(29, 43, 23, 0.2);
+}
+
 /* ── MIDNIGHT DARK MODE POLISH ── */
 
 /* Menu side border & shadow: replaces the thick 8px stark white wall with a refined 1.5px border & dark depth */
@@ -681,4 +701,118 @@
 
 [data-theme="gameboy"] * {
     scrollbar-color: #306230 #9bbc0f;
+}
+
+/* ── PIXEL NATURE THEME POLISH ── */
+
+[data-theme="pixelnature"] body {
+    background-size: 48px 48px !important;
+}
+
+[data-theme="pixelnature"] .highlight {
+    background: linear-gradient(180deg, transparent 60%, rgba(67, 160, 71, 0.35) 60%);
+}
+
+[data-theme="pixelnature"] ::selection {
+    background: #d8e7c4;
+    color: #1d2b17;
+}
+
+[data-theme="pixelnature"] .reaction-btn.reacted,
+[data-theme="pixelnature"] .reaction-btn.reacted:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+}
+
+[data-theme="pixelnature"] .reaction-btn.reacted .reaction-count,
+[data-theme="pixelnature"] .reaction-btn.reacted:hover .reaction-count {
+    color: var(--paper);
+    font-weight: bold;
+}
+
+[data-theme="pixelnature"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a5d86e 0%, #4e9a34 50%, #1d5e1c 100%);
+    border: 2px solid rgba(29, 43, 23, 0.2);
+}
+
+[data-theme="pixelnature"] * {
+    scrollbar-color: #4e9a34 rgba(242, 236, 216, 0.5);
+}
+
+/* ── PIXEL NATURE TREE CORNER DECORATION ── */
+[data-theme="pixelnature"] body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: clamp(100px, 14vw, 165px);
+    height: clamp(100px, 14vw, 165px);
+    background-image: url("./pixel_nature_tree.svg");
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    background-size: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.92;
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 600px) {
+    [data-theme="pixelnature"] body::after {
+        width: clamp(75px, 20vw, 95px);
+        height: clamp(75px, 20vw, 95px);
+        opacity: 0.75;
+    }
+}
+
+/* ── PIXEL NATURE FALLING LEAVES ── */
+#pixel-leaves {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 40;
+}
+
+.pixel-leaf {
+    position: absolute;
+    top: -40px;
+    background: linear-gradient(135deg, #a5d86e 0%, #4e9a34 60%, #1d5e1c 100%);
+    border-radius: 0 55% 0 55%;
+    opacity: 0;
+    pointer-events: none;
+    animation: pixelLeafFall var(--dur, 10s) linear infinite;
+    animation-delay: var(--delay, 0s);
+    transform-origin: center center;
+    filter: drop-shadow(0 1px 0 rgba(29, 43, 23, 0.25));
+}
+
+@keyframes pixelLeafFall {
+    0% {
+        top: -40px;
+        transform: translateX(0) rotate(0deg) rotateY(0deg);
+        opacity: 0;
+    }
+    8% { opacity: 0.8; }
+    30% { transform: translateX(-28px) rotate(120deg) rotateY(90deg); }
+    55% { transform: translateX(22px) rotate(250deg) rotateY(180deg); }
+    80% { transform: translateX(-34px) rotate(380deg) rotateY(270deg); }
+    92% { opacity: 0.8; }
+    100% {
+        top: 106vh;
+        transform: translateX(12px) rotate(520deg) rotateY(360deg);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .pixel-leaf:nth-child(even) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #pixel-leaves { display: none !important; }
 }
