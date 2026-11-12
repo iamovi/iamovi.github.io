@@ -1134,12 +1134,25 @@
   };
 
 const NOTIFY_URL = 'https://iamovi-github-io.oviren-human.workers.dev/notify';
-function notifyTelegram(payload) {
+const NOTIFY_MAX_RETRIES = 2;
+function notifyTelegram(payload, attempt) {
+  const tryNo = attempt || 0;
   fetch(NOTIFY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  }).catch(() => {});
+    body: JSON.stringify(payload),
+    keepalive: true
+  })
+    .then(r => {
+      if (!r.ok && tryNo < NOTIFY_MAX_RETRIES) {
+        setTimeout(() => notifyTelegram(payload, tryNo + 1), 800 * (tryNo + 1));
+      }
+    })
+    .catch(() => {
+      if (tryNo < NOTIFY_MAX_RETRIES) {
+        setTimeout(() => notifyTelegram(payload, tryNo + 1), 800 * (tryNo + 1));
+      }
+    });
 }
 
   window.submitContact = function () {
