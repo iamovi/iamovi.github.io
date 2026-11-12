@@ -5,19 +5,5 @@
     "date": "August 2021",
     "tag": "web dev",
     "excerpt": "The beginning of my web development journey. Created on my birthday, August 23, 2021 — a simple website that represents where it all started."
-  },
-  {
-    "title": "Commit Like a Pro",
-    "slug": "commit-like-a-pro",
-    "date": "March 2026",
-    "tag": "git",
-    "excerpt": "Stop writing bad commit messages. A complete conventional commits guide — the standard used by Angular, Vue, Electron, and thousands of open source projects."
-  },
-  {
-    "title": "Dear Brain,",
-    "slug": "dear-brain",
-    "date": "March 2026",
-    "tag": "life",
-    "excerpt": "An open letter to the part of me that's apparently nocturnal, chaotic, and deeply committed to my suffering. 2 AM is not a reflection session. It's sabotage."
   }
 ]

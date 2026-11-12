@@ -14,24 +14,6 @@
     </image>
 
     <item>
-      <title>Dear Brain,</title>
-      <link>https://iamovi.github.io/blog/dear-brain/</link>
-      <guid>https://iamovi.github.io/blog/dear-brain/</guid>
-      <pubDate>Fri, 20 Mar 2026 00:00:00 +0000</pubDate>
-      <description>An open letter to the part of me that's apparently nocturnal, chaotic, and deeply committed to my suffering. 2 AM is not a reflection session. It's sabotage.</description>
-      <media:content url="https://miro.medium.com/v2/resize:fit:720/format:webp/1*QhBUpJIVMn-TIXm7KWanUQ.jpeg" medium="image" />
-      <media:thumbnail url="https://miro.medium.com/v2/resize:fit:720/format:webp/1*QhBUpJIVMn-TIXm7KWanUQ.jpeg" />
-    </item>
-
-    <item>
-      <title>Commit Like a Pro</title>
-      <link>https://iamovi.github.io/blog/commit-like-a-pro/</link>
-      <guid>https://iamovi.github.io/blog/commit-like-a-pro/</guid>
-      <pubDate>Sat, 01 Mar 2026 00:00:00 +0000</pubDate>
-      <description>Stop writing bad commit messages. A complete conventional commits guide — the standard used by Angular, Vue, Electron, and thousands of open source projects.</description>
-    </item>
-
-    <item>
       <title>My First Website</title>
       <link>https://iamovi.github.io/blog/my-first-website/</link>
       <guid>https://iamovi.github.io/blog/my-first-website/</guid>
