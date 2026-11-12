@@ -119,6 +119,8 @@
 
     const isOpening = !menu.classList.contains('open');
 
+    if (isOpening) window.updateAdminMenu();
+
     // Use requestAnimationFrame for smoother animations
     requestAnimationFrame(() => {
       menu.classList.toggle('open');
@@ -791,6 +793,31 @@
       return !!(localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token') || localStorage.getItem('chatguys_admin_auth'));
     } catch (e) { return false; }
   }
+
+  function isAdminLoggedIn() {
+    if (!hasAdminSession()) return false;
+    const token = getAdminToken();
+    return !!token && isJwtFresh(token);
+  }
+
+  window.updateAdminMenu = function () {
+    const section = document.getElementById('admin-menu-section');
+    if (!section) return;
+    section.style.display = isAdminLoggedIn() ? '' : 'none';
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    window.updateAdminMenu();
+    window.addEventListener('focus', window.updateAdminMenu);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) window.updateAdminMenu();
+    });
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'sb-nusyixchzeiplwwmqlbw-auth-token' || e.key === 'chatguys_admin_auth') {
+        window.updateAdminMenu();
+      }
+    });
+  });
 
   function getAdminToken() {
     const candidates = [];
