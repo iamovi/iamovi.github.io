@@ -32,6 +32,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap">
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap"
         rel="stylesheet">
@@ -68,7 +70,7 @@
 
     <div class="avatar-lightbox" id="avatarLightbox" onclick="closeAvatarLightbox()">
         <button class="lightbox-close" onclick="closeAvatarLightbox()" aria-label="Close">×</button>
-        <img src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=2048" alt="avatar preview" class="lightbox-image" onclick="event.stopPropagation()" onerror="this.src='./mainrain.jpg'" />
+        <img src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=2048" alt="avatar preview" class="lightbox-image" loading="lazy" decoding="async" onclick="event.stopPropagation()" onerror="this.src='./mainrain.jpg'" />
     </div>
 
     <div class="avatar-lightbox" id="ssLightbox" onclick="closeSsLightbox()">
@@ -166,7 +168,7 @@
             </div>
 
             <div class="menu-section">
-                <img src="https://ik.imagekit.io/iamovi/nyan_cat.gif" alt="Nyan Cat"
+                <img src="https://ik.imagekit.io/iamovi/nyan_cat.gif" alt="Nyan Cat" loading="lazy" decoding="async"
                     style="width:120px;display:block;margin:0 auto;image-rendering:pixelated;" />
             </div>
 
@@ -177,7 +179,7 @@
 
         <div class="header">
             <div class="avatar-section">
-                <img class="profile-image" alt="avatar" src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=2048" onclick="openAvatarLightbox()" onerror="this.src='./mainrain.jpg'" />
+                <img class="profile-image" alt="avatar" src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=2048" decoding="async" fetchpriority="high" onclick="openAvatarLightbox()" onerror="this.src='./mainrain.jpg'" />
             </div>
             <div class="header-info">
                 <div class="header-top-row">
@@ -215,7 +217,7 @@
                     thinking about edge cases and whether my variable names make sense.
                 </p>
 
-                <img src="./assets/sword.jpg" alt="Sword!!!">
+                <img src="./assets/sword.jpg" alt="Sword!!!" width="720" height="666" loading="lazy" decoding="async">
 
                 <h3>What I Actually Do</h3>
                 <p>I'm a <span class="highlight">hobby programmer</span> specializing in <span
@@ -428,12 +430,12 @@
                 <div class="claude-proof">
                     <p class="proof-label">proof ↓</p>
                     <div class="proof-screenshots">
-                        <img src="./assets/claude-ss-1.png" alt="Claude screenshot 1"
-                            onclick="openSsLightbox(this.src)" />
-                        <img src="./assets/claude-ss-2.png" alt="Claude screenshot 2"
-                            onclick="openSsLightbox(this.src)" />
-                        <img src="./assets/claude-ss-3.png" alt="Claude screenshot 3"
-                            onclick="openSsLightbox(this.src)" />
+                        <img src="./assets/claude-ss-1.png" alt="Claude screenshot 1" width="720" height="1414"
+                            loading="lazy" decoding="async" onclick="openSsLightbox(this.src)" />
+                        <img src="./assets/claude-ss-2.png" alt="Claude screenshot 2" width="720" height="1416"
+                            loading="lazy" decoding="async" onclick="openSsLightbox(this.src)" />
+                        <img src="./assets/claude-ss-3.png" alt="Claude screenshot 3" width="720" height="1413"
+                            loading="lazy" decoding="async" onclick="openSsLightbox(this.src)" />
                     </div>
                 </div>
             </div>
