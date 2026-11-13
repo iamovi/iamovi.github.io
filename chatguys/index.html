@@ -1285,8 +1285,12 @@
             ];
             // Safety net: stop showing the indicator even if no reply ever arrives.
             const BOT_TYPING_MAX_MS = 8000;
+            // While the indicator is up, re-check this often so the reply clears it
+            // right after the Worker's delay instead of at the next 3.5s poll.
+            const BOT_PROMPT_CHECK_MS = 250;
             let botShowTimer = null;
             let botHideTimer = null;
+            let botPromptTimer = null;
             let botAwaitingReply = false;
             // Highest bot message id rendered so far; used to spot the new reply.
             let lastBotMsgId = 0;
@@ -1330,6 +1334,10 @@
                     clearTimeout(botHideTimer);
                     botHideTimer = null;
                 }
+                if (botPromptTimer) {
+                    clearInterval(botPromptTimer);
+                    botPromptTimer = null;
+                }
                 botAwaitingReply = false;
                 hideBotTyping();
             }
@@ -1346,6 +1354,10 @@
                 if (lastBotMsgId > baselineId) return;
                 botAwaitingReply = true;
                 botAwaitingId = baselineId;
+                // The Worker delays its reply; poll quickly while we wait so the
+                // indicator tracks the reply's arrival instead of the next 3.5s tick.
+                if (botPromptTimer) clearInterval(botPromptTimer);
+                botPromptTimer = setInterval(loadChatMessages, BOT_PROMPT_CHECK_MS);
                 if (botShowTimer) return;
                 // Let the sender's own message paint before the bubble appears.
                 botShowTimer = setTimeout(() => {
