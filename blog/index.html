@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog — Hasan Ovi</title>
+
+    <link rel="canonical" href="https://iamovi.github.io/blog/">
+    <meta name="description"
+        content="Writing by Hasan Ovi — a hobby programmer. Notes on building things for the web, and where it all started.">
+    <meta name="author" content="Hasan Ovi">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="Blog — Hasan Ovi">
+    <meta property="og:description"
+        content="Writing by Hasan Ovi — a hobby programmer. Notes on building things for the web, and where it all started.">
+    <meta property="og:image" content="https://iamovi.github.io/assets/plants.png">
+    <meta property="og:url" content="https://iamovi.github.io/blog/">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blog — Hasan Ovi">
+    <meta name="twitter:description"
+        content="Writing by Hasan Ovi — a hobby programmer. Notes on building things for the web, and where it all started.">
+    <meta name="twitter:image" content="https://iamovi.github.io/assets/plants.png">
+
+    <link rel="icon" href="../samurai-jack.png">
+    <link rel="alternate" type="application/rss+xml" title="Hasan Ovi — blog"
+        href="https://iamovi.github.io/feed.xml" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/bar.css">
+    <link rel="stylesheet" href="../assets/theme.css">
+    <script src="../assets/theme.js"></script>
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { overflow-x: hidden; }
+
+        body {
+            background-color: var(--paper);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: var(--ink);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 40px 16px 80px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 48px;
+            border-bottom: 1px solid transparent;
+            transition: color var(--speed), border-color var(--speed);
+        }
+        .back-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+        .page-header {
+            border-bottom: 3px solid var(--ink);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--ink);
+            text-shadow: 3px 3px 0 var(--paper-dark), 4px 4px 0 var(--shadow);
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: var(--ink-mid);
+            margin-top: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .blog-count {
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.08em;
+            margin-top: 14px;
+        }
+
+        .blog-list {
+            list-style: none;
+        }
+
+        .blog-post-item {
+            padding-bottom: 36px;
+            margin-bottom: 36px;
+            border-bottom: 1px dashed var(--ink-faint);
+        }
+        .blog-post-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .blog-post-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .blog-post-date {
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.08em;
+        }
+
+        .blog-post-tag {
+            font-size: 10px;
+            color: var(--ink-mid);
+            border: 1px solid var(--ink-faint);
+            padding: 1px 7px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .blog-post-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+
+        .blog-post-title a {
+            color: var(--ink);
+            text-decoration: none;
+            transition: opacity var(--speed);
+        }
+        .blog-post-title a:hover { opacity: 0.55; }
+
+        .blog-post-excerpt {
+            font-size: 14px;
+            line-height: 1.75;
+            color: var(--ink-mid);
+            margin-bottom: 14px;
+        }
+
+        .blog-post-link {
+            font-size: 12px;
+            color: var(--ink);
+            text-decoration: none;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--ink);
+            padding-bottom: 1px;
+            transition: opacity var(--speed);
+        }
+        .blog-post-link:hover { opacity: 0.55; }
+
+        .page-footer {
+            margin-top: 56px;
+            padding-top: 24px;
+            border-top: 1px solid var(--paper-dark);
+            font-size: 12px;
+            color: var(--ink-faint);
+            letter-spacing: 0.05em;
+        }
+        .page-footer a {
+            color: var(--ink-mid);
+            text-decoration: none;
+            border-bottom: 1px solid var(--ink-faint);
+        }
+        .page-footer a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+        @media (max-width: 600px) {
+            body { padding: 22px 14px 56px; }
+            h1 { font-size: 24px; }
+            .back-link { margin-bottom: 32px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <a href="../" class="back-link">← back to init_ovi</a>
+
+        <div class="page-header">
+            <h1>Blog</h1>
+            <p class="page-subtitle">writing by Hasan Ovi — hobby programmer</p>
+            <p class="blog-count">1 post</p>
+        </div>
+
+        <ul class="blog-list">
+                <li class="blog-post-item">
+                    <div class="blog-post-meta">
+                        <span class="blog-post-date">August 2021</span>
+                        <span class="blog-post-tag">web dev</span>
+                    </div>
+                    <h2 class="blog-post-title">
+                        <a href="./my-first-website/">My First Website</a>
+                    </h2>
+                    <p class="blog-post-excerpt">The beginning of my web development journey. Created on my birthday, August 23, 2021 — a simple website that represents where it all started.</p>
+                    <a class="blog-post-link" href="./my-first-website/">read more →</a>
+                </li>
+        </ul>
+
+        <div class="page-footer">
+            <a href="https://iamovi.github.io/feed.xml">rss feed</a> · built for fun — by Hasan Ovi
+        </div>
+
+    </div>
+    <script src="../assets/sounds.js"></script>
+    <script src="../assets/cursor.js"></script>
+</body>
+
+</html>

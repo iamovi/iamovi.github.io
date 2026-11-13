@@ -467,6 +467,21 @@ li p { margin-top:8px;font-size:14px;color:var(--ink-mid);line-height:1.7; }
     letter-spacing: 0.08em;
 }
 
+.blog-all-link {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--ink-mid);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid transparent;
+    transition: color var(--speed), border-color var(--speed);
+}
+
+.blog-all-link:hover {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+}
+
 .blog-list {
     list-style: none;
     padding: 0;
