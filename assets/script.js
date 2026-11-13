@@ -418,7 +418,10 @@
   }
 
   // PROJECTS — loaded from projects.json
-  function renderProjects(direction = 0) {
+  // `animate` is false for the first paint: scripts/build.py already baked the
+  // same markup into the HTML, so fading in would flash content that is
+  // already on screen.
+  function renderProjects(direction = 0, animate = true) {
     const list = document.getElementById('projects-list');
     if (!list) return;
 
@@ -426,11 +429,7 @@
     totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
     if (currentPage > totalPages) currentPage = totalPages;
 
-    list.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
-    list.style.opacity = '0';
-    list.style.transform = `translateX(${direction > 0 ? '-60px' : direction < 0 ? '60px' : '0'})`;
-
-    setTimeout(() => {
+    const paint = () => {
       const start = (currentPage - 1) * PER_PAGE;
       const slice = filtered.slice(start, start + PER_PAGE);
 
@@ -448,9 +447,25 @@
         loadReactionCounts(slice.map(p => ({ type: 'project', id: slugify(p.name) })));
       }
 
-      document.getElementById('page-indicator').textContent = currentPage + ' / ' + totalPages;
-      document.getElementById('prev-btn').disabled = currentPage === 1;
-      document.getElementById('next-btn').disabled = currentPage === totalPages;
+      const indicator = document.getElementById('page-indicator');
+      if (indicator) indicator.textContent = currentPage + ' / ' + totalPages;
+      const prev = document.getElementById('prev-btn');
+      const next = document.getElementById('next-btn');
+      if (prev) prev.disabled = currentPage === 1;
+      if (next) next.disabled = currentPage === totalPages;
+    };
+
+    if (!animate) {
+      paint();
+      return;
+    }
+
+    list.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    list.style.opacity = '0';
+    list.style.transform = `translateX(${direction > 0 ? '-60px' : direction < 0 ? '60px' : '0'})`;
+
+    setTimeout(() => {
+      paint();
 
       list.style.transition = 'none';
       list.style.opacity = '0';
@@ -476,7 +491,7 @@
     .then(data => {
       projects = data.reverse();
       totalPages = Math.ceil(projects.length / PER_PAGE);
-      renderProjects(0);
+      renderProjects(0, false);
     })
     .catch(err => console.error('Failed to load projects.json', err));
 

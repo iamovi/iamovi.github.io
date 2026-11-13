@@ -4,10 +4,12 @@
     <loc>https://iamovi.github.io/</loc>
     <lastmod>2026-11-12</lastmod>
   </url>
+  <!-- build:blog-urls -->
   <url>
     <loc>https://iamovi.github.io/blog/my-first-website/</loc>
-    <lastmod>2026-11-12</lastmod>
+    <lastmod>2021-08-23</lastmod>
   </url>
+  <!-- /build:blog-urls -->
   <url>
     <loc>https://iamovi.github.io/games/</loc>
     <lastmod>2026-11-12</lastmod>

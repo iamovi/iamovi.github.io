@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /scripts/
+Disallow: /blog/*/content.html
 
 Sitemap: https://iamovi.github.io/sitemap.xml

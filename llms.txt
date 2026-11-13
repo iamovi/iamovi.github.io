@@ -5,10 +5,10 @@
 > occasional blog post. Mainly Node.js and Python.
 
 This is a static site hosted on GitHub Pages. The project and blog lists are
-stored as JSON and rendered in the browser with JavaScript, so they are not
-present in the HTML source of the pages. The JSON files below are the
-authoritative, machine-readable source of truth for that content — prefer them
-over scraping the rendered pages.
+stored as JSON and also baked into the homepage HTML at build time, so the
+full content is readable without JavaScript. The JSON files below remain the
+authoritative, machine-readable source of truth — prefer them over scraping
+the rendered pages.
 
 Projects span CSS and animation libraries, CLI and terminal tools,
 anime-themed desktop and web apps, and small browser games.
@@ -21,7 +21,7 @@ anime-themed desktop and web apps, and small browser games.
 
 ## Blog
 
-- [blog.json](https://iamovi.github.io/blog.json): All posts as JSON. Each entry has `title`, `slug`, `date`, `tag`, and `excerpt`.
+- [blog.json](https://iamovi.github.io/blog.json): All posts as JSON. Each entry has `title`, `slug`, `date`, `tag`, `excerpt`, plus `published` (ISO date), `date_full`, `subtitle` and `description` used to build the post page.
 - [feed.xml](https://iamovi.github.io/feed.xml): RSS feed of the same posts.
 
 Each post has a page at `https://iamovi.github.io/blog/<slug>/`, where `<slug>` is
