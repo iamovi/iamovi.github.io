@@ -31,3 +31,11 @@ Repository-specific notes for AI agents working in this repo.
 
 - Prefer minimal, focused changes. Do not add unrequested files.
 - Keep motion transform-only and honor `prefers-reduced-motion`.
+
+## Layout gotchas
+
+- The game pages (`games/snake`, `games/flappy`, `games/waifu-or-not`) are
+  full-viewport centred flex columns. Do not use `height: 100%; overflow: hidden`
+  on `html, body` there: on short viewports (landscape phones) it clips the
+  controls and makes them unreachable. Use `min-height: 100%; overflow-x: hidden`
+  with `justify-content: safe center` so content scrolls into view instead.
