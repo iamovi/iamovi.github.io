@@ -786,7 +786,9 @@
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
             const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
             const BOT_NAME = 'bot';
-            const BOT_REPLY_DELAY = 500;
+            const BOT_REPLY_DELAY = 1000;
+            // Small pause so the sender's own message paints before the typing bubble shows.
+            const BOT_TYPING_SHOW_DELAY = 150;
 
             let chatPollTimer = null;
             let isFetchingChat = false;
@@ -1080,10 +1082,13 @@
                 if (wrap) wrap.scrollTop = wrap.scrollHeight;
             }
 
-            function loadChatMessages() {
+            function loadChatMessages(onDone) {
                 const container = document.getElementById('chatguys-messages');
                 const loadingEl = document.getElementById('chatguys-loading');
-                if (!container || isFetchingChat) return;
+                if (!container || isFetchingChat) {
+                    if (onDone) onDone();
+                    return;
+                }
 
                 isFetchingChat = true;
                 const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -1140,6 +1145,7 @@
                     })
                     .finally(() => {
                         isFetchingChat = false;
+                        if (onDone) onDone();
                     });
             }
 
@@ -1320,7 +1326,11 @@
             // Queue a reply so a second mention while the bot is typing is not lost.
             function scheduleBotReply(text) {
                 botPendingReplies.push(text);
-                if (!botTypingTimer) drainBotReplies();
+                if (!botTypingTimer) {
+                    // Let the sender's message paint before the bubble appears.
+                    setTimeout(drainBotReplies, BOT_TYPING_SHOW_DELAY);
+                    botTypingTimer = -1;
+                }
             }
 
             function postBotMessage(text) {
@@ -1331,24 +1341,25 @@
                 })
                     .then(r => {
                         if (!r.ok) return;
-                        refreshChatAfterBot();
+                        reloadChatThen(() => setTimeout(scrollChatToBottom, 250));
                     })
                     .catch(() => { })
                     .finally(drainBotReplies);
             }
 
-            // loadChatMessages() bails out while another fetch is in flight, which would
-            // drop this refresh, so retry briefly until the poller is idle.
-            function refreshChatAfterBot() {
+            // loadChatMessages() bails while another fetch is in flight, so wait for the
+            // poller to go idle first; otherwise the reload, and its callback, would be
+            // skipped or fire before the new messages are on screen.
+            function reloadChatThen(onDone) {
                 let tries = 0;
                 const attempt = () => {
                     if (!isFetchingChat) {
                         lastChatSnapshot = '';
-                        loadChatMessages();
-                        setTimeout(scrollChatToBottom, 250);
+                        loadChatMessages(onDone);
                         return;
                     }
                     if (++tries < 12) setTimeout(attempt, 150);
+                    else if (onDone) onDone();
                 };
                 attempt();
             }
@@ -1397,11 +1408,13 @@
                             statusEl.textContent = '';
                             statusEl.className = 'status-msg';
                         }
-                        lastChatSnapshot = '';
-                        loadChatMessages();
-                        setTimeout(scrollChatToBottom, 150);
                         const botReply = getBotReply(message, name);
-                        if (botReply) scheduleBotReply(botReply);
+                        // Show the indicator only after the sender's own message is on screen,
+                        // so the bubble never appears above the message that triggered it.
+                        reloadChatThen(() => {
+                            setTimeout(scrollChatToBottom, 150);
+                            if (botReply) scheduleBotReply(botReply);
+                        });
                     })
                     .catch((err) => {
                         if (statusEl) {
