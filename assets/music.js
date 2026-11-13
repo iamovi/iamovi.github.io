@@ -74,8 +74,9 @@
   function onGesture(ev) {
     disarmGestureResume();
     var t = ev.target;
-    // The floating control decides play vs pause itself; don't double-fire.
-    if (t && t.closest && t.closest('.ovi-music')) return;
+    // Let the music controls handle their own click. Auto-resuming here would
+    // play on pointerdown and then the control's click would pause it again.
+    if (t && t.closest && (t.closest('.ovi-music') || t.closest('.music-button'))) return;
     play();
   }
 
@@ -87,26 +88,21 @@
     document.addEventListener('touchstart', onGesture, { passive: true });
   }
 
+  // `playing` mirrors the element's real state (driven by the play/pause events
+  // below), never an optimistic guess. A blocked autoplay rejects without firing
+  // `play`, so the state stays truthful and the control's first click starts it.
   function play() {
-    if (!audio || playing) return;
-    playing = true;
+    if (!audio) return;
     write(K_ACTIVE, 'true');
     var p = audio.play();
     if (p && typeof p.catch === 'function') {
-      p.catch(function () {
-        playing = false;
-        emit();
-        armGestureResume();
-      });
+      p.catch(function () { armGestureResume(); });
     }
-    save();
   }
 
   function pause() {
-    if (!audio || !playing) return;
-    playing = false;
+    if (!audio) return;
     audio.pause();
-    save();
   }
 
   function toggle() {
@@ -121,11 +117,31 @@
     emit();
   }
 
+  // A refresh (F5 / reload) starts fresh: position back to 0, not playing.
+  // Link navigation reports `navigate`, so cross-page playback is unaffected.
+  function isReload() {
+    try {
+      var entries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+      if (entries && entries[0] && entries[0].type) return entries[0].type === 'reload';
+      if (performance.navigation) return performance.navigation.type === 1;
+    } catch (e) {}
+    return false;
+  }
+
   function init() {
     var savedPos = parseFloat(read(K_POS)) || 0;
     var wasPlaying = read(K_PLAYING) === 'true';
     var savedAt = parseInt(read(K_AT), 10) || 0;
     var active = read(K_ACTIVE) === 'true';
+
+    if (isReload()) {
+      savedPos = 0;
+      wasPlaying = false;
+      savedAt = 0;
+      write(K_POS, '0');
+      write(K_PLAYING, 'false');
+      write(K_AT, '0');
+    }
 
     audio = new Audio(SRC);
     audio.loop = true;
@@ -158,7 +174,8 @@
       if (document.visibilityState === 'hidden') save();
     });
 
-    if (wasPlaying) play(); else emit();
+    if (wasPlaying) play();
+    emit();
   }
 
   function mountFloatingControl() {
