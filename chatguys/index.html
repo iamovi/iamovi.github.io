@@ -331,7 +331,8 @@
             overflow-wrap: anywhere;
         }
 
-        .chat-admin-badge {
+        .chat-admin-badge,
+        .chat-bot-badge {
             font-size: 10px;
             font-weight: 700;
             color: var(--paper);
@@ -340,6 +341,12 @@
             letter-spacing: 0.06em;
             display: inline-block;
             flex-shrink: 0;
+        }
+
+        .chat-msg-item.bot-msg {
+            border-color: var(--ink);
+            border-width: 1.5px;
+            background: color-mix(in srgb, var(--ink) 6%, var(--paper));
         }
 
         .chat-msg-date {
@@ -374,9 +381,55 @@
 
         /* ── SEND BAR ── */
         .chat-send-wrap {
+            position: relative;
             padding: 14px 16px;
             border-top: 1.5px solid var(--ink);
             background: var(--paper);
+        }
+
+        /* ── @MENTION SUGGESTIONS ── */
+        .mention-menu {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: calc(100% - 6px);
+            background: var(--paper);
+            border: 1.5px solid var(--ink);
+            box-shadow: 3px 3px 0px var(--ink);
+            max-height: 190px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+        }
+
+        .mention-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--ink-faint);
+        }
+
+        .mention-item:last-child {
+            border-bottom: none;
+        }
+
+        .mention-item:hover,
+        .mention-item.active {
+            background: color-mix(in srgb, var(--ink) 10%, var(--paper));
+        }
+
+        .mention-item .mention-tag {
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .mention-item .mention-desc {
+            font-size: 11px;
+            color: var(--ink-mid);
+            margin-left: auto;
         }
 
         .chat-info-row {
@@ -515,7 +568,8 @@
                 margin-bottom: 3px;
             }
 
-            .chat-admin-badge {
+            .chat-admin-badge,
+            .chat-bot-badge {
                 font-size: 9px;
                 padding: 1px 3px;
             }
@@ -621,6 +675,8 @@
 
             <!-- SEND FORM -->
             <div class="chat-send-wrap">
+                <div id="chatguys-mention-menu" class="mention-menu" role="listbox"
+                    aria-label="mention suggestions"></div>
                 <div class="form-row" style="margin-top: 0;">
                     <input type="text" id="chatguys-msg-input" class="chat-input" placeholder="type a message..."
                         maxlength="300" autocomplete="off" />
@@ -662,7 +718,8 @@
             const SUPABASE_ANON_KEY = '';
             const CHATGUYS_NICK_KEY = 'chatguys_nickname';
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
-            const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
+            const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
+            const BOT_NAME = 'bot';
 
             let chatPollTimer = null;
             let isFetchingChat = false;
@@ -692,6 +749,7 @@
                 const stripped = clean.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
                 const collapsed = stripped.replace(/[^a-z]/g, '');
                 if (collapsed === 'ovi') return '<span class="chat-admin-badge">[★ OVI]</span> ';
+                if (collapsed === 'bot') return '<span class="chat-bot-badge">[BOT]</span> ';
                 if (['admin', 'administrator', 'moderator', 'mod', 'system'].includes(stripped) || ['admin', 'administrator', 'moderator', 'mod', 'system'].includes(collapsed)) {
                     return '<span class="chat-admin-badge">[★ ADMIN]</span> ';
                 }
@@ -990,8 +1048,9 @@
                             const isAdmin = isRestrictedName(m.name);
                             // Only messages sent under the CURRENT name count as mine
                             const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
+                            const isBot = m.name === BOT_NAME;
                             const badgeHtml = getChatAdminBadge(m.name);
-                            const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '');
+                            const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '');
                             return `
                                 <div class="${cls}">
                                     <div class="chat-msg-meta">
@@ -1014,6 +1073,155 @@
                     .finally(() => {
                         isFetchingChat = false;
                     });
+            }
+
+            // ── @MENTION SUGGESTIONS ──
+            const MENTION_OPTIONS = [
+                { tag: 'bot', desc: 'say hi — replies "hey <your name>"' }
+            ];
+            let mentionMatches = [];
+            let mentionIndex = 0;
+            let mentionStart = -1;
+
+            function hideMentionMenu() {
+                const menu = document.getElementById('chatguys-mention-menu');
+                if (menu) {
+                    menu.style.display = 'none';
+                    menu.innerHTML = '';
+                }
+                mentionMatches = [];
+                mentionIndex = 0;
+                mentionStart = -1;
+            }
+
+            // Returns { query, at } when the caret sits inside an unfinished "@token", else null.
+            function getMentionQuery(value, caret) {
+                const upto = value.slice(0, caret);
+                const at = upto.lastIndexOf('@');
+                if (at === -1) return null;
+                if (at > 0 && !/\s/.test(upto[at - 1])) return null;
+                const query = upto.slice(at + 1);
+                if (/\s/.test(query)) return null;
+                return { query: query, at: at };
+            }
+
+            function renderMentionMenu() {
+                const menu = document.getElementById('chatguys-mention-menu');
+                if (!menu) return;
+                menu.innerHTML = mentionMatches.map((o, i) =>
+                    '<div class="mention-item' + (i === mentionIndex ? ' active' : '') + '"' +
+                    ' data-index="' + i + '" role="option">' +
+                    '<span class="mention-tag">@' + escapeHtml(o.tag) + '</span>' +
+                    '<span class="mention-desc">' + escapeHtml(o.desc) + '</span>' +
+                    '</div>'
+                ).join('');
+                menu.style.display = 'block';
+            }
+
+            function updateMentionMenu() {
+                const input = document.getElementById('chatguys-msg-input');
+                if (!input) return;
+                const caret = input.selectionStart == null ? input.value.length : input.selectionStart;
+                const found = getMentionQuery(input.value, caret);
+                if (!found) {
+                    hideMentionMenu();
+                    return;
+                }
+                const q = found.query.toLowerCase();
+                const matches = MENTION_OPTIONS.filter(o => o.tag.indexOf(q) === 0);
+                if (!matches.length) {
+                    hideMentionMenu();
+                    return;
+                }
+                mentionStart = found.at;
+                mentionMatches = matches;
+                if (mentionIndex >= matches.length) mentionIndex = 0;
+                renderMentionMenu();
+            }
+
+            function applyMention(index) {
+                const input = document.getElementById('chatguys-msg-input');
+                const opt = mentionMatches[index];
+                if (!input || !opt || mentionStart === -1) return;
+                const caret = input.selectionStart == null ? input.value.length : input.selectionStart;
+                const before = input.value.slice(0, mentionStart);
+                const after = input.value.slice(caret);
+                const insert = '@' + opt.tag + ' ';
+                input.value = before + insert + after;
+                const pos = (before + insert).length;
+                try { input.setSelectionRange(pos, pos); } catch (e) { }
+                const chars = document.getElementById('chatguys-chars');
+                if (chars) chars.textContent = input.value.length;
+                hideMentionMenu();
+                input.focus();
+            }
+
+            // Returns true when the key was consumed by the suggestion menu.
+            function handleMentionKeydown(e) {
+                const menu = document.getElementById('chatguys-mention-menu');
+                if (!menu || menu.style.display === 'none' || !mentionMatches.length) return false;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    mentionIndex = (mentionIndex + 1) % mentionMatches.length;
+                    renderMentionMenu();
+                    return true;
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    mentionIndex = (mentionIndex - 1 + mentionMatches.length) % mentionMatches.length;
+                    renderMentionMenu();
+                    return true;
+                }
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    applyMention(mentionIndex);
+                    return true;
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    hideMentionMenu();
+                    return true;
+                }
+                return false;
+            }
+
+            // ── CHATGUYS BOT ──
+
+            // Returns the bot's reply for a message, or null to stay quiet.
+            // Extend this function to teach the bot more replies.
+            function getBotReply(message, senderName) {
+                if (senderName === BOT_NAME) return null;
+                if (!/(^|\s)@bot(\s|$)/i.test(message)) return null;
+                return 'hey ' + senderName;
+            }
+
+            function postBotMessage(text) {
+                fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
+                    method: 'POST',
+                    headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ name: BOT_NAME, message: text, session_id: BOT_NAME })
+                })
+                    .then(r => {
+                        if (!r.ok) return;
+                        refreshChatAfterBot();
+                    })
+                    .catch(() => { });
+            }
+
+            // loadChatMessages() bails out while another fetch is in flight, which would
+            // drop this refresh, so retry briefly until the poller is idle.
+            function refreshChatAfterBot() {
+                let tries = 0;
+                const attempt = () => {
+                    if (!isFetchingChat) {
+                        lastChatSnapshot = '';
+                        loadChatMessages();
+                        setTimeout(scrollChatToBottom, 250);
+                        return;
+                    }
+                    if (++tries < 12) setTimeout(attempt, 150);
+                };
+                attempt();
             }
 
             window.sendChatMessage = function () {
@@ -1063,6 +1271,8 @@
                         lastChatSnapshot = '';
                         loadChatMessages();
                         setTimeout(scrollChatToBottom, 150);
+                        const botReply = getBotReply(message, name);
+                        if (botReply) postBotMessage(botReply);
                     })
                     .catch((err) => {
                         if (statusEl) {
@@ -1087,12 +1297,29 @@
                 if (chatMsgInput) {
                     chatMsgInput.addEventListener('input', () => {
                         if (chatChars) chatChars.textContent = chatMsgInput.value.length;
+                        updateMentionMenu();
+                    });
+                    chatMsgInput.addEventListener('click', updateMentionMenu);
+                    chatMsgInput.addEventListener('blur', () => {
+                        // Delay so a click on a suggestion still registers
+                        setTimeout(hideMentionMenu, 120);
                     });
                     chatMsgInput.addEventListener('keydown', (e) => {
+                        if (handleMentionKeydown(e)) return;
                         if (e.key === 'Enter') {
                             e.preventDefault();
                             sendChatMessage();
                         }
+                    });
+                }
+
+                const mentionMenu = document.getElementById('chatguys-mention-menu');
+                if (mentionMenu) {
+                    mentionMenu.addEventListener('mousedown', (e) => {
+                        const item = e.target.closest('.mention-item');
+                        if (!item) return;
+                        e.preventDefault();
+                        applyMention(parseInt(item.dataset.index, 10) || 0);
                     });
                 }
 
