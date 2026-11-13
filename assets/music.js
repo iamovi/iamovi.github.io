@@ -32,6 +32,7 @@
 
   var audio = null;
   var playing = false;
+  var intent = false; // what the user asked for; survives browser-forced pauses
   var resumePos = 0;
   var subscribers = [];
   var lastSave = 0;
@@ -74,7 +75,10 @@
   function save() {
     if (!audio) return;
     write(K_POS, String(audio.currentTime || 0));
-    write(K_PLAYING, playing ? 'true' : 'false');
+    // Persist the user's intent, not the live flag: the browser fires a pause
+    // while freezing a page for the back/forward cache, and that must not be
+    // mistaken for the user pausing.
+    write(K_PLAYING, intent ? 'true' : 'false');
     write(K_AT, String(Date.now()));
     lastSave = Date.now();
   }
@@ -112,6 +116,7 @@
   // `play`, so the state stays truthful and the control's first click starts it.
   function play() {
     if (!audio) return;
+    intent = true;
     write(K_ACTIVE, 'true');
     var p = audio.play();
     if (p && typeof p.catch === 'function') {
@@ -121,6 +126,7 @@
 
   function pause() {
     if (!audio) return;
+    intent = false;
     audio.pause();
   }
 
@@ -147,6 +153,32 @@
     return false;
   }
 
+  // Re-adopt the saved state onto the already-created audio element. Used when a
+  // page comes back from the back/forward cache: the browser pauses media while
+  // frozen, so without this the restored page would sit silent even though the
+  // session says it should still be playing.
+  function resyncFromStorage() {
+    if (!audio) return;
+    var savedPos = parseFloat(read(K_POS)) || 0;
+    var wasPlaying = read(K_PLAYING) === 'true';
+    var savedAt = parseInt(read(K_AT), 10) || 0;
+    var target = savedPos;
+    if (wasPlaying && savedAt) {
+      target += Math.min((Date.now() - savedAt) / 1000, MAX_GAP);
+    }
+    if (isFinite(audio.duration) && audio.duration) {
+      target = Math.min(target, Math.max(0, audio.duration - 0.5));
+    }
+    resumePos = target; // applied by the loadedmetadata handler if metadata is not ready yet
+    try { audio.currentTime = target; } catch (e) {}
+    if (wasPlaying) {
+      play();
+    } else {
+      intent = false;
+    }
+    emit();
+  }
+
   function init() {
     var savedPos = parseFloat(read(K_POS)) || 0;
     var wasPlaying = read(K_PLAYING) === 'true';
@@ -167,6 +199,7 @@
     audio = new Audio(SRC);
     audio.loop = true;
     audio.preload = (active || wasPlaying) ? 'auto' : 'metadata';
+    intent = wasPlaying;
 
     resumePos = savedPos;
     if (wasPlaying && savedAt) {
@@ -353,11 +386,12 @@
 
   // A page restored from the back/forward cache is a frozen snapshot: this
   // script never re-runs, so it can keep a stale "no control" state from before
-  // the song was first played. Re-check on pageshow and mount if now needed.
+  // the song was first played. Re-check on pageshow, mount if now needed, and
+  // re-adopt the shared playback state (the browser pauses media while frozen).
   window.addEventListener('pageshow', function (ev) {
     if (!ev.persisted) return;
     mountFloatingControl();
-    emit();
+    resyncFromStorage();
   });
 
   if (document.readyState === 'loading') {
