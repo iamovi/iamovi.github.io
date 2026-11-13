@@ -107,7 +107,9 @@
 
         canvas {
             display: block;
-            width: min(92vw, 420px, 74vh);
+            /* Fill the available square: the viewport width, leaving room above
+               for the back link / scoreboard and below for the controls. */
+            width: min(94vw, calc(100vh - 150px), 720px);
             height: auto;
             aspect-ratio: 1 / 1;
             border: 3px solid var(--ink);
@@ -207,37 +209,6 @@
         }
         .sfx-toggle.btn { font-size: 11px; padding: 5px 12px; }
 
-        /* ── TOUCH D-PAD ── */
-        .dpad {
-            margin-top: 16px;
-            display: grid;
-            grid-template-columns: repeat(3, 52px);
-            grid-template-rows: repeat(2, 52px);
-            gap: 8px;
-            justify-content: center;
-        }
-        .dpad-btn {
-            background: transparent;
-            border: 2px solid var(--ink);
-            color: var(--ink);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 18px;
-            line-height: 1;
-            cursor: pointer;
-            box-shadow: 3px 3px 0 var(--ink);
-            transition: background var(--speed), color var(--speed), transform var(--speed), box-shadow var(--speed);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .dpad-btn:hover { background: var(--ink); color: var(--paper); }
-        .dpad-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
-        .dpad-btn:focus-visible { outline: 3px solid var(--ink-mid); outline-offset: 3px; }
-        .dpad-btn[data-dir="up"] { grid-column: 2; grid-row: 1; }
-        .dpad-btn[data-dir="left"] { grid-column: 1; grid-row: 2; }
-        .dpad-btn[data-dir="down"] { grid-column: 2; grid-row: 2; }
-        .dpad-btn[data-dir="right"] { grid-column: 3; grid-row: 2; }
-
         /* Screen-reader only */
         .sr-only {
             position: absolute;
@@ -284,7 +255,7 @@
         <div class="overlay" id="overlay-ready">
             <div class="overlay-card">
                 <h2>Snake</h2>
-                <p>Steer with arrow keys or swipe.<br>Eat the fruit, grow long — walls and your own tail end the run.</p>
+                <p>Steer with arrow keys or swipe.<br>Eat the fruit, grow long — slip off one edge and you reappear on the other. Your own tail still ends the run.</p>
                 <button class="btn" id="start-btn" type="button">[ Start ]</button>
             </div>
         </div>
@@ -313,15 +284,8 @@
     </main>
 
     <div class="controls">
-        <span class="hint">arrows / WASD — steer &nbsp;·&nbsp; R — restart</span>
+        <span class="hint">swipe or arrows / WASD — steer &nbsp;·&nbsp; R — restart</span>
         <button class="sfx-toggle btn" type="button" onclick="toggleSfx()">[ SFX OFF ]</button>
-    </div>
-
-    <div class="dpad" aria-hidden="true">
-        <button class="dpad-btn" type="button" data-dir="up" tabindex="-1">↑</button>
-        <button class="dpad-btn" type="button" data-dir="left" tabindex="-1">←</button>
-        <button class="dpad-btn" type="button" data-dir="down" tabindex="-1">↓</button>
-        <button class="dpad-btn" type="button" data-dir="right" tabindex="-1">→</button>
     </div>
 
     <p class="sr-only" id="live" aria-live="polite"></p>
@@ -374,10 +338,19 @@
 
             // ── Canvas sizing (crisp on high-DPI) ──
             function resize() {
+                // The canvas is drawn at a fixed logical size (COLS*CELL) but
+                // displayed larger, so back the store with the on-screen size
+                // times DPR. Without this the grid is upscaled and looks soft.
+                // clientWidth/Height exclude the border, matching the content box.
                 const dpr = Math.min(window.devicePixelRatio || 1, 3);
-                canvas.width = Math.round(W * dpr);
-                canvas.height = Math.round(H * dpr);
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const w = Math.max(1, Math.round((canvas.clientWidth || W) * dpr));
+                const h = Math.max(1, Math.round((canvas.clientHeight || H) * dpr));
+                if (canvas.width !== w || canvas.height !== h) {
+                    canvas.width = w;
+                    canvas.height = h;
+                }
+                const scale = w / W;
+                ctx.setTransform(scale, 0, 0, scale, 0, 0);
                 draw();
             }
 
@@ -478,27 +451,37 @@
                 if (handled) e.preventDefault();
             }
 
-            // Swipe steering on touch / pointer
+            // Swipe steering. The direction locks in as soon as the drag
+            // clears the threshold, so a flick turns the snake immediately
+            // instead of waiting for the finger to lift.
+            let swipeActive = false;
             let swipeStart = null;
-            const SWIPE_MIN = 24;
+            const SWIPE_MIN = 18;
 
             canvas.addEventListener('pointerdown', function (e) {
                 e.preventDefault();
                 if (state === 'ready') { start(); return; }
+                swipeActive = true;
                 swipeStart = { x: e.clientX, y: e.clientY };
+                if (canvas.setPointerCapture && e.pointerId != null) {
+                    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* not captureable */ }
+                }
             });
 
-            canvas.addEventListener('pointerup', function (e) {
-                if (!swipeStart) return;
+            canvas.addEventListener('pointermove', function (e) {
+                if (!swipeActive || !swipeStart) return;
                 const dx = e.clientX - swipeStart.x;
                 const dy = e.clientY - swipeStart.y;
-                swipeStart = null;
                 if (Math.abs(dx) < SWIPE_MIN && Math.abs(dy) < SWIPE_MIN) return;
                 if (Math.abs(dx) > Math.abs(dy)) queueDir(dx > 0 ? 1 : -1, 0);
                 else queueDir(0, dy > 0 ? 1 : -1);
+                // Re-anchor so a continued drag can chain another turn.
+                swipeStart = { x: e.clientX, y: e.clientY };
             });
 
-            canvas.addEventListener('pointercancel', function () { swipeStart = null; });
+            function endSwipe() { swipeActive = false; swipeStart = null; }
+            canvas.addEventListener('pointerup', endSwipe);
+            canvas.addEventListener('pointercancel', endSwipe);
 
             document.getElementById('start-btn').addEventListener('click', function (e) {
                 e.stopPropagation(); start();
@@ -510,16 +493,6 @@
             overlayReady.addEventListener('click', function (e) {
                 if (e.target.closest('button, a')) return;
                 start();
-            });
-
-            // Touch d-pad (also handy on desktop)
-            const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-            Array.prototype.forEach.call(document.querySelectorAll('.dpad-btn'), function (btn) {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const d = DIRS[btn.getAttribute('data-dir')];
-                    if (d) queueDir(d[0], d[1]);
-                });
             });
 
             window.addEventListener('keydown', onKey);
@@ -541,11 +514,9 @@
                 if (pendingDirs.length) dir = pendingDirs.shift();
 
                 const head = snake[0];
-                const nx = head.x + dir.x;
-                const ny = head.y + dir.y;
-
-                // Walls
-                if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) { gameOver(false); return; }
+                // Torus wrap: leaving one edge brings the head back on the opposite side.
+                const nx = (head.x + dir.x + COLS) % COLS;
+                const ny = (head.y + dir.y + ROWS) % ROWS;
 
                 // Self — the tail cell frees up this tick unless we're growing
                 const willEat = food && nx === food.x && ny === food.y;
