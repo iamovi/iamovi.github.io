@@ -3,8 +3,10 @@
  *
  * Owns the single <audio> element for the whole site. A live audio element
  * cannot survive a full page load, so playback state and position are saved to
- * localStorage and restored on the next page. Browsers block autoplay without a
- * user gesture, so a blocked resume is deferred to the first interaction.
+ * sessionStorage and restored on the next page. sessionStorage lasts for the
+ * browsing session only, so closing the browser clears it; a refresh is cleared
+ * explicitly. Browsers block autoplay without a user gesture, so a blocked
+ * resume is deferred to the first interaction.
  *
  * Pages that already have the in-menu player (the homepage) drive this module
  * instead of getting a floating control.
@@ -23,7 +25,7 @@
   var K_ACTIVE = 'ovi_music_active';
 
   var MAX_GAP = 3;    // seconds of wall clock credited to the page load
-  var SAVE_MS = 1000; // localStorage write throttle
+  var SAVE_MS = 1000; // sessionStorage write throttle
 
   var audio = null;
   var playing = false;
@@ -33,12 +35,15 @@
   var uiTimer = null;
   var gestureArmed = false;
 
+  // sessionStorage, not localStorage: the state should last for the browsing
+  // session (across page navigations) but not past the browser being closed.
+  // A refresh is cleared explicitly in init().
   function read(key) {
-    try { return localStorage.getItem(key); } catch (e) { return null; }
+    try { return sessionStorage.getItem(key); } catch (e) { return null; }
   }
 
   function write(key, val) {
-    try { localStorage.setItem(key, val); } catch (e) {}
+    try { sessionStorage.setItem(key, val); } catch (e) {}
   }
 
   function emit() {
@@ -138,9 +143,11 @@
       savedPos = 0;
       wasPlaying = false;
       savedAt = 0;
+      active = false;
       write(K_POS, '0');
       write(K_PLAYING, 'false');
       write(K_AT, '0');
+      write(K_ACTIVE, 'false');
     }
 
     audio = new Audio(SRC);
