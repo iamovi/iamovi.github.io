@@ -632,6 +632,11 @@
     btn.classList.add('reacted');
     markReacted(type, id, key);
 
+    // little pop on the button that was just clicked
+    btn.classList.remove('reaction-pop');
+    void btn.offsetWidth;
+    btn.classList.add('reaction-pop');
+
     // optimistically update count
     const countEl = document.getElementById('rc-' + type + '-' + id + '-' + key);
     if (countEl) {
