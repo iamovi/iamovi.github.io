@@ -574,16 +574,19 @@
                 padding-top: 10px;
             }
 
+            .chat-topbar {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+
             .chat-user-tag {
                 font-size: 12px;
-                max-width: calc(100% - 110px);
-                overflow: hidden;
+                flex-wrap: wrap;
             }
 
             .chat-handle {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                word-break: break-word;
+                overflow-wrap: anywhere;
             }
 
             .change-name-btn {
