@@ -1,0 +1,39 @@
+name: Bake content
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bake-content
+  cancel-in-progress: true
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Bake projects.json and blog.json into index.html
+        run: python3 scripts/build.py
+
+      - name: Commit if the generated HTML changed
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "index.html is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          # [skip ci] prevents this commit from re-triggering the workflow.
+          git commit -m "chore(build): bake content into index.html [skip ci]"
+          git push

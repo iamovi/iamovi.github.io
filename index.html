@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>init_ovi</title>
+    <title>Hasan Ovi — init_ovi</title>
 
     <meta name="color-scheme" content="dark light">
     <link rel="canonical" href="https://iamovi.github.io/">
@@ -15,14 +15,14 @@
         content="Hasan Ovi, github, portfolio, hobby programmer, developer, nodejs, python, open source">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="Hasan Ovi Info">
+    <meta property="og:title" content="Hasan Ovi — init_ovi">
     <meta property="og:description" content="here you can connect to me, on any social platform.">
     <meta property="og:image" content="https://iamovi.github.io/assets/plants.png">
     <meta property="og:url" content="https://iamovi.github.io">
     <meta property="og:type" content="website">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Hasan Ovi">
+    <meta name="twitter:title" content="Hasan Ovi — init_ovi">
     <meta name="twitter:description" content="here you can connect to me, on any social platform.">
     <meta name="twitter:image" content="https://iamovi.github.io/assets/plants.png">
 
@@ -43,6 +43,14 @@
 
     <link rel="stylesheet" href="./assets/style.css">
     <link rel="stylesheet" href="./assets/theme.css">
+    <noscript>
+        <!-- Without JS the pagination controls do nothing, so show the whole
+             portfolio instead of just the first page. -->
+        <style>
+            #projects-list li:nth-child(n+4){display:list-item !important}
+            .pagination{display:none !important}
+        </style>
+    </noscript>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
     <!-- Scrollbar -->
@@ -71,7 +79,7 @@
 
     <div class="avatar-lightbox" id="avatarLightbox" onclick="closeAvatarLightbox()">
         <button class="lightbox-close" onclick="closeAvatarLightbox()" aria-label="Close">×</button>
-        <img src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=2048" alt="avatar preview" class="lightbox-image" loading="lazy" decoding="async" onclick="event.stopPropagation()" onerror="this.src='./mainrain.jpg'" />
+        <img src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=512" alt="avatar preview" class="lightbox-image" loading="lazy" decoding="async" onclick="event.stopPropagation()" onerror="this.src='./mainrain.jpg'" />
     </div>
 
     <div class="avatar-lightbox" id="ssLightbox" onclick="closeSsLightbox()">
@@ -180,7 +188,7 @@
 
         <div class="header">
             <div class="avatar-section">
-                <img class="profile-image" alt="avatar" src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=2048" decoding="async" fetchpriority="high" onclick="openAvatarLightbox()" onerror="this.src='./mainrain.jpg'" />
+                <img class="profile-image" alt="avatar" src="https://www.gravatar.com/avatar/d959c9ba1ea657201f0f65de3f1f7578662eaeb6b462c1e0f6c4eca06fcd7fc1?s=160" decoding="async" fetchpriority="high" onclick="openAvatarLightbox()" onerror="this.src='./mainrain.jpg'" />
             </div>
             <div class="header-info">
                 <div class="header-top-row">
@@ -333,11 +341,98 @@
                     oninput="filterProjects(this.value)" autocomplete="off" />
                 <span class="search-bracket">]</span>
             </div>
-            <ul id="projects-list"></ul>
+            <ul id="projects-list">
+                <!-- build:projects -->
+                <li>
+                    <h2><a href="https://github.com/iamovi/nychthemeron" target="_blank" rel="noopener noreferrer">nychthemeron</a></h2>
+                    <p>(Previously Genjutsu). An open source 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, zero clutter. Built with Supabase and deployed on Vercel.</p>
+                    <div class="date">First Commit on March 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="nychthemeron"><button class="reaction-btn" onclick="addReaction('project','nychthemeron','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-nychthemeron-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','nychthemeron','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-nychthemeron-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','nychthemeron','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-nychthemeron-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','nychthemeron','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-nychthemeron-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/zappp" target="_blank" rel="noopener noreferrer">zappp</a></h2>
+                    <p>A lightning-fast static file server CLI with live reload, CSS hot-swap, SPA mode, gzip compression, and zero config. Built to make local web development effortless.</p>
+                    <div class="date">First Commit on January 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="zappp"><button class="reaction-btn" onclick="addReaction('project','zappp','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-zappp-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','zappp','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-zappp-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','zappp','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-zappp-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','zappp','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-zappp-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/KeysAndFingers" target="_blank" rel="noopener noreferrer">KeysAndFingers</a></h2>
+                    <p>A glitch-themed typing speed test. Measure your WPM and accuracy, and actually get better at typing — wrapped in a aesthetic that makes practice feel less like a chore.</p>
+                    <div class="date">First Commit on March 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="keysandfingers"><button class="reaction-btn" onclick="addReaction('project','keysandfingers','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-keysandfingers-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','keysandfingers','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-keysandfingers-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','keysandfingers','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-keysandfingers-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','keysandfingers','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-keysandfingers-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/tfish" target="_blank" rel="noopener noreferrer">tfish</a></h2>
+                    <p>A Windows-themed interactive desktop portfolio with a boot sequence, terminal, desktop icons, and customizable wallpapers. Built with React and TypeScript.</p>
+                    <div class="date">First Commit on February 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="tfish"><button class="reaction-btn" onclick="addReaction('project','tfish','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-tfish-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','tfish','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-tfish-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','tfish','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-tfish-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','tfish','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-tfish-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/kooked" target="_blank" rel="noopener noreferrer">kooked</a></h2>
+                    <p>An AI-powered website roaster that delivers brutally honest, hilarious critiques of your landing page and design. Built with Next.js and Supabase.</p>
+                    <div class="date">First Commit on April 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="kooked"><button class="reaction-btn" onclick="addReaction('project','kooked','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-kooked-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','kooked','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-kooked-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','kooked','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-kooked-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','kooked','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-kooked-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/AnimeILikeToWatch" target="_blank" rel="noopener noreferrer">AnimeILikeToWatch</a></h2>
+                    <p>A clean, lightweight anime tracker to manage and discover anime. Keep your watchlists stored locally in your browser with backup and restore support.</p>
+                    <div class="date">First Commit on March 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="animeiliketowatch"><button class="reaction-btn" onclick="addReaction('project','animeiliketowatch','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-animeiliketowatch-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','animeiliketowatch','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-animeiliketowatch-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','animeiliketowatch','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-animeiliketowatch-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','animeiliketowatch','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-animeiliketowatch-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/glitch" target="_blank" rel="noopener noreferrer">glitch</a></h2>
+                    <p>An animated developer portfolio template built with React, Vite, and GSAP. Features smooth transitions, bold styling, and interactive component animations.</p>
+                    <div class="date">First Commit on January 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="glitch"><button class="reaction-btn" onclick="addReaction('project','glitch','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-glitch-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','glitch','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-glitch-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','glitch','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-glitch-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','glitch','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-glitch-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/SwipeWaifu" target="_blank" rel="noopener noreferrer">SwipeWaifu</a></h2>
+                    <p>Discover unlimited anime waifu images — swipe through 30+ categories, save favorites, auto-slide, keyboard shortcuts, PWA support, and a built-in anime fanbase chat. The full package.</p>
+                    <div class="date">First Commit on February 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="swipewaifu"><button class="reaction-btn" onclick="addReaction('project','swipewaifu','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-swipewaifu-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','swipewaifu','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-swipewaifu-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','swipewaifu','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-swipewaifu-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','swipewaifu','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-swipewaifu-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/syswaifu" target="_blank" rel="noopener noreferrer">syswaifu</a></h2>
+                    <p>A Cross-Platform Neofetch-style system info with waifu images in terminal. Built for Linux, macOS, and Windows — shows your system stats alongside a waifu. Because why not make your terminal a little more fun.</p>
+                    <div class="date">First Commit on January 2026</div>
+                    <div class="reaction-bar" data-type="project" data-id="syswaifu"><button class="reaction-btn" onclick="addReaction('project','syswaifu','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-syswaifu-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','syswaifu','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-syswaifu-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','syswaifu','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-syswaifu-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','syswaifu','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-syswaifu-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/AnimeWaifu" target="_blank" rel="noopener noreferrer">AnimeWaifu</a></h2>
+                    <p>My first anime related apps and ecosystem. A collection of tools and scripts built around anime — this is where my obsession with mixing anime and code first started.</p>
+                    <div class="date">First Commit on February 2024</div>
+                    <div class="reaction-bar" data-type="project" data-id="animewaifu"><button class="reaction-btn" onclick="addReaction('project','animewaifu','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-animewaifu-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','animewaifu','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-animewaifu-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','animewaifu','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-animewaifu-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','animewaifu','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-animewaifu-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/ani.css" target="_blank" rel="noopener noreferrer">AniCss</a></h2>
+                    <p>A lightweight CSS library for button and text animations and effects. Plug it in and your elements come alive — no JS needed, just classes.</p>
+                    <div class="date">First Commit on November 2023</div>
+                    <div class="reaction-bar" data-type="project" data-id="anicss"><button class="reaction-btn" onclick="addReaction('project','anicss','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-anicss-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','anicss','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-anicss-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','anicss','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-anicss-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','anicss','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-anicss-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/notAcursor" target="_blank" rel="noopener noreferrer">notAcursor</a></h2>
+                    <p>A library for giving your cursor a cool custom look on web pages. Simple to drop in, and makes any site feel a bit more unique and alive.</p>
+                    <div class="date">First Commit on November 2023</div>
+                    <div class="reaction-bar" data-type="project" data-id="notacursor"><button class="reaction-btn" onclick="addReaction('project','notacursor','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-notacursor-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','notacursor','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-notacursor-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','notacursor','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-notacursor-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','notacursor','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-notacursor-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/button-will-react" target="_blank" rel="noopener noreferrer">Button Will React</a></h2>
+                    <p>A collection of playful button pranks for the web. Buttons that dodge your cursor, buttons that fight back — small silly interactions that make people laugh.</p>
+                    <div class="date">First Commit on October 2023</div>
+                    <div class="reaction-bar" data-type="project" data-id="button-will-react"><button class="reaction-btn" onclick="addReaction('project','button-will-react','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-button-will-react-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','button-will-react','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-button-will-react-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','button-will-react','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-button-will-react-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','button-will-react','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-button-will-react-lol">·</span></button></div>
+                </li>
+                <li>
+                    <h2><a href="https://github.com/iamovi/MyWebJourney" target="_blank" rel="noopener noreferrer">MyWebJourney</a></h2>
+                    <p>I made my first website when I was in high school. It was rough, but it was mine — and it&#x27;s what got me hooked on building things for the web.</p>
+                    <div class="date">Created on August 2023</div>
+                    <div class="reaction-bar" data-type="project" data-id="mywebjourney"><button class="reaction-btn" onclick="addReaction('project','mywebjourney','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-project-mywebjourney-skull">·</span></button><button class="reaction-btn" onclick="addReaction('project','mywebjourney','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-project-mywebjourney-fire">·</span></button><button class="reaction-btn" onclick="addReaction('project','mywebjourney','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-project-mywebjourney-alien">·</span></button><button class="reaction-btn" onclick="addReaction('project','mywebjourney','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-project-mywebjourney-lol">·</span></button></div>
+                </li>
+                <!-- /build:projects -->
+            </ul>
 
             <div class="pagination">
                 <button class="page-btn" id="prev-btn" onclick="changePage(-1)">&#60;</button>
-                <span class="page-indicator" id="page-indicator">1 / 1</span>
+                <span class="page-indicator" id="page-indicator"><!-- build:page-indicator -->1 / 5<!-- /build:page-indicator --></span>
                 <button class="page-btn" id="next-btn" onclick="changePage(1)">&#62;</button>
             </div>
 
@@ -376,11 +471,20 @@
                     <span class="blog-count" id="blog-count"></span>
                 </div>
                 <ul class="blog-list" id="blog-list">
-                    <!-- posts rendered by JS -->
+                    <!-- build:blog -->
+                <li class="blog-post-item">
+                    <div class="blog-post-meta">
+                        <span class="blog-post-date">August 2021</span>
+                        <span class="blog-post-tag">web dev</span>
+                    </div>
+                    <h2 class="blog-post-title">My First Website</h2>
+                    <p class="blog-post-excerpt">The beginning of my web development journey. Created on my birthday, August 23, 2021 — a simple website that represents where it all started.</p>
+                    <a class="blog-post-link" href="./blog/my-first-website/">read more →</a>
+                    <div class="reaction-bar" data-type="blog" data-id="my-first-website"><button class="reaction-btn" onclick="addReaction('blog','my-first-website','skull',this)" title="skull"><span class="reaction-emoji">💀</span><span class="reaction-count" id="rc-blog-my-first-website-skull">·</span></button><button class="reaction-btn" onclick="addReaction('blog','my-first-website','fire',this)" title="fire"><span class="reaction-emoji">🔥</span><span class="reaction-count" id="rc-blog-my-first-website-fire">·</span></button><button class="reaction-btn" onclick="addReaction('blog','my-first-website','alien',this)" title="alien"><span class="reaction-emoji">👾</span><span class="reaction-count" id="rc-blog-my-first-website-alien">·</span></button><button class="reaction-btn" onclick="addReaction('blog','my-first-website','lol',this)" title="lol"><span class="reaction-emoji">[ lol ]</span><span class="reaction-count" id="rc-blog-my-first-website-lol">·</span></button></div>
+                </li>
+                <!-- /build:blog -->
                 </ul>
-                <div class="blog-empty" id="blog-empty" style="display:none;">
-                    [ no posts yet — check back soon ]
-                </div>
+                <!-- build:blog-empty --><!-- /build:blog-empty -->
             </div>
         </div>
 

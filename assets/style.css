@@ -327,6 +327,10 @@ nav a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 ul { list-style:none; }
 li { margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid var(--ink-faint); }
 li:last-child { border-bottom:none; }
+/* All projects are baked into the HTML so non-JS readers can see them; only
+   the first page is shown until script.js takes over. Keep in sync with
+   PER_PAGE in assets/script.js. */
+#projects-list li:nth-child(n+4) { display:none; }
 h2 a {
     font-family:'Noto Serif JP',serif;
     font-size:22px;font-weight:700;color:var(--ink);
