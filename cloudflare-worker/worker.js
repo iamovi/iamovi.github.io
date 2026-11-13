@@ -6,7 +6,7 @@ export default {
     // Allow CORS for all origins
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization, X-Admin-Token',
     };
 
@@ -27,7 +27,7 @@ export default {
     if (request.method === 'POST' && (supabasePath === '/rest/v1/chat_messages' || supabasePath === '/rest/v1/guestbook')) {
       let body;
       try { body = await request.json(); } catch { body = {}; }
-      const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system'];
+      const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
       const nameRaw = String(body.name ?? '').trim();
       const checkName = nameRaw || (supabasePath === '/rest/v1/guestbook' ? 'anon' : '');
       const cleanName = checkName.toLowerCase();
@@ -36,6 +36,14 @@ export default {
       const stripped = cleanName.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
       const collapsed = stripped.replace(/[^a-z]/g, '');
       const isReserved = !checkName || (!isMultiWord && (RESERVED_WORDS.includes(stripped) || RESERVED_WORDS.includes(collapsed)));
+      // 'bot' is never allowed from a client, not even with an admin token: the bot's
+      // replies are written server-side below, so a client posting as 'bot' is an
+      // impersonation attempt. This mirrors the RLS insert policy.
+      const isBotName = !isMultiWord && (stripped === 'bot' || collapsed === 'bot');
+      if (isBotName) return new Response(
+        JSON.stringify({ error: 'reserved_name', message: 'This name is reserved.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
       if (isReserved) {
         // Reserved names are allowed ONLY with a valid admin (Supabase) session token
         const adminToken = request.headers.get('X-Admin-Token') || '';
@@ -69,6 +77,28 @@ export default {
         body: JSON.stringify(body),
       });
       const response = await fetch(supabaseRequest);
+
+        // The bot posts as the reserved name 'bot', so it can only be triggered here,
+        // with the service-role key. Replying server-side (instead of in the browser)
+        // is what lets the 'bot' name stay reserved.
+        if (response.ok && supabasePath === '/rest/v1/chat_messages') {
+          const reply = botReplyFor(body.message, body.name);
+          if (reply) {
+            try {
+              const AUTH_KEY = env.SUPABASE_SERVICE_ROLE_KEY || ANON_KEY;
+              await fetch(SUPABASE_URL + '/rest/v1/chat_messages', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': AUTH_KEY,
+                  'Authorization': 'Bearer ' + AUTH_KEY,
+                  'Prefer': 'return=minimal',
+                },
+                body: JSON.stringify({ name: 'bot', message: reply, session_id: 'bot' }),
+              });
+            } catch { /* the user's message is already saved; a failed reply is not fatal */ }
+          }
+        }
       return new Response(response.body, {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -101,6 +131,19 @@ export default {
     return newResponse;
   },
 };
+
+// Reply for a chat mention of the bot, or null to stay quiet. The client mirrors
+// the mention rule in willTriggerBot() to show its typing indicator, so keep the
+// two in sync when changing how mentions are matched.
+function botReplyFor(message, senderName) {
+  if (String(senderName || '').toLowerCase() === 'bot') return null;
+  const text = String(message || '');
+  // "@bot" at the start or after whitespace; the negative lookahead keeps
+  // "@bothello" and "email@bot.com" from matching.
+  if (!/(^|\s)@bot(?![a-z0-9_])/i.test(text)) return null;
+  const sender = String(senderName || '').trim() || 'there';
+  return 'hey ' + sender;
+}
 
 async function handleNotify(request, env, corsHeaders) {
   const json = (obj, status = 200) =>

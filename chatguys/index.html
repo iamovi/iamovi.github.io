@@ -786,7 +786,6 @@
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
             const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
             const BOT_NAME = 'bot';
-            const BOT_REPLY_DELAY = 1000;
             // Small pause so the sender's own message paints before the typing bubble shows.
             const BOT_TYPING_SHOW_DELAY = 150;
 
@@ -1114,6 +1113,13 @@
                             return;
                         }
                         lastChatSnapshot = snapshot;
+                        // The bot's reply is written by the Worker. Track the newest bot
+                        // message id so a brand-new reply (not an older one) clears the
+                        // optimistic indicator.
+                        const maxBotId = data.reduce((mx, m) => (m.name === BOT_NAME && m.id > mx ? m.id : mx), 0);
+                        if (botAwaitingReply && maxBotId > botAwaitingId) resetBotTyping();
+                        if (maxBotId > lastBotMsgId) lastBotMsgId = maxBotId;
+
 
                         const isAtBottom = isChatScrolledToBottom();
                         const mySessionId = getSessionId();
@@ -1260,6 +1266,10 @@
             }
 
             // ── CHATGUYS BOT ──
+            // The bot's reply is generated and stored server-side by the Cloudflare
+            // Worker (see cloudflare-worker/worker.js), which is what allows the
+            // reserved 'bot' name to stay reserved. The client only shows an
+            // optimistic typing indicator while that reply is on its way.
             const BOT_TYPING_PHRASES = [
                 'computing...',
                 'thinking...',
@@ -1272,19 +1282,23 @@
                 'loading neurons...',
                 'brewing a response...'
             ];
-            let botTypingTimer = null;
+            // Safety net: stop showing the indicator even if no reply ever arrives.
+            const BOT_TYPING_MAX_MS = 8000;
             let botShowTimer = null;
-            const botPendingReplies = [];
+            let botHideTimer = null;
+            let botAwaitingReply = false;
+            // Highest bot message id rendered so far; used to spot the new reply.
+            let lastBotMsgId = 0;
+            let botAwaitingId = 0;
 
-            // Returns the bot's reply for a message, or null to stay quiet.
-            // Extend this function to teach the bot more replies.
-            function getBotReply(message, senderName) {
-                if (senderName === BOT_NAME) return null;
-                // Match "@bot" at the start or after whitespace. The trailing check is a
-                // negative lookahead for a word character so "@bothello" and "email@bot.com"
-                // do not match, while "@bot, hi", "@bot!" and "@bot?" still do.
-                if (!/(^|\s)@bot(?![a-z0-9_])/i.test(message)) return null;
-                return 'hey ' + senderName;
+            // Mirrors the Worker's botReplyFor(): used only to decide whether to show
+            // the optimistic indicator, never to generate the reply text.
+            function willTriggerBot(message, senderName) {
+                if (senderName === BOT_NAME) return false;
+                // "@bot" at the start or after whitespace; the negative lookahead keeps
+                // "@bothello" and "email@bot.com" from matching while "@bot, hi",
+                // "@bot!" and "@bot?" still do.
+                return /(^|\s)@bot(?![a-z0-9_])/i.test(message);
             }
 
             function showBotTyping() {
@@ -1305,57 +1319,35 @@
                 if (el) el.style.display = 'none';
             }
 
+            // Stop waiting for a reply and clear the indicator.
             function resetBotTyping() {
-                if (botTypingTimer) {
-                    clearTimeout(botTypingTimer);
-                    botTypingTimer = null;
-                }
                 if (botShowTimer) {
                     clearTimeout(botShowTimer);
                     botShowTimer = null;
                 }
-                botPendingReplies.length = 0;
+                if (botHideTimer) {
+                    clearTimeout(botHideTimer);
+                    botHideTimer = null;
+                }
+                botAwaitingReply = false;
                 hideBotTyping();
             }
 
-            // Show the indicator, wait, then post the next queued reply.
-            function drainBotReplies() {
-                botShowTimer = null;
-                // A reply is already scheduled or in flight; its own completion will
-                // drain the rest, so re-entering here would post a duplicate/empty reply.
-                if (botTypingTimer) return;
-                if (!botPendingReplies.length) {
-                    hideBotTyping();
-                    return;
-                }
-                showBotTyping();
-                botTypingTimer = setTimeout(() => {
-                    botTypingTimer = null;
-                    postBotMessage(botPendingReplies.shift());
-                }, BOT_REPLY_DELAY);
-            }
-
-            // Queue a reply so a second mention while the bot is typing is not lost.
-            function scheduleBotReply(text) {
-                botPendingReplies.push(text);
-                if (!botTypingTimer && !botShowTimer) {
-                    // Let the sender's message paint before the bubble appears.
-                    botShowTimer = setTimeout(drainBotReplies, BOT_TYPING_SHOW_DELAY);
-                }
-            }
-
-            function postBotMessage(text) {
-                fetch(`${SUPABASE_URL}/rest/v1/chat_messages`, {
-                    method: 'POST',
-                    headers: { ...gbHeaders(), 'Prefer': 'return=minimal' },
-                    body: JSON.stringify({ name: BOT_NAME, message: text, session_id: BOT_NAME })
-                })
-                    .then(r => {
-                        if (!r.ok) return;
-                        reloadChatThen(() => setTimeout(scrollChatToBottom, 250));
-                    })
-                    .catch(() => { })
-                    .finally(drainBotReplies);
+            // Called once a message that mentions the bot is on screen. The reply is
+            // written by the Worker, so we only show the indicator and let the normal
+            // poll clear it when the reply lands (see loadChatMessages).
+            function scheduleBotReply() {
+                botAwaitingReply = true;
+                botAwaitingId = lastBotMsgId;
+                if (botShowTimer) return;
+                // Let the sender's own message paint before the bubble appears.
+                botShowTimer = setTimeout(() => {
+                    botShowTimer = null;
+                    if (!botAwaitingReply) return;
+                    showBotTyping();
+                    if (botHideTimer) clearTimeout(botHideTimer);
+                    botHideTimer = setTimeout(resetBotTyping, BOT_TYPING_MAX_MS);
+                }, BOT_TYPING_SHOW_DELAY);
             }
 
             // loadChatMessages() bails while another fetch is in flight, so wait for the
@@ -1419,12 +1411,12 @@
                             statusEl.textContent = '';
                             statusEl.className = 'status-msg';
                         }
-                        const botReply = getBotReply(message, name);
+                        const botMentioned = willTriggerBot(message, name);
                         // Show the indicator only after the sender's own message is on screen,
                         // so the bubble never appears above the message that triggered it.
                         reloadChatThen(() => {
                             setTimeout(scrollChatToBottom, 150);
-                            if (botReply) scheduleBotReply(botReply);
+                            if (botMentioned) scheduleBotReply();
                         });
                     })
                     .catch((err) => {
