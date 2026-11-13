@@ -951,6 +951,7 @@
             function initChatguysSection() {
                 lastChatSnapshot = '';
                 resetBotTyping();
+                lastBotMsgId = 0;
                 const name = getSavedNickname();
                 const joinView = document.getElementById('chatguys-join-view');
                 const roomView = document.getElementById('chatguys-room-view');
@@ -1336,9 +1337,15 @@
             // Called once a message that mentions the bot is on screen. The reply is
             // written by the Worker, so we only show the indicator and let the normal
             // poll clear it when the reply lands (see loadChatMessages).
-            function scheduleBotReply() {
+            //
+            // baselineId is the newest bot message id from before this send. The Worker
+            // writes the reply before it responds, so the reload that follows usually
+            // already contains it; comparing against the baseline lets us skip the
+            // indicator in that case instead of showing it under an existing reply.
+            function scheduleBotReply(baselineId) {
+                if (lastBotMsgId > baselineId) return;
                 botAwaitingReply = true;
-                botAwaitingId = lastBotMsgId;
+                botAwaitingId = baselineId;
                 if (botShowTimer) return;
                 // Let the sender's own message paint before the bubble appears.
                 botShowTimer = setTimeout(() => {
@@ -1390,6 +1397,9 @@
                     statusEl.className = 'status-msg';
                 }
 
+                // Newest bot reply id before this send; used to tell whether the
+                // reply is already on screen when we reload below.
+                const botBaselineId = lastBotMsgId;
                 const tokenPromise = isRestrictedName(name) ? getFreshAdminToken() : Promise.resolve('');
 
                 tokenPromise.then(tok => {
@@ -1416,7 +1426,7 @@
                         // so the bubble never appears above the message that triggered it.
                         reloadChatThen(() => {
                             setTimeout(scrollChatToBottom, 150);
-                            if (botMentioned) scheduleBotReply();
+                            if (botMentioned) scheduleBotReply(botBaselineId);
                         });
                     })
                     .catch((err) => {
