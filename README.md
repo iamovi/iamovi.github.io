@@ -29,12 +29,16 @@ appears first on the site.
 
 ### Adding a blog post
 
-1. Create `blog/<slug>/content.html` with just the article body (the markup
-   that goes inside `<article class="post-content">`). Copy the shape of
-   `blog/my-first-website/content.html`.
+1. Copy `blog/_template/` to `blog/<slug>/` and replace the placeholder text. The
+   file holds just the article body (the markup that goes inside
+   `<article class="post-content">`). `blog/my-first-website/content.html` is a
+   filled-in example.
 2. Add an entry to `blog.json`.
 3. Push. The build generates `blog/<slug>/index.html`, the feed item and the
    sitemap entry.
+
+`blog/_template/` is never built — the build only reads slugs listed in
+`blog.json`. Do not add `_template` to `blog.json`.
 
 ```json
 {
@@ -64,6 +68,11 @@ These are written by the build and should not be edited by hand:
 - `blog/<slug>/index.html`
 - `feed.xml` — content between `<!-- build:feed-items -->` markers
 - `sitemap.xml` — content between `<!-- build:blog-urls -->` markers
+
+Only blog URLs in `sitemap.xml` are generated. The other entries (`/`, `/games/`,
+the individual game pages, `/chatguys/`) are written by hand — add a new game
+page to `sitemap.xml` yourself. Projects and posts need nothing: projects live on
+the homepage and post URLs are generated.
 
 ### Build failures
 
