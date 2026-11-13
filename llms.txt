@@ -1,0 +1,52 @@
+# Hasan Ovi — init_ovi
+
+> Personal site of Hasan Ovi (init_ovi), a hobby programmer who builds small
+> things for the web: browser games, developer tools, CSS libraries, and the
+> occasional blog post. Mainly Node.js and Python.
+
+This is a static site hosted on GitHub Pages. The project and blog lists are
+stored as JSON and rendered in the browser with JavaScript, so they are not
+present in the HTML source of the pages. The JSON files below are the
+authoritative, machine-readable source of truth for that content — prefer them
+over scraping the rendered pages.
+
+Projects span CSS and animation libraries, CLI and terminal tools,
+anime-themed desktop and web apps, and small browser games.
+
+## Projects
+
+- [projects.json](https://iamovi.github.io/projects.json): All projects as JSON. Each entry has `name`, `url` (the live or GitHub link), `description`, and `date`.
+- [Homepage — projects section](https://iamovi.github.io/): Renders the list above, paginated three per page.
+- [GitHub profile](https://github.com/iamovi): Source code for every project.
+
+## Blog
+
+- [blog.json](https://iamovi.github.io/blog.json): All posts as JSON. Each entry has `title`, `slug`, `date`, `tag`, and `excerpt`.
+- [feed.xml](https://iamovi.github.io/feed.xml): RSS feed of the same posts.
+
+Each post has a page at `https://iamovi.github.io/blog/<slug>/`, where `<slug>` is
+the `slug` field from blog.json. These post pages are static HTML and fully
+readable without JavaScript. The homepage also lists the same posts.
+
+- [My First Website](https://iamovi.github.io/blog/my-first-website/): The story of the first site, created August 2021. `slug`: `my-first-website`.
+
+## Games
+
+- [Game House](https://iamovi.github.io/games/): Index of the browser games.
+
+Each game has a page at `https://iamovi.github.io/games/<name>/`.
+
+- [Snake](https://iamovi.github.io/games/snake/): Steer the snake, eat the fruit, and grow. Edges wrap around; your own tail ends the run.
+- [Flappy](https://iamovi.github.io/games/flappy/): One button, endless pipes. Tap to flap and chase your best.
+- [Waifu or Not?](https://iamovi.github.io/games/waifu-or-not/): Swipe left or right and decide. Ten rounds, one verdict.
+
+## Chat
+
+- [chatguys](https://iamovi.github.io/chatguys/): A public, temporary chat room. Messages are cleared automatically after one week.
+
+## Optional
+
+- [sitemap.xml](https://iamovi.github.io/sitemap.xml): All indexable pages.
+- [robots.txt](https://iamovi.github.io/robots.txt): Crawling rules. `/admin/` is disallowed.
+- [X / Twitter](https://x.com/iamhasanovi): @iamhasanovi
+
