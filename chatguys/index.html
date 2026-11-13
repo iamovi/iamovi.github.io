@@ -1273,13 +1273,17 @@
                 'brewing a response...'
             ];
             let botTypingTimer = null;
+            let botShowTimer = null;
             const botPendingReplies = [];
 
             // Returns the bot's reply for a message, or null to stay quiet.
             // Extend this function to teach the bot more replies.
             function getBotReply(message, senderName) {
                 if (senderName === BOT_NAME) return null;
-                if (!/(^|\s)@bot(\s|$)/i.test(message)) return null;
+                // Match "@bot" at the start or after whitespace. The trailing check is a
+                // negative lookahead for a word character so "@bothello" and "email@bot.com"
+                // do not match, while "@bot, hi", "@bot!" and "@bot?" still do.
+                if (!/(^|\s)@bot(?![a-z0-9_])/i.test(message)) return null;
                 return 'hey ' + senderName;
             }
 
@@ -1306,12 +1310,20 @@
                     clearTimeout(botTypingTimer);
                     botTypingTimer = null;
                 }
+                if (botShowTimer) {
+                    clearTimeout(botShowTimer);
+                    botShowTimer = null;
+                }
                 botPendingReplies.length = 0;
                 hideBotTyping();
             }
 
             // Show the indicator, wait, then post the next queued reply.
             function drainBotReplies() {
+                botShowTimer = null;
+                // A reply is already scheduled or in flight; its own completion will
+                // drain the rest, so re-entering here would post a duplicate/empty reply.
+                if (botTypingTimer) return;
                 if (!botPendingReplies.length) {
                     hideBotTyping();
                     return;
@@ -1326,10 +1338,9 @@
             // Queue a reply so a second mention while the bot is typing is not lost.
             function scheduleBotReply(text) {
                 botPendingReplies.push(text);
-                if (!botTypingTimer) {
+                if (!botTypingTimer && !botShowTimer) {
                     // Let the sender's message paint before the bubble appears.
-                    setTimeout(drainBotReplies, BOT_TYPING_SHOW_DELAY);
-                    botTypingTimer = -1;
+                    botShowTimer = setTimeout(drainBotReplies, BOT_TYPING_SHOW_DELAY);
                 }
             }
 
