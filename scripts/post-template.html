@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{TITLE}} — Hasan Ovi</title>
+
+    <link rel="canonical" href="https://iamovi.github.io/blog/{{SLUG}}/">
+    <link rel="describedby" href="https://iamovi.github.io/llms.txt">
+    <meta name="description"
+        content="{{DESCRIPTION}}">
+    <meta name="author" content="Hasan Ovi">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="{{TITLE}} — Hasan Ovi">
+    <meta property="og:description"
+        content="{{DESCRIPTION}}">
+    <meta property="og:image" content="https://iamovi.github.io/assets/plants.png">
+    <meta property="og:url" content="https://iamovi.github.io/blog/my-first-website/">
+    <meta property="og:type" content="article">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{TITLE}} — Hasan Ovi">
+    <meta name="twitter:description"
+        content="{{DESCRIPTION}}">
+    <meta name="twitter:image" content="https://iamovi.github.io/assets/plants.png">
+
+    <link rel="icon" href="../../samurai-jack.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/bar.css">
+    <link rel="stylesheet" href="../../assets/theme.css">
+    <script src="../../assets/theme.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Variables are loaded from theme.css */
+
+        html, body { overflow-x: hidden; }
+
+        body {
+            background-color: var(--paper);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: var(--ink);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 40px 16px 80px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--ink-mid);
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 48px;
+            border-bottom: 1px solid transparent;
+            transition: color var(--speed), border-color var(--speed);
+        }
+        .back-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+        .post-header {
+            border-bottom: 3px solid var(--ink);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .post-date {
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.08em;
+        }
+
+        .post-tag {
+            font-size: 10px;
+            color: var(--ink-mid);
+            border: 1px solid var(--ink-faint);
+            padding: 1px 7px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .post-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.25;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .post-subtitle {
+            font-size: 13px;
+            color: var(--ink-mid);
+            line-height: 1.6;
+        }
+
+        .post-content {
+            font-size: 14px;
+            line-height: 1.9;
+            color: var(--ink-light);
+        }
+
+        .post-content h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 48px 0 20px;
+            color: var(--ink);
+            border-bottom: 2px solid var(--ink-faint);
+            padding-bottom: 8px;
+        }
+
+        .post-content h3 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 32px 0 16px;
+            color: var(--ink);
+        }
+
+        .post-content p {
+            margin-bottom: 20px;
+        }
+
+        .post-content ul, .post-content ol {
+            margin: 20px 0 20px 24px;
+        }
+
+        .post-content li {
+            margin-bottom: 8px;
+        }
+
+        .post-content a {
+            color: var(--ink);
+            text-decoration: underline;
+            text-decoration-color: var(--ink-faint);
+            transition: text-decoration-color var(--speed);
+        }
+
+        .post-content a:hover {
+            text-decoration-color: var(--ink);
+        }
+
+        .post-content code {
+            background: var(--paper-dark);
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 13px;
+            border: 1px solid var(--ink-faint);
+        }
+
+        .post-content pre {
+            background: var(--paper-dark);
+            padding: 16px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 2px solid var(--ink-faint);
+        }
+
+        .post-content pre code {
+            background: none;
+            padding: 0;
+            border: none;
+        }
+
+        .highlight {
+            background: linear-gradient(180deg, transparent 60%, rgba(26, 15, 0, 0.15) 60%);
+            padding: 0 4px;
+        }
+
+        .external-link {
+            display: inline-block;
+            margin: 32px 0;
+            padding: 12px 20px;
+            background: var(--paper-dark);
+            border: 2px solid var(--ink);
+            color: var(--ink);
+            text-decoration: none;
+            transition: background var(--speed);
+        }
+
+        .external-link:hover {
+            background: var(--ink);
+            color: var(--paper);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="../../" class="back-link">← Back to init_ovi</a>
+
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">{{DATE}}</span>
+                <span class="post-tag">{{TAG}}</span>
+            </div>
+            <h1 class="post-title">{{TITLE}}</h1>
+            <p class="post-subtitle">
+                {{SUBTITLE}}
+            </p>
+        </header>
+
+        <article class="post-content">
+{{CONTENT}}
+        </article>
+    </div>
+    <script src="../../assets/sounds.js"></script>
+    <script src="../../assets/cursor.js"></script>
+</body>
+
+</html>

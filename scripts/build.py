@@ -17,11 +17,17 @@ import html
 import json
 import re
 import sys
+from datetime import date, datetime
+from email.utils import format_datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 INDEX = ROOT / "index.html"
+TEMPLATE = Path(__file__).resolve().parent / "post-template.html"
+FEED = ROOT / "feed.xml"
+SITEMAP = ROOT / "sitemap.xml"
 PER_PAGE = 3  # keep in sync with PER_PAGE in assets/script.js
+SITE = "https://iamovi.github.io"
 
 REACTIONS = [
     ("skull", "\U0001f480"),
@@ -112,13 +118,112 @@ def replace_between(source, marker, body, path):
     return pattern.sub(lambda m: m.group(1) + body + m.group(3), source, count=1)
 
 
+def parse_published(post):
+    """Return a datetime for feed/sitemap, from `published` or `date`."""
+    published = post.get("published")
+    if published:
+        return datetime.strptime(published, "%Y-%m-%d")
+    # Fall back to the display date ("August 2021" / "August 23, 2021").
+    text = str(post.get("date", "")).strip()
+    for fmt in ("%B %d, %Y", "%B %Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(text, fmt)
+        except ValueError:
+            continue
+    sys.exit("error: cannot parse a date for post '%s' (add a 'published' field)" % post.get("slug"))
+
+
+def render_post(post, template):
+    content_file = ROOT / "blog" / post["slug"] / "content.html"
+    if not content_file.exists():
+        sys.exit(
+            "error: blog.json lists '%s' but %s is missing"
+            % (post["slug"], content_file.relative_to(ROOT))
+        )
+
+    values = {
+        "TITLE": esc(post["title"]),
+        "SLUG": esc(post["slug"]),
+        "DATE": esc(post.get("date_full") or post.get("date", "")),
+        "TAG": esc(post.get("tag", "")),
+        "SUBTITLE": esc(post.get("subtitle") or post.get("excerpt", "")),
+        "DESCRIPTION": esc(post.get("description") or post.get("excerpt", "")),
+        "CONTENT": content_file.read_text(encoding="utf-8").rstrip("\n"),
+    }
+
+    page = template
+    for key, value in values.items():
+        page = page.replace("{{%s}}" % key, value)
+
+    leftover = re.findall(r"\{\{[A-Z]+\}\}", page)
+    if leftover:
+        sys.exit("error: unfilled placeholders in post '%s': %s" % (post["slug"], leftover))
+    return page
+
+
+def write_posts(posts):
+    template = TEMPLATE.read_text(encoding="utf-8")
+    written = 0
+    for post in posts:
+        target = ROOT / "blog" / post["slug"] / "index.html"
+        page = render_post(post, template)
+        if not target.exists() or target.read_text(encoding="utf-8") != page:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(page, encoding="utf-8")
+            written += 1
+    return written
+
+
+def write_feed(posts):
+    items = []
+    for post in posts:
+        url = "%s/blog/%s/" % (SITE, post["slug"])
+        items.append(
+            "    <item>\n"
+            "      <title>%s</title>\n"
+            "      <link>%s</link>\n"
+            "      <guid>%s</guid>\n"
+            "      <pubDate>%s</pubDate>\n"
+            "      <description>%s</description>\n"
+            "    </item>"
+            % (
+                esc(post["title"]),
+                url,
+                url,
+                format_datetime(parse_published(post)).replace("-0000", "+0000"),
+                esc(post.get("excerpt", "")),
+            )
+        )
+    source = FEED.read_text(encoding="utf-8")
+    FEED.write_text(replace_between(source, "feed-items", "\n" + "\n".join(items) + "\n\n  ", FEED), encoding="utf-8")
+
+
+def write_sitemap(posts):
+    entries = []
+    for post in posts:
+        entries.append(
+            "  <url>\n"
+            "    <loc>%s/blog/%s/</loc>\n"
+            "    <lastmod>%s</lastmod>\n"
+            "  </url>"
+            % (SITE, post["slug"], parse_published(post).strftime("%Y-%m-%d"))
+        )
+    source = SITEMAP.read_text(encoding="utf-8")
+    SITEMAP.write_text(
+        replace_between(source, "blog-urls", "\n" + "\n".join(entries) + "\n  ", SITEMAP),
+        encoding="utf-8",
+    )
+
+
 def main():
     projects = json.loads((ROOT / "projects.json").read_text(encoding="utf-8"))
     posts = json.loads((ROOT / "blog.json").read_text(encoding="utf-8"))
 
-    # script.js reverses projects.json (data.reverse()); blog.json is used as-is.
+    # script.js reverses both lists (data.reverse()), so the last JSON entry
+    # renders first. Mirror that exactly, otherwise the client re-render would
+    # visibly reorder what the baked HTML already showed.
     projects = list(reversed(projects))
-    posts = sorted(posts, key=lambda p: p.get("date", ""), reverse=True)
+    posts = list(reversed(posts))
 
     total_pages = max(1, -(-len(projects) // PER_PAGE))
 
@@ -150,8 +255,13 @@ def main():
 
     INDEX.write_text(source, encoding="utf-8")
 
+    written = write_posts(posts)
+    write_feed(posts)
+    write_sitemap(posts)
+
     print("  baked %d projects (%d pages)" % (len(projects), total_pages))
     print("  baked %d blog post(s)" % len(posts))
+    print("  wrote %d post page(s), feed.xml, sitemap.xml" % written)
 
 
 if __name__ == "__main__":

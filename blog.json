@@ -3,7 +3,11 @@
     "title": "My First Website",
     "slug": "my-first-website",
     "date": "August 2021",
+    "date_full": "AUGUST 23, 2021",
+    "published": "2021-08-23",
     "tag": "web dev",
-    "excerpt": "The beginning of my web development journey. Created on my birthday, August 23, 2021 — a simple website that represents where it all started."
+    "excerpt": "The beginning of my web development journey. Created on my birthday, August 23, 2021 — a simple website that represents where it all started.",
+    "subtitle": "The beginning of my web development journey. Created on my birthday — a simple website that represents where it all started.",
+    "description": "The story of my very first website — created on my birthday, August 23, 2021, the moment my web development journey began."
   }
 ]

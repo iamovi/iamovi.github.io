@@ -21,7 +21,7 @@ anime-themed desktop and web apps, and small browser games.
 
 ## Blog
 
-- [blog.json](https://iamovi.github.io/blog.json): All posts as JSON. Each entry has `title`, `slug`, `date`, `tag`, and `excerpt`.
+- [blog.json](https://iamovi.github.io/blog.json): All posts as JSON. Each entry has `title`, `slug`, `date`, `tag`, `excerpt`, plus `published` (ISO date), `date_full`, `subtitle` and `description` used to build the post page.
 - [feed.xml](https://iamovi.github.io/feed.xml): RSS feed of the same posts.
 
 Each post has a page at `https://iamovi.github.io/blog/<slug>/`, where `<slug>` is
