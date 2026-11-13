@@ -39,9 +39,12 @@
 
         /* Variables are loaded from theme.css */
 
+        /* Grow with content and allow vertical scrolling so nothing is clipped
+           on short viewports (e.g. landscape phones); only horizontal bleed from
+           the card shadow is hidden. */
         html, body {
-            height: 100%;
-            overflow: hidden;
+            min-height: 100%;
+            overflow-x: hidden;
         }
 
         body {
@@ -53,7 +56,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: safe center;
             min-height: 100vh;
             padding: 20px;
             user-select: none;

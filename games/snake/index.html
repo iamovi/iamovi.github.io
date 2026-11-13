@@ -38,7 +38,10 @@
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        html, body { height: 100%; overflow: hidden; }
+        /* Grow with content and allow vertical scrolling so nothing is clipped
+           on short viewports (e.g. landscape phones); only horizontal bleed from
+           the canvas shadow is hidden. */
+        html, body { min-height: 100%; overflow-x: hidden; }
 
         body {
             background-color: var(--paper);
@@ -49,7 +52,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: safe center;
             min-height: 100vh;
             padding: 20px;
             user-select: none;
