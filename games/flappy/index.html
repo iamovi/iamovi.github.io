@@ -296,7 +296,6 @@
 
             // ── Logical coordinate space (canvas is scaled to fit) ──
             const W = 360, H = 560;
-            const GROUND_H = 70;
             const BIRD_X = 92, BIRD_R = 13;
 
             const GRAVITY = 1500;      // px/s^2
@@ -326,7 +325,7 @@
             let score = 0;
             const storedBest = Number(localStorage.getItem(BEST_KEY));
             let best = Number.isFinite(storedBest) && storedBest > 0 ? storedBest : 0;
-            let bird, pipes, spawnTimer, elapsed, scrollX, shake;
+            let bird, pipes, spawnTimer, elapsed, shake;
             let last = 0, rafId = null;
             let flashUntil = 0;
 
@@ -356,7 +355,6 @@
                 pipes = [];
                 spawnTimer = 0.75;   // small breather before the first pipe
                 elapsed = 0;
-                scrollX = 0;
                 shake = 0;
                 score = 0;
                 scoreNum.textContent = '0';
@@ -450,7 +448,7 @@
 
             // ── Simulation ──
             function spawnPipe() {
-                const maxTop = H - GROUND_H - EDGE_MARGIN - PIPE_GAP;
+                const maxTop = H - EDGE_MARGIN - PIPE_GAP;
                 const top = EDGE_MARGIN + Math.random() * Math.max(1, maxTop - EDGE_MARGIN);
                 pipes.push({ x: W, top: top, scored: false });
             }
@@ -470,7 +468,6 @@
                 spawnTimer -= dt;
                 if (spawnTimer <= 0) { spawnPipe(); spawnTimer = PIPE_EVERY; }
                 for (const p of pipes) p.x -= PIPE_SPEED * dt;
-                scrollX += PIPE_SPEED * dt;
 
                 // Score when the bird clears a pipe
                 for (const p of pipes) {
@@ -488,20 +485,20 @@
 
                 if (shake > 0) shake = Math.max(0, shake - dt * 4);
 
-                // Collisions: ground, ceiling, pipes
-                const hitGround = bird.y + BIRD_R >= H - GROUND_H;
+                // Collisions: ceiling, floor (the canvas bottom edge), and pipes
                 const hitCeiling = bird.y - BIRD_R <= 0;
+                const hitFloor = bird.y + BIRD_R >= H;
                 let hitPipe = false;
                 for (const p of pipes) {
                     if (circleRect(BIRD_X, bird.y, BIRD_R, p.x, 0, PIPE_W, p.top) ||
-                        circleRect(BIRD_X, bird.y, BIRD_R, p.x, p.top + PIPE_GAP, PIPE_W, H - GROUND_H - (p.top + PIPE_GAP))) {
+                        circleRect(BIRD_X, bird.y, BIRD_R, p.x, p.top + PIPE_GAP, PIPE_W, H - (p.top + PIPE_GAP))) {
                         hitPipe = true;
                         break;
                     }
                 }
-                if (hitGround || hitCeiling || hitPipe) {
-                    if (hitGround) bird.y = H - GROUND_H - BIRD_R;
+                if (hitCeiling || hitFloor || hitPipe) {
                     if (hitCeiling) { bird.y = BIRD_R; bird.v = 0; }
+                    if (hitFloor) bird.y = H - BIRD_R;
                     gameOver();
                 }
             }
@@ -532,17 +529,7 @@
                 // Pipes
                 for (const p of pipes) {
                     drawPipe(p.x, 0, PIPE_W, p.top, true);
-                    drawPipe(p.x, p.top + PIPE_GAP, PIPE_W, H - GROUND_H - (p.top + PIPE_GAP), false);
-                }
-
-                // Ground
-                ctx.fillStyle = colors.ink;
-                ctx.fillRect(0, H - GROUND_H, W, GROUND_H);
-                ctx.fillStyle = colors.paperDark;
-                ctx.fillRect(0, H - GROUND_H, W, 5);
-                const stripeOffset = scrollX % 26;
-                for (let x = -26; x < W + 26; x += 26) {
-                    ctx.fillRect(x + stripeOffset, H - GROUND_H + 20, 12, 4);
+                    drawPipe(p.x, p.top + PIPE_GAP, PIPE_W, H - (p.top + PIPE_GAP), false);
                 }
 
                 // Bird
