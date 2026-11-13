@@ -14,7 +14,10 @@ button, input, select, textarea {
 }
 
 /* Variables are now loaded from theme.css */
-body { overflow-x: clip; }
+/* The scrolling element is <html>, so clipping only <body> still lets a child
+   that transiently overflows (the projects list slides ±60px while paginating)
+   flash a horizontal scrollbar. Clip both. */
+html, body { overflow-x: clip; }
 
 body {
     background-color: var(--paper);
@@ -1473,5 +1476,46 @@ input[type="file"]::file-selector-button:hover {
     color: var(--ink-faint);
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+/* ── PROJECTS — SMOOTH MOTION ──
+   Project rows glide up into place whenever the list appears or is re-rendered
+   (entering the projects section, changing page, or searching), nudge on hover,
+   and the controls give press feedback. Motion is transform-only, and the whole
+   block is skipped when the visitor asks for reduced motion. The rows are inside
+   #projects-section, which is display:none until active, so nothing animates
+   while the section is hidden and the baked first paint is covered by the
+   skeleton overlay rather than flashing. */
+@keyframes proj-item-in {
+    from { transform: translateY(14px); }
+    to   { transform: translateY(0); }
+}
+
+#projects-section.active #projects-list > li {
+    animation: proj-item-in 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+#projects-section.active #projects-list > li:nth-child(2) { animation-delay: 0.06s; }
+#projects-section.active #projects-list > li:nth-child(3) { animation-delay: 0.12s; }
+
+#projects-list > li {
+    transition: transform var(--speed) ease, border-color var(--speed) ease;
+}
+#projects-list > li:hover { transform: translateX(4px); border-bottom-color: var(--ink-mid); }
+
+@keyframes reaction-pop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+#projects-list .reaction-btn.reaction-pop { animation: reaction-pop 0.3s ease; }
+
+.page-btn { transition: background var(--speed), color var(--speed), transform 0.12s ease; }
+.page-btn:active:not(:disabled) { transform: translateY(1px) scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+    #projects-section.active #projects-list > li { animation: none; }
+    #projects-list > li:hover { transform: none; }
+    #projects-list .reaction-btn.reaction-pop { animation: none; }
+    .page-btn:active:not(:disabled) { transform: none; }
 }
 
