@@ -263,24 +263,26 @@
         .chat-messages-wrap {
             flex: 1;
             min-height: 0;
-            padding: 20px 24px;
+            padding: 14px 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.015);
         }
 
         #chatguys-messages {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             width: 100%;
         }
 
         .chat-msg-item {
             display: flex;
             flex-direction: column;
-            padding: 6px 10px;
+            padding: 9px 13px;
+            border: 1px solid var(--ink-faint);
+            background: var(--paper);
             max-width: 75%;
             min-width: 120px;
             width: fit-content;
@@ -293,7 +295,10 @@
             align-self: flex-end;
             margin-left: auto;
             margin-right: 0;
-            background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+            border-color: var(--ink);
+            border-width: 1.5px;
+            background: color-mix(in srgb, var(--ink) 8%, var(--paper));
+            box-shadow: 3px 3px 0px var(--ink);
         }
 
         .chat-msg-meta {
@@ -329,7 +334,9 @@
         }
 
         .chat-msg-item.bot-msg {
-            background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+            border-color: var(--ink);
+            border-width: 1.5px;
+            background: color-mix(in srgb, var(--ink) 6%, var(--paper));
         }
 
         /* ── BOT TYPING INDICATOR ── */
@@ -585,13 +592,13 @@
             }
 
             .chat-messages-wrap {
-                padding: 14px 14px;
+                padding: 10px 8px;
             }
 
             .chat-msg-item {
                 max-width: 88%;
                 min-width: 85px;
-                padding: 5px 8px;
+                padding: 7px 9px;
             }
 
             .chat-msg-meta {
