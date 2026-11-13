@@ -82,5 +82,11 @@
     "url": "https://github.com/iamovi/nychthemeron",
     "description": "(Previously Genjutsu). An open source 24-hour social media platform where every post, comment, and message auto-deletes after 24 hours. Developer-focused, zero clutter. Built with Supabase and deployed on Vercel.",
     "date": "First Commit on March 2026"
+  },
+  {
+    "name": "PIPELINE TEST - DELETE ME",
+    "url": "https://github.com/iamovi/pipeline-test-temp",
+    "description": "Temporary entry to verify the bake workflow commits and deploys. Safe to delete.",
+    "date": "Created on November 2026"
   }
 ]
