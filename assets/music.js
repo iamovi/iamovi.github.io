@@ -180,6 +180,7 @@
 
   function mountFloatingControl() {
     if (document.querySelector('.music-button')) return; // homepage menu owns the UI
+    if (document.querySelector('.ovi-music')) return;    // already mounted
     if (read(K_ACTIVE) !== 'true') return;               // never started: nothing to control
 
     var style = document.createElement('style');
@@ -273,6 +274,15 @@
       window.dispatchEvent(new CustomEvent('ovi-music-ready'));
     } catch (e) {}
   }
+
+  // A page restored from the back/forward cache is a frozen snapshot: this
+  // script never re-runs, so it can keep a stale "no control" state from before
+  // the song was first played. Re-check on pageshow and mount if now needed.
+  window.addEventListener('pageshow', function (ev) {
+    if (!ev.persisted) return;
+    mountFloatingControl();
+    emit();
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
