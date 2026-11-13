@@ -5,7 +5,7 @@
   let timerInterval = null;
 
   window.initMusicPlayer = function () {
-    audio = new Audio('https://ik.imagekit.io/iamovi/init_ovi/NEVER_SATISFIED.mp3');
+    audio = new Audio('https://ik.imagekit.io/iamovi/Dr.Dog-Where_d%20All%20The%20Time%20Go.mp3');
     audio.loop = true;
     audio.preload = 'metadata';
 
