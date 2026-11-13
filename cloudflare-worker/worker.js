@@ -1,6 +1,8 @@
+const SUPABASE_ORIGIN = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+
 export default {
-  async fetch(request, env) {
-    const SUPABASE_URL = 'https://nusyixchzeiplwwmqlbw.supabase.co';
+  async fetch(request, env, ctx) {
+    const SUPABASE_URL = SUPABASE_ORIGIN;
     const ANON_KEY = env.SUPABASE_ANON_KEY;
 
     // Allow CORS for all origins
@@ -84,19 +86,12 @@ export default {
         if (response.ok && supabasePath === '/rest/v1/chat_messages') {
           const reply = botReplyFor(body.message, body.name);
           if (reply) {
-            try {
-              const AUTH_KEY = env.SUPABASE_SERVICE_ROLE_KEY || ANON_KEY;
-              await fetch(SUPABASE_URL + '/rest/v1/chat_messages', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'apikey': AUTH_KEY,
-                  'Authorization': 'Bearer ' + AUTH_KEY,
-                  'Prefer': 'return=minimal',
-                },
-                body: JSON.stringify({ name: 'bot', message: reply, session_id: 'bot' }),
-              });
-            } catch { /* the user's message is already saved; a failed reply is not fatal */ }
+              // Do not hold the sender's POST open for the delay; let the reply land a
+              // moment later so the "computing..." indicator has time to show instead
+              // of the reply appearing in the same frame as the message that triggered it.
+              const write = writeBotReply(env, reply);
+              if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(write);
+              else await write;
           }
         }
       return new Response(response.body, {
@@ -131,6 +126,26 @@ export default {
     return newResponse;
   },
 };
+
+// Writes the bot's reply after a short pause. Called via ctx.waitUntil() so the
+// sender's POST is answered immediately and the reply lands a beat later.
+async function writeBotReply(env, reply) {
+  const delay = Number(env.BOT_REPLY_DELAY_MS ?? 1000);
+  if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+  try {
+    const AUTH_KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    await fetch(SUPABASE_ORIGIN + '/rest/v1/chat_messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': AUTH_KEY,
+        'Authorization': 'Bearer ' + AUTH_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ name: 'bot', message: reply, session_id: 'bot' }),
+    });
+  } catch { /* the user's message is already saved; a failed reply is not fatal */ }
+}
 
 // Reply for a chat mention of the bot, or null to stay quiet. The client mirrors
 // the mention rule in willTriggerBot() to show its typing indicator, so keep the
