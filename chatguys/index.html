@@ -349,6 +349,65 @@
             background: color-mix(in srgb, var(--ink) 6%, var(--paper));
         }
 
+        /* ── BOT TYPING INDICATOR ── */
+        .chat-typing {
+            flex-shrink: 0;
+            margin-top: 12px;
+        }
+
+        .chat-typing .chat-msg-text {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--ink-mid);
+            font-style: italic;
+        }
+
+        .chat-typing-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .chat-typing-dots i {
+            width: 4px;
+            height: 4px;
+            background: var(--ink-mid);
+            border-radius: 50%;
+            animation: chat-typing-bounce 1.2s infinite ease-in-out;
+        }
+
+        .chat-typing-dots i:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .chat-typing-dots i:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes chat-typing-bounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+
+            30% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .chat-typing-dots i {
+                animation: none;
+                opacity: 0.7;
+            }
+        }
+
         .chat-msg-date {
             font-size: 10px;
             color: var(--ink-mid);
@@ -671,6 +730,13 @@
             <div class="chat-messages-wrap" id="chatguys-messages-wrap">
                 <div class="chat-loading" id="chatguys-loading">[ connecting to chat... ]</div>
                 <div id="chatguys-messages"></div>
+                <div id="chatguys-typing" class="chat-msg-item bot-msg chat-typing" style="display:none;">
+                    <div class="chat-msg-meta">
+                        <span class="chat-msg-name"><span class="chat-bot-badge">[BOT]</span> bot</span>
+                    </div>
+                    <div class="chat-msg-text"><span id="chatguys-typing-text"></span><span
+                            class="chat-typing-dots"><i></i><i></i><i></i></span></div>
+                </div>
             </div>
 
             <!-- SEND FORM -->
@@ -720,6 +786,7 @@
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
             const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
             const BOT_NAME = 'bot';
+            const BOT_REPLY_DELAY = 500;
 
             let chatPollTimer = null;
             let isFetchingChat = false;
@@ -882,6 +949,7 @@
 
             function initChatguysSection() {
                 lastChatSnapshot = '';
+                resetBotTyping();
                 const name = getSavedNickname();
                 const joinView = document.getElementById('chatguys-join-view');
                 const roomView = document.getElementById('chatguys-room-view');
@@ -1186,6 +1254,20 @@
             }
 
             // ── CHATGUYS BOT ──
+            const BOT_TYPING_PHRASES = [
+                'computing...',
+                'thinking...',
+                'processing...',
+                'calculating...',
+                'analyzing...',
+                'generating reply...',
+                'warming up circuits...',
+                'consulting the archives...',
+                'loading neurons...',
+                'brewing a response...'
+            ];
+            let botTypingTimer = null;
+            const botPendingReplies = [];
 
             // Returns the bot's reply for a message, or null to stay quiet.
             // Extend this function to teach the bot more replies.
@@ -1193,6 +1275,52 @@
                 if (senderName === BOT_NAME) return null;
                 if (!/(^|\s)@bot(\s|$)/i.test(message)) return null;
                 return 'hey ' + senderName;
+            }
+
+            function showBotTyping() {
+                const el = document.getElementById('chatguys-typing');
+                const textEl = document.getElementById('chatguys-typing-text');
+                if (!el) return;
+                const wasAtBottom = isChatScrolledToBottom();
+                if (textEl) {
+                    const phrase = BOT_TYPING_PHRASES[Math.floor(Math.random() * BOT_TYPING_PHRASES.length)];
+                    textEl.textContent = phrase;
+                }
+                el.style.display = 'flex';
+                if (wasAtBottom) scrollChatToBottom();
+            }
+
+            function hideBotTyping() {
+                const el = document.getElementById('chatguys-typing');
+                if (el) el.style.display = 'none';
+            }
+
+            function resetBotTyping() {
+                if (botTypingTimer) {
+                    clearTimeout(botTypingTimer);
+                    botTypingTimer = null;
+                }
+                botPendingReplies.length = 0;
+                hideBotTyping();
+            }
+
+            // Show the indicator, wait, then post the next queued reply.
+            function drainBotReplies() {
+                if (!botPendingReplies.length) {
+                    hideBotTyping();
+                    return;
+                }
+                showBotTyping();
+                botTypingTimer = setTimeout(() => {
+                    botTypingTimer = null;
+                    postBotMessage(botPendingReplies.shift());
+                }, BOT_REPLY_DELAY);
+            }
+
+            // Queue a reply so a second mention while the bot is typing is not lost.
+            function scheduleBotReply(text) {
+                botPendingReplies.push(text);
+                if (!botTypingTimer) drainBotReplies();
             }
 
             function postBotMessage(text) {
@@ -1205,7 +1333,8 @@
                         if (!r.ok) return;
                         refreshChatAfterBot();
                     })
-                    .catch(() => { });
+                    .catch(() => { })
+                    .finally(drainBotReplies);
             }
 
             // loadChatMessages() bails out while another fetch is in flight, which would
@@ -1272,7 +1401,7 @@
                         loadChatMessages();
                         setTimeout(scrollChatToBottom, 150);
                         const botReply = getBotReply(message, name);
-                        if (botReply) postBotMessage(botReply);
+                        if (botReply) scheduleBotReply(botReply);
                     })
                     .catch((err) => {
                         if (statusEl) {
