@@ -9,9 +9,8 @@
  * resume is deferred to the first interaction.
  *
  * Pages that already have the in-menu player (the homepage) drive this module
- * instead of getting a floating control. The floating control can be dragged
- * anywhere; minimizing shrinks it to a compact widget that docks to the nearest
- * screen corner. Position and minimized state are remembered for the session.
+ * instead of getting a floating control. The floating control is a draggable
+ * play/pause pill with a time readout; its position is remembered per session.
  */
 (function () {
   'use strict';
@@ -25,10 +24,8 @@
   var K_PLAYING = 'ovi_music_playing';
   var K_AT = 'ovi_music_saved_at';
   var K_ACTIVE = 'ovi_music_active';
-  var K_MIN = 'ovi_music_min';
   var K_X = 'ovi_music_x';
   var K_Y = 'ovi_music_y';
-  var K_CORNER = 'ovi_music_corner';
 
   var MAX_GAP = 3;    // seconds of wall clock credited to the page load
   var SAVE_MS = 1000; // sessionStorage write throttle
@@ -50,6 +47,17 @@
 
   function write(key, val) {
     try { sessionStorage.setItem(key, val); } catch (e) {}
+  }
+
+  // Seconds to "m:ss" (hours only when needed), for the time readout.
+  function clock(sec) {
+    if (!isFinite(sec) || sec < 0) sec = 0;
+    sec = Math.floor(sec);
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = sec % 60;
+    var mm = (h > 0 && m < 10 ? '0' : '') + m;
+    return (h > 0 ? h + ':' : '') + mm + ':' + (s < 10 ? '0' : '') + s;
   }
 
   function emit() {
@@ -199,39 +207,18 @@
     var style = document.createElement('style');
     style.id = 'ovi-music-style';
     style.textContent = [
-      '.ovi-music{position:fixed;left:14px;bottom:14px;z-index:900;display:flex;align-items:center;gap:10px;',
-      'box-sizing:border-box;width:min(300px,calc(100vw - 28px));',
-      'padding:9px 10px;background:var(--paper);color:var(--ink);border:2px solid var(--ink);',
+      '.ovi-music{position:fixed;left:14px;bottom:14px;z-index:900;display:flex;align-items:center;gap:9px;',
+      'padding:6px 12px 6px 6px;background:var(--paper);color:var(--ink);border:2px solid var(--ink);',
       'box-shadow:3px 3px 0 var(--ink);font-family:\'Share Tech Mono\',monospace;',
-      'touch-action:none;user-select:none;}',
-      '.ovi-music.dragging{opacity:0.9;cursor:grabbing;}',
+      'cursor:grab;touch-action:none;user-select:none;}',
+      '.ovi-music.dragging{cursor:grabbing;opacity:0.9;}',
       '.ovi-music.dragging *{cursor:grabbing;}',
-      '.ovi-music-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;flex:0 0 auto;',
+      '.ovi-music-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 auto;',
       'padding:0;background:transparent;border:2px solid var(--ink);color:var(--ink);cursor:pointer;',
       'transition:background var(--speed),color var(--speed);}',
       '.ovi-music-btn:hover{background:var(--ink);color:var(--paper);}',
-      '.ovi-music-btn svg{width:15px;height:15px;}',
-      '.ovi-music-meta{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:7px;}',
-      '.ovi-music-title{display:block;font-size:11px;letter-spacing:0.02em;color:var(--ink);',
-      'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-      '.ovi-music-track{position:relative;height:7px;background:var(--paper-dark);border:1px solid var(--ink);',
-      'cursor:pointer;}',
-      '.ovi-music-fill{height:100%;width:0%;background:var(--ink);transition:width 0.1s linear;}',
-      '.ovi-music-knob{position:absolute;top:50%;left:0;width:10px;height:10px;margin-left:-5px;background:var(--ink);',
-      'border:1px solid var(--paper);transform:translateY(-50%);pointer-events:none;}',
-      '.ovi-music-min,.ovi-music-expand{display:flex;align-items:center;justify-content:center;width:20px;height:20px;',
-      'flex:0 0 auto;padding:0;background:transparent;border:1px solid var(--ink);color:var(--ink);cursor:pointer;line-height:1;}',
-      '.ovi-music-min:hover,.ovi-music-expand:hover{background:var(--ink);color:var(--paper);}',
-      '.ovi-music-min svg,.ovi-music-expand svg{width:11px;height:11px;}',
-      '.ovi-music-expand{display:none;}',
-      // Minimized: a compact widget docked to a screen corner. The title, seek bar
-      // and minimize button hide; a restore button takes the minimize button's place.
-      '.ovi-music.min{padding:6px;gap:6px;width:auto;}',
-      '.ovi-music.min .ovi-music-meta,.ovi-music.min .ovi-music-min{display:none;}',
-      '.ovi-music.min .ovi-music-expand{display:flex;}',
-      '.ovi-music.min .ovi-music-btn{width:30px;height:30px;}',
-      '@media (max-width:600px){.ovi-music-title{display:none;}}',
-      '@media (prefers-reduced-motion:reduce){.ovi-music-fill{transition:none;}}'
+      '.ovi-music-btn svg{width:14px;height:14px;}',
+      '.ovi-music-time{font-size:12px;letter-spacing:0.02em;white-space:nowrap;color:var(--ink);}'
     ].join('');
 
     var root = document.createElement('div');
@@ -243,34 +230,15 @@
         '<svg class="ovi-ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' +
         '<svg class="ovi-ic-pause" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" fill="currentColor"/></svg>' +
       '</button>' +
-      '<div class="ovi-music-meta">' +
-        '<span class="ovi-music-title"></span>' +
-        '<div class="ovi-music-track" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
-          '<div class="ovi-music-fill"></div>' +
-          '<div class="ovi-music-knob"></div>' +
-        '</div>' +
-      '</div>' +
-      '<button class="ovi-music-min" type="button" aria-label="Minimize player" title="Minimize to corner">' +
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14v2H5z" fill="currentColor"/></svg>' +
-      '</button>' +
-      '<button class="ovi-music-expand" type="button" aria-label="Expand player" title="Expand">' +
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z" fill="currentColor"/></svg>' +
-      '</button>';
-
-    var title = root.querySelector('.ovi-music-title');
-    title.textContent = TITLE;
+      '<span class="ovi-music-time">0:00 / 0:00</span>';
 
     document.head.appendChild(style);
     document.body.appendChild(root);
 
     var btn = root.querySelector('.ovi-music-btn');
-    var track = root.querySelector('.ovi-music-track');
-    var fill = root.querySelector('.ovi-music-fill');
-    var knob = root.querySelector('.ovi-music-knob');
+    var timeEl = root.querySelector('.ovi-music-time');
     var icPlay = root.querySelector('.ovi-ic-play');
     var icPause = root.querySelector('.ovi-ic-pause');
-    var minBtn = root.querySelector('.ovi-music-min');
-    var expandBtn = root.querySelector('.ovi-music-expand');
 
     var MARGIN = 14;
 
@@ -284,58 +252,14 @@
       root.style.bottom = 'auto';
     }
 
-    // The screen corner a coordinate is nearest, as 'tl'/'tr'/'bl'/'br'.
-    function cornerOf(x, y) {
-      var w = root.offsetWidth, h = root.offsetHeight;
-      return (x + w / 2 < window.innerWidth / 2 ? 'l' : 'r') === 'l'
-        ? (y + h / 2 < window.innerHeight / 2 ? 'tl' : 'bl')
-        : (y + h / 2 < window.innerHeight / 2 ? 'tr' : 'br');
-    }
-
-    function cornerPos(c) {
-      var w = root.offsetWidth, h = root.offsetHeight;
-      var x = (c === 'tl' || c === 'bl') ? MARGIN : window.innerWidth - w - MARGIN;
-      var y = (c === 'tl' || c === 'tr') ? MARGIN : window.innerHeight - h - MARGIN;
-      return [x, y];
-    }
-
-    function currentCorner() {
-      var r = root.getBoundingClientRect();
-      return cornerOf(r.left, r.top);
-    }
-
     function savePlace() {
       var r = root.getBoundingClientRect();
       write(K_X, String(Math.round(r.left)));
       write(K_Y, String(Math.round(r.top)));
-      write(K_CORNER, currentCorner());
     }
 
-    function setMin(on) {
-      root.classList.toggle('min', on);
-      write(K_MIN, on ? 'true' : 'false');
-      minBtn.setAttribute('aria-label', 'Minimize player');
-      // Snap into a corner after the size change so the widget always sits flush.
-      requestAnimationFrame(function () {
-        var c = read(K_CORNER) || currentCorner();
-        var p = cornerPos(c);
-        place(p[0], p[1]);
-        savePlace();
-      });
-    }
-
-    // Restore the last position, or the saved corner when minimized.
-    (function restorePlace() {
-      var minimized = read(K_MIN) === 'true';
-      var savedX = read(K_X), savedY = read(K_Y);
-      if (savedX !== null && savedY !== null) {
-        place(parseFloat(savedX), parseFloat(savedY));
-      } else {
-        var c = read(K_CORNER);
-        if (c) { var p = cornerPos(c); place(p[0], p[1]); }
-      }
-      if (minimized) setMin(true);
-    })();
+    var savedX = read(K_X), savedY = read(K_Y);
+    if (savedX !== null && savedY !== null) place(parseFloat(savedX), parseFloat(savedY));
 
     // --- drag ---
     var dragging = false, moved = false, startX = 0, startY = 0, originL = 0, originT = 0;
@@ -343,15 +267,13 @@
 
     function onDown(ev) {
       if (ev.button !== undefined && ev.button !== 0) return;
-      if (ev.target.closest && ev.target.closest('.ovi-music-track')) return; // seek, not drag
       var r = root.getBoundingClientRect();
       dragging = true; moved = false;
       startX = ev.clientX; startY = ev.clientY;
       originL = r.left; originT = r.top;
       root.classList.add('dragging');
-      // No setPointerCapture: it would retarget the following `click` to this
-      // root, so the play/pause and minimize buttons would never fire. Document
-      // listeners below track the drag instead.
+      // No setPointerCapture: it would retarget the following `click` to this root,
+      // so the play/pause button would never fire. Document listeners track instead.
       document.addEventListener('pointermove', onMove, { passive: false });
       document.addEventListener('pointerup', onUp);
       document.addEventListener('pointercancel', onUp);
@@ -374,12 +296,6 @@
       document.removeEventListener('pointerup', onUp);
       document.removeEventListener('pointercancel', onUp);
       if (moved) {
-        // A minimized widget always docks to the nearest corner; the expanded
-        // one keeps exactly where it was dropped.
-        if (root.classList.contains('min')) {
-          var p = cornerPos(currentCorner());
-          place(p[0], p[1]);
-        }
         savePlace();
         // Swallow the click that follows a drag so it doesn't toggle playback.
         root.addEventListener('click', swallow, true);
@@ -389,35 +305,15 @@
 
     function swallow(ev) { ev.stopPropagation(); ev.preventDefault(); }
 
-    // Grab anywhere on the control except the seek bar; buttons stay clickable
-    // because a non-moving press still fires their click.
+    // Grab anywhere on the pill; the button stays clickable because a non-moving
+    // press still fires its click.
     root.addEventListener('pointerdown', onDown);
-
     btn.addEventListener('click', function () { toggle(); });
-    expandBtn.addEventListener('click', function (e) { e.stopPropagation(); setMin(false); });
-    minBtn.addEventListener('click', function (e) { e.stopPropagation(); setMin(true); });
-    track.addEventListener('click', function (e) {
-      var rect = track.getBoundingClientRect();
-      if (rect.width) seek((e.clientX - rect.left) / rect.width);
-    });
-    // Keyboard seek on the focused bar.
-    track.addEventListener('keydown', function (e) {
-      var d = e.key === 'ArrowRight' ? 0.05 : e.key === 'ArrowLeft' ? -0.05 : 0;
-      if (!d || !audio || !audio.duration) return;
-      e.preventDefault();
-      seek((audio.currentTime / audio.duration) + d);
-    });
 
-    // Keep the control on-screen on resize; a minimized widget re-docks to its corner.
+    // Keep the control on-screen when the window is resized.
     window.addEventListener('resize', function () {
-      if (root.classList.contains('min')) {
-        var p = cornerPos(read(K_CORNER) || currentCorner());
-        place(p[0], p[1]);
-      } else {
-        var r = root.getBoundingClientRect();
-        place(r.left, r.top);
-      }
-      savePlace();
+      var r = root.getBoundingClientRect();
+      place(r.left, r.top);
     });
 
     window.OviMusic.onChange(function (s) {
@@ -425,10 +321,7 @@
       btn.setAttribute('aria-label', s.playing ? 'Pause' : 'Play');
       icPlay.style.display = s.playing ? 'none' : 'block';
       icPause.style.display = s.playing ? 'block' : 'none';
-      var pct = s.duration ? (s.currentTime / s.duration) * 100 : 0;
-      fill.style.width = pct + '%';
-      knob.style.left = pct + '%';
-      track.setAttribute('aria-valuenow', s.duration ? Math.round(pct) : 0);
+      timeEl.textContent = clock(s.currentTime) + ' / ' + clock(s.duration);
     });
   }
 
