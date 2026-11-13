@@ -81,7 +81,7 @@
 
         .container {
             width: 100%;
-            max-width: 780px;
+            max-width: 1160px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -91,16 +91,6 @@
         }
 
         /* ── HEADER NAVIGATION ── */
-        .page-nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--ink);
-            flex-shrink: 0;
-        }
-
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -120,11 +110,19 @@
 
         /* ── CHAT TITLE SECTION ── */
         .chat-hero {
-            margin-bottom: 12px;
+            margin-bottom: 0;
             flex-shrink: 0;
         }
 
         .chat-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chat-title-left {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -148,11 +146,7 @@
 
         /* ── JOIN CARD ── */
         .chatguys-join-card {
-            border: 2px solid var(--ink);
-            padding: 24px 20px;
-            background: var(--paper);
-            box-shadow: 4px 4px 0px var(--ink);
-            margin-top: 10px;
+            padding: 18px 0 0;
             position: relative;
             flex-shrink: 0;
         }
@@ -224,20 +218,16 @@
         .chat-panel {
             display: flex;
             flex-direction: column;
-            border: 2px solid var(--ink);
             background: var(--paper);
-            box-shadow: 4px 4px 0px var(--ink);
             flex: 1;
             min-height: 0;
+            padding-top: 12px;
         }
 
         .chat-topbar {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 14px;
-            background: var(--paper);
-            border-bottom: 1.5px solid var(--ink);
+            gap: 12px;
             flex-shrink: 0;
         }
 
@@ -564,11 +554,6 @@
                 padding: 10px 8px;
             }
 
-            .page-nav {
-                margin-bottom: 8px;
-                padding-bottom: 8px;
-            }
-
             .chat-hero {
                 margin-bottom: 8px;
             }
@@ -582,28 +567,26 @@
             }
 
             .chatguys-join-card {
-                padding: 16px 12px;
-                box-shadow: 3px 3px 0px var(--ink);
+                padding: 12px 0 0;
             }
 
             .chat-panel {
-                box-shadow: 3px 3px 0px var(--ink);
+                padding-top: 10px;
             }
 
             .chat-topbar {
-                padding: 8px 10px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
             }
 
             .chat-user-tag {
                 font-size: 12px;
-                max-width: calc(100% - 110px);
-                overflow: hidden;
+                flex-wrap: wrap;
             }
 
             .chat-handle {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                word-break: break-word;
+                overflow-wrap: anywhere;
             }
 
             .change-name-btn {
@@ -689,17 +672,21 @@
 
 <body>
     <div class="container">
-        <!-- TOP NAVIGATION -->
-        <nav class="page-nav">
-            <a href="../" class="back-link">
-                <i class="ri-arrow-left-line"></i> back to init_ovi
-            </a>
-        </nav>
-
-        <!-- TITLE HERO -->
+        <!-- HEADER: back, title, live handle -->
         <header class="chat-hero">
             <div class="chat-title-row">
-                <h1 class="chat-title">[ chatguys ]</h1>
+                <div class="chat-title-left">
+                    <a href="../" class="back-link">
+                        <i class="ri-arrow-left-line"></i> back to init_ovi
+                    </a>
+                    <h1 class="chat-title">[ chatguys ]</h1>
+                </div>
+                <div class="chat-topbar" id="chatguys-header-user" style="display:none;">
+                    <div class="chat-user-tag">
+                        <i class="ri-user-3-line"></i> handle: <span id="chatguys-current-name" class="chat-handle">anon</span>
+                    </div>
+                    <button class="change-name-btn" onclick="openChangeNameModal()">[ change name ]</button>
+                </div>
             </div>
             <p class="chat-sub">public live chatroom — messages are automatically cleared after 1 week.</p>
         </header>
@@ -718,14 +705,6 @@
 
         <!-- CHAT PANEL (Active Chatroom) -->
         <main id="chatguys-room-view" class="chat-panel" style="display:none;">
-            <!-- TOP BAR -->
-            <div class="chat-topbar">
-                <div class="chat-user-tag">
-                    <i class="ri-user-3-line"></i> handle: <span id="chatguys-current-name" class="chat-handle">anon</span>
-                </div>
-                <button class="change-name-btn" onclick="openChangeNameModal()">[ change name ]</button>
-            </div>
-
             <!-- MESSAGES CONTAINER -->
             <div class="chat-messages-wrap" id="chatguys-messages-wrap">
                 <div class="chat-loading" id="chatguys-loading">[ connecting to chat... ]</div>
@@ -957,9 +936,11 @@
                 const roomView = document.getElementById('chatguys-room-view');
                 if (!joinView || !roomView) return;
 
+                const headerUser = document.getElementById('chatguys-header-user');
                 if (name) {
                     joinView.style.display = 'none';
                     roomView.style.display = 'flex';
+                    if (headerUser) headerUser.style.display = 'flex';
                     const handleEl = document.getElementById('chatguys-current-name');
                     if (handleEl) handleEl.textContent = name;
                     purgeOldChatMessages();
@@ -971,6 +952,7 @@
                     stopChatPolling();
                     joinView.style.display = 'block';
                     roomView.style.display = 'none';
+                    if (headerUser) headerUser.style.display = 'none';
                     const joinInput = document.getElementById('chatguys-join-name');
                     if (joinInput) setTimeout(() => joinInput.focus(), 80);
                 }
