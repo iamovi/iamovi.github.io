@@ -1,114 +1,64 @@
 (function () {
-  // Music Player
-  let audio = null;
-  let isPlaying = false;
-  let timerInterval = null;
-
+  // Music Player — playback state lives in assets/music.js so it survives
+  // navigation; this only wires the in-menu UI to that shared module.
   window.initMusicPlayer = function () {
-    audio = new Audio('https://ik.imagekit.io/iamovi/Dr.Dog-Where_d%20All%20The%20Time%20Go.mp3');
-    audio.loop = true;
-    audio.preload = 'metadata';
-
-    audio.addEventListener('ended', function () {
-      isPlaying = false;
-      updatePlayButton();
-      stopTimer();
-    });
-
-    audio.addEventListener('loadedmetadata', function () {
-      updateTimer();
-    });
-
-    audio.addEventListener('timeupdate', function () {
-      updateTimer();
-    });
+    if (window.OviMusic) {
+      wireMenuPlayer();
+    } else {
+      window.addEventListener('ovi-music-ready', wireMenuPlayer, { once: true });
+    }
   };
 
-  // Initialize audio on page load to preload metadata
+  function wireMenuPlayer() {
+    if (!window.OviMusic) return;
+    OviMusic.onChange(updateMusicUI);
+    updateMusicUI({
+      playing: OviMusic.isPlaying(),
+      currentTime: 0,
+      duration: 0
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initMusicPlayer();
   });
 
   function formatTime(seconds) {
-    if (isNaN(seconds)) return "0:00";
+    if (!isFinite(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
-  function updateTimer() {
+  function updateMusicUI(state) {
     const timerElement = document.querySelector('.music-timer');
     const progressBar = document.querySelector('.progress-fill');
+    const playIcon = document.querySelector('.play-icon');
+    const pauseIcon = document.querySelector('.pause-icon');
 
-    if (timerElement && audio) {
-      const currentTime = formatTime(audio.currentTime);
-      const duration = formatTime(audio.duration);
-      timerElement.textContent = `${currentTime} / ${duration}`;
-
-      // Update progress bar - use transform for better performance
-      if (progressBar && audio.duration) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        progressBar.style.width = `${progress}%`;
-      }
+    if (timerElement) {
+      timerElement.textContent = `${formatTime(state.currentTime)} / ${formatTime(state.duration)}`;
+    }
+    if (progressBar && state.duration) {
+      progressBar.style.width = `${(state.currentTime / state.duration) * 100}%`;
+    }
+    if (playIcon && pauseIcon) {
+      playIcon.style.display = state.playing ? 'none' : 'block';
+      pauseIcon.style.display = state.playing ? 'block' : 'none';
     }
   }
 
   window.seekMusic = function (e) {
-    if (!audio || !audio.duration) return;
-
+    if (!window.OviMusic) return;
     const progressBar = e.currentTarget;
     const rect = progressBar.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    const percentage = clickX / width;
-
-    audio.currentTime = percentage * audio.duration;
-    updateTimer();
+    if (!rect.width) return;
+    OviMusic.seek((e.clientX - rect.left) / rect.width);
   };
-
-  function startTimer() {
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(updateTimer, 100);
-  }
-
-  function stopTimer() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-  }
 
   window.toggleMusic = function () {
-    if (!audio) {
-      initMusicPlayer();
-    }
-
-    if (isPlaying) {
-      audio.pause();
-      isPlaying = false;
-      stopTimer();
-    } else {
-      audio.play();
-      isPlaying = true;
-      startTimer();
-    }
-
-    updatePlayButton();
+    if (window.OviMusic) OviMusic.toggle();
   };
-
-  function updatePlayButton() {
-    const playIcon = document.querySelector('.play-icon');
-    const pauseIcon = document.querySelector('.pause-icon');
-
-    if (isPlaying) {
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = 'block';
-    } else {
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
-    }
-  }
-
 
   // Optimized menu toggle with passive event listeners
   window.toggleMenu = function () {
