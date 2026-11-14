@@ -149,6 +149,7 @@
             padding: 18px 0 0;
             position: relative;
             flex-shrink: 0;
+            box-shadow: var(--join-shadow);
         }
 
         .chatguys-card-header {
@@ -222,6 +223,7 @@
             flex: 1;
             min-height: 0;
             padding-top: 12px;
+            box-shadow: var(--panel-shadow);
         }
 
         .chat-topbar {
@@ -268,7 +270,7 @@
             display: flex;
             flex-direction: column;
             background: rgba(0, 0, 0, 0.015);
-            border-top: 1.5px solid var(--ink);
+            border-top: 1.5px solid var(--border-soft);
             scrollbar-width: none;
         }
 
@@ -301,10 +303,10 @@
             align-self: flex-end;
             margin-left: auto;
             margin-right: 0;
-            border-color: var(--ink);
+            border-color: var(--bubble-border);
             border-width: 1.5px;
             background: color-mix(in srgb, var(--ink) 8%, var(--paper));
-            box-shadow: 3px 3px 0px var(--ink);
+            box-shadow: 3px 3px 0px var(--card-shadow);
         }
 
         .chat-msg-meta {
@@ -455,7 +457,7 @@
         .chat-send-wrap {
             position: relative;
             padding: 14px 16px;
-            border-top: 1.5px solid var(--ink);
+            border-top: 1.5px solid var(--border-soft);
             background: var(--paper);
         }
 
@@ -541,11 +543,11 @@
 
         .modal-card {
             background: var(--paper);
-            border: 2px solid var(--ink);
+            border: 2px solid var(--border-soft);
             padding: 24px;
             width: 100%;
             max-width: 440px;
-            box-shadow: 6px 6px 0px var(--ink);
+            box-shadow: 6px 6px 0px var(--card-shadow);
             position: relative;
         }
 
