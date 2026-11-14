@@ -40,6 +40,7 @@ Each game has a page at `https://iamovi.github.io/games/<name>/`.
 - [Flappy](https://iamovi.github.io/games/flappy/): One button, endless pipes. Tap to flap and chase your best.
 - [Waifu or Not?](https://iamovi.github.io/games/waifu-or-not/): Swipe left or right and decide. Ten rounds, one verdict.
 - [Memory Match](https://iamovi.github.io/games/memory-match/): Flip two cards and hunt for pairs. Clear the board in as few moves as you can.
+- [Dino](https://iamovi.github.io/games/dino/): Endless desert runner. Jump the cacti, duck the birds, and outlast the rising speed.
 
 ## Chat
 
