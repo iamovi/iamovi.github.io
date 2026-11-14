@@ -20,8 +20,9 @@ Repository-specific notes for AI agents working in this repo.
   The owner wants commits to read as solely their own.
 - Conventional Commits style with a scope, e.g. `feat(projects): ...`,
   `fix(chatguys): ...`. Match the existing history.
-- Keep commit messages short and to the point: a concise subject line, and at
-  most a few brief bullet lines if detail is truly needed. No long paragraphs.
+- **Subject line only. Do not add a body.** No bullets, no paragraphs, no
+  "what/why" detail — the heading alone. Anything else belongs in the PR
+  description, not the commit.
 
 ## Site overview
 
