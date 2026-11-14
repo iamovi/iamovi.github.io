@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Match — Hasan Ovi</title>
+
+    <link rel="canonical" href="https://iamovi.github.io/games/memory-match/">
+    <link rel="describedby" href="https://iamovi.github.io/llms.txt">
+    <meta name="description"
+        content="Memory Match — a flip-and-pair card game by Hasan Ovi. Turn over two cards, find the matching pairs, and clear the board in as few moves as you can.">
+    <meta name="author" content="Hasan Ovi">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="Memory Match — Hasan Ovi">
+    <meta property="og:description"
+        content="Memory Match — a flip-and-pair card game by Hasan Ovi. Find every matching pair in as few moves as you can.">
+    <meta property="og:image" content="https://iamovi.github.io/assets/og-image.jpg">
+    <meta property="og:url" content="https://iamovi.github.io/games/memory-match/">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Memory Match — Hasan Ovi">
+    <meta name="twitter:description"
+        content="Memory Match — a flip-and-pair card game by Hasan Ovi. Find every matching pair in as few moves as you can.">
+    <meta name="twitter:image" content="https://iamovi.github.io/assets/og-image.jpg">
+
+    <link rel="icon" href="../../samurai-jack.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/bar.css">
+    <link rel="stylesheet" href="../../assets/theme.css">
+    <script src="../../assets/theme.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Variables are loaded from theme.css, so every theme applies automatically. */
+
+        /* Grow with content and allow vertical scrolling so nothing is clipped on
+           short viewports (e.g. landscape phones); only horizontal bleed is hidden. */
+        html, body {
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: var(--paper);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--ink);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: safe center;
+            min-height: 100vh;
+            padding: 72px 20px 44px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ── BACK LINK ── */
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            z-index: 100;
+        }
+        .back:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+        /* ── SCOREBOARD ── */
+        .scoreboard {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            z-index: 100;
+        }
+
+        .score-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-faint); }
+        .score-num {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1;
+            transition: transform 0.15s;
+        }
+        .score-num.pop { animation: score-pop 0.25s ease; }
+        @keyframes score-pop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.35); }
+            100% { transform: scale(1); }
+        }
+
+        /* ── TITLE ── */
+        .game-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 8px;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        /* ── DIFFICULTY ── */
+        .diff-row {
+            display: flex;
+            gap: 10px;
+            margin: 18px 0 20px;
+        }
+        .diff-row .btn {
+            padding: 7px 16px;
+            font-size: 11px;
+        }
+        .diff-row .btn.active {
+            background: var(--ink);
+            color: var(--paper);
+        }
+
+        /* ── BOARD ── */
+        .board {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(var(--cols, 4), 1fr);
+            width: min(92vw, 440px);
+        }
+
+        .tile {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            perspective: 640px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+        .tile-inner {
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+            transition: transform 0.38s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .tile.flipped .tile-inner { transform: rotateY(180deg); }
+
+        .tile-face {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border: 2px solid var(--ink);
+            box-shadow: 3px 3px 0 var(--card-shadow, var(--ink));
+            font-size: clamp(17px, 6.2vw, 30px);
+            line-height: 1;
+            overflow: hidden;
+        }
+
+        .tile-back {
+            background: var(--ink);
+            color: var(--paper);
+            opacity: 0.92;
+        }
+        .tile-back .glyph { font-size: 0.72em; opacity: 0.75; }
+
+        .tile-front {
+            background: var(--paper-dark);
+            color: var(--ink);
+            transform: rotateY(180deg);
+        }
+
+        .tile.matched { cursor: default; }
+        .tile.matched .tile-face {
+            border-color: var(--ink-mid);
+            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        /* ── PROGRESS + HINT ── */
+        .progress {
+            margin-top: 18px;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--ink-faint);
+            text-align: center;
+        }
+        .progress + .progress { margin-top: 6px; }
+
+        .sfx-toggle { margin-top: 14px; font-size: 11px; padding: 4px 10px; }
+
+        /* ── GAME OVER ── */
+        .game-over {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+            max-width: 380px;
+        }
+        .game-over.show { display: flex; }
+
+        .game-over h2 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 28px;
+            font-weight: 900;
+            border-bottom: 3px solid var(--ink);
+            padding-bottom: 10px;
+            width: 100%;
+        }
+
+        .record-badge {
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            border: 2px solid var(--ink);
+            padding: 5px 12px;
+            background: var(--paper-dark);
+            box-shadow: 3px 3px 0 var(--card-shadow, var(--ink));
+        }
+
+        .final-scores { display: flex; gap: 36px; }
+        .final-score-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .final-score-item .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mid); }
+        .final-score-item .value { font-family: 'Noto Serif JP', serif; font-size: 38px; font-weight: 900; line-height: 1; }
+
+        .verdict {
+            font-size: 13px;
+            color: var(--ink-mid);
+            line-height: 1.7;
+            border-left: 3px solid var(--ink);
+            padding-left: 14px;
+            text-align: left;
+        }
+
+        .over-buttons { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            background: transparent;
+            border: 2px solid var(--ink);
+            color: var(--ink);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 10px 24px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 var(--card-shadow, var(--ink));
+            transition: background 0.1s, color 0.1s, transform 0.1s, box-shadow 0.1s;
+        }
+        .btn:hover { background: var(--ink); color: var(--paper); }
+        .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--card-shadow, var(--ink)); }
+
+        .sr-only {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 460px) {
+            body { padding: 66px 14px 40px; }
+            .back { top: 16px; left: 14px; }
+            .scoreboard { top: 16px; right: 14px; gap: 14px; }
+            .score-num { font-size: 17px; }
+            .board { gap: 6px; }
+            .diff-row { gap: 8px; }
+            .diff-row .btn { padding: 6px 12px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a class="back" href="../">← game house</a>
+
+    <div class="scoreboard">
+        <div class="score-item">
+            <span class="score-label">Moves</span>
+            <span class="score-num" id="score-moves">0</span>
+        </div>
+        <div class="score-item">
+            <span class="score-label">Time</span>
+            <span class="score-num" id="score-time">0:00</span>
+        </div>
+        <div class="score-item">
+            <span class="score-label">Best</span>
+            <span class="score-num" id="score-best">—</span>
+        </div>
+    </div>
+
+    <p class="sr-only" id="live" aria-live="polite"></p>
+
+    <!-- GAME UI -->
+    <div id="game-ui" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="game-title">Memory Match</div>
+
+        <div class="diff-row" role="group" aria-label="difficulty">
+            <button class="btn diff-btn" data-diff="easy" onclick="setDifficulty('easy')">[ easy ]</button>
+            <button class="btn diff-btn" data-diff="medium" onclick="setDifficulty('medium')">[ medium ]</button>
+            <button class="btn diff-btn" data-diff="hard" onclick="setDifficulty('hard')">[ hard ]</button>
+        </div>
+
+        <div class="board" id="board" aria-label="memory board"></div>
+
+        <div class="progress" id="progress">pairs 0 / 8</div>
+        <div class="progress">flip two cards — match every pair to win</div>
+        <button class="sfx-toggle btn" type="button" onclick="toggleSfx()">[ SFX OFF ]</button>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="game-over" id="game-over">
+        <h2>Cleared!</h2>
+        <div class="record-badge" id="record-badge" style="display:none;">★ new record ★</div>
+        <div class="final-scores">
+            <div class="final-score-item">
+                <span class="label">Moves</span>
+                <span class="value" id="final-moves">0</span>
+            </div>
+            <div class="final-score-item">
+                <span class="label">Time</span>
+                <span class="value" id="final-time">0:00</span>
+            </div>
+            <div class="final-score-item">
+                <span class="label">Best</span>
+                <span class="value" id="final-best">—</span>
+            </div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <div class="over-buttons">
+            <button class="btn" onclick="restartGame()">[ Play Again ]</button>
+            <a class="btn" href="../" style="text-decoration:none;text-align:center;">[ Game House ]</a>
+        </div>
+    </div>
+
+    <script src="../../assets/music.js"></script>
+    <script src="../../assets/sounds.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var DIFFS = {
+                easy:   { cols: 4, pairs: 8 },
+                medium: { cols: 4, pairs: 12 },
+                hard:   { cols: 6, pairs: 18 }
+            };
+
+            // 18 symbols; a game uses the first `pairs` of them.
+            var GLYPHS = ['🌸', '🍣', '🐟', '🌊', '🍜', '🏮', '🎋', '🦊', '🐉',
+                          '⛩️', '🗻', '🍡', '🎐', '🍁', '🐦', '🌙', '⚡', '🎴'];
+
+            var DIFF_KEY = 'ovi_mem_diff';
+            var BEST_KEY = 'ovi_mem_best_';
+
+            var board = document.getElementById('board');
+            var movesEl = document.getElementById('score-moves');
+            var timeEl = document.getElementById('score-time');
+            var bestEl = document.getElementById('score-best');
+            var progressEl = document.getElementById('progress');
+            var liveEl = document.getElementById('live');
+
+            var diff = localStorage.getItem(DIFF_KEY) || 'easy';
+            if (!DIFFS[diff]) diff = 'easy';
+
+            var first = null;
+            var lock = false;
+            var moves = 0;
+            var matchedPairs = 0;
+            var seconds = 0;
+            var timerId = null;
+            var started = false;
+
+            function fmt(sec) {
+                var m = Math.floor(sec / 60);
+                var s = sec % 60;
+                return m + ':' + (s < 10 ? '0' : '') + s;
+            }
+
+            function bestFor(d) {
+                var v = Number(localStorage.getItem(BEST_KEY + d));
+                return v > 0 ? v : null;
+            }
+
+            function shuffle(arr) {
+                for (var i = arr.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+                }
+                return arr;
+            }
+
+            function startTimer() {
+                if (started) return;
+                started = true;
+                timerId = setInterval(function () {
+                    seconds++;
+                    timeEl.textContent = fmt(seconds);
+                }, 1000);
+            }
+
+            function stopTimer() {
+                if (timerId) { clearInterval(timerId); timerId = null; }
+            }
+
+            function pop(el) {
+                el.classList.remove('pop');
+                void el.offsetWidth;
+                el.classList.add('pop');
+            }
+
+            function buildBoard() {
+                var cfg = DIFFS[diff];
+                var deck = [];
+                for (var i = 0; i < cfg.pairs; i++) {
+                    deck.push(GLYPHS[i % GLYPHS.length]);
+                    deck.push(GLYPHS[i % GLYPHS.length]);
+                }
+                shuffle(deck);
+
+                board.style.setProperty('--cols', cfg.cols);
+                board.innerHTML = '';
+                deck.forEach(function (glyph, idx) {
+                    var tile = document.createElement('button');
+                    tile.className = 'tile';
+                    tile.type = 'button';
+                    tile.dataset.glyph = glyph;
+                    tile.dataset.index = String(idx);
+                    tile.setAttribute('aria-label', 'card ' + (idx + 1) + ', face down');
+                    tile.innerHTML =
+                        '<span class="tile-inner">' +
+                            '<span class="tile-face tile-back"><span class="glyph">✦</span></span>' +
+                            '<span class="tile-face tile-front">' + glyph + '</span>' +
+                        '</span>';
+                    tile.addEventListener('click', function () { flip(tile); });
+                    board.appendChild(tile);
+                });
+            }
+
+            function flip(tile) {
+                if (lock) return;
+                if (tile.classList.contains('flipped') || tile.classList.contains('matched')) return;
+
+                startTimer();
+                tile.classList.add('flipped');
+                tile.setAttribute('aria-label', 'card ' + (Number(tile.dataset.index) + 1) + ', ' + tile.dataset.glyph);
+
+                if (!first) { first = tile; return; }
+
+                moves++;
+                movesEl.textContent = moves;
+                pop(movesEl);
+
+                var a = first, b = tile;
+                first = null;
+
+                if (a.dataset.glyph === b.dataset.glyph) {
+                    a.classList.add('matched');
+                    b.classList.add('matched');
+                    matchedPairs++;
+                    if (window.sfx_voteYes) sfx_voteYes();
+                    updateProgress();
+                    liveEl.textContent = 'match found';
+                    if (matchedPairs === DIFFS[diff].pairs) finish();
+                } else {
+                    lock = true;
+                    if (window.sfx_voteNo) sfx_voteNo();
+                    setTimeout(function () {
+                        a.classList.remove('flipped');
+                        b.classList.remove('flipped');
+                        a.setAttribute('aria-label', 'card ' + (Number(a.dataset.index) + 1) + ', face down');
+                        b.setAttribute('aria-label', 'card ' + (Number(b.dataset.index) + 1) + ', face down');
+                        lock = false;
+                    }, 720);
+                }
+            }
+
+            function updateProgress() {
+                progressEl.textContent = 'pairs ' + matchedPairs + ' / ' + DIFFS[diff].pairs;
+            }
+
+            function finish() {
+                stopTimer();
+                if (window.sfx_gameOver) sfx_gameOver();
+
+                var best = bestFor(diff);
+                var isRecord = best === null || moves < best;
+                if (isRecord) {
+                    localStorage.setItem(BEST_KEY + diff, String(moves));
+                    best = moves;
+                }
+
+                document.getElementById('final-moves').textContent = moves;
+                document.getElementById('final-time').textContent = fmt(seconds);
+                document.getElementById('final-best').textContent = best;
+                document.getElementById('record-badge').style.display = isRecord ? 'inline-block' : 'none';
+
+                var verdicts = {
+                    easy:   'eight pairs down. a warm-up — try medium for a real test.',
+                    medium: 'twelve pairs cleared. your memory is holding up nicely.',
+                    hard:   'eighteen pairs. that is a full board of concentration — respect.'
+                };
+                var v = verdicts[diff];
+                if (isRecord) v = 'new personal best — ' + v;
+                document.getElementById('verdict').textContent = v;
+
+                document.getElementById('game-ui').style.display = 'none';
+                document.getElementById('game-over').classList.add('show');
+            }
+
+            function newGame() {
+                stopTimer();
+                first = null;
+                lock = false;
+                moves = 0;
+                matchedPairs = 0;
+                seconds = 0;
+                started = false;
+
+                movesEl.textContent = '0';
+                timeEl.textContent = '0:00';
+                var b = bestFor(diff);
+                bestEl.textContent = b === null ? '—' : b;
+
+                buildBoard();
+                updateProgress();
+
+                document.querySelectorAll('.diff-btn').forEach(function (btn) {
+                    btn.classList.toggle('active', btn.dataset.diff === diff);
+                });
+            }
+
+            window.setDifficulty = function (d) {
+                if (!DIFFS[d] || d === diff) return;
+                diff = d;
+                localStorage.setItem(DIFF_KEY, d);
+                document.getElementById('game-over').classList.remove('show');
+                document.getElementById('game-ui').style.display = 'flex';
+                newGame();
+            };
+
+            window.restartGame = function () {
+                if (window.sfx_playAgain) sfx_playAgain();
+                document.getElementById('game-over').classList.remove('show');
+                document.getElementById('game-ui').style.display = 'flex';
+                newGame();
+            };
+
+            document.addEventListener('keydown', function (e) {
+                if ((e.key === 'r' || e.key === 'R') &&
+                    !document.getElementById('game-over').classList.contains('show')) {
+                    newGame();
+                }
+            });
+
+            newGame();
+        })();
+    </script>
+    <script src="../../assets/cursor.js"></script>
+</body>
+
+</html>

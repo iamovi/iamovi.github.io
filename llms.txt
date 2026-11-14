@@ -39,6 +39,7 @@ Each game has a page at `https://iamovi.github.io/games/<name>/`.
 - [Snake](https://iamovi.github.io/games/snake/): Steer the snake, eat the fruit, and grow. Edges wrap around; your own tail ends the run.
 - [Flappy](https://iamovi.github.io/games/flappy/): One button, endless pipes. Tap to flap and chase your best.
 - [Waifu or Not?](https://iamovi.github.io/games/waifu-or-not/): Swipe left or right and decide. Ten rounds, one verdict.
+- [Memory Match](https://iamovi.github.io/games/memory-match/): Flip two cards and hunt for pairs. Clear the board in as few moves as you can.
 
 ## Chat
 
