@@ -20,4 +20,4 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 # then uncomment and paste the returned id:
 # [[kv_namespaces]]
 # binding = "AI_RATE_LIMIT"
-# id = "<namespace-id>"
+# id = "52f76bab4a0148e78744a97c777cd175"
