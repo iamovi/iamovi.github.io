@@ -6,6 +6,18 @@ compatibility_date = "2026-10-29"
 B2_ENDPOINT = "s3.us-east-005.backblazeb2.com"
 B2_REGION = "us-east-005"
 B2_BUCKET = "iamovivault"
+# Model used by the @ai chat replies (see aiReplyFor in worker.js).
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # Secrets (set with `wrangler secret put`, never commit):
 #   B2_KEY_ID, B2_APP_KEY
+#   SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+#   GROQ_API_KEY  (used only by the @ai replies)
+
+# Optional KV namespace for @ai rate limiting. Without it the Worker falls back to a
+# per-isolate in-memory limiter. To enable:
+#   wrangler kv namespace create AI_RATE_LIMIT
+# then uncomment and paste the returned id:
+# [[kv_namespaces]]
+# binding = "AI_RATE_LIMIT"
+# id = "<namespace-id>"

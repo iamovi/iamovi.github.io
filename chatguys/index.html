@@ -322,7 +322,8 @@
         }
 
         .chat-admin-badge,
-        .chat-bot-badge {
+        .chat-bot-badge,
+        .chat-ai-badge {
             font-size: 10px;
             font-weight: 700;
             color: var(--paper);
@@ -337,6 +338,13 @@
             border-color: var(--ink);
             border-width: 1.5px;
             background: color-mix(in srgb, var(--ink) 6%, var(--paper));
+        }
+
+        .chat-msg-item.ai-msg {
+            border-color: var(--ink);
+            border-width: 1.5px;
+            border-style: dashed;
+            background: color-mix(in srgb, var(--ink) 4%, var(--paper));
         }
 
         /* ── BOT TYPING INDICATOR ── */
@@ -721,7 +729,8 @@
                 <div id="chatguys-messages"></div>
                 <div id="chatguys-typing" class="chat-msg-item bot-msg chat-typing" style="display:none;">
                     <div class="chat-msg-meta">
-                        <span class="chat-msg-name"><span class="chat-bot-badge">[BOT]</span> bot</span>
+                        <span class="chat-msg-name"><span id="chatguys-typing-badge"
+                                class="chat-bot-badge">[BOT]</span> <span id="chatguys-typing-name">bot</span></span>
                     </div>
                     <div class="chat-msg-text"><span id="chatguys-typing-text"></span><span
                             class="chat-typing-dots"><i></i><i></i><i></i></span></div>
@@ -774,8 +783,9 @@
             const SUPABASE_ANON_KEY = '';
             const CHATGUYS_NICK_KEY = 'chatguys_nickname';
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
-            const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
+            const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot', 'ai'];
             const BOT_NAME = 'bot';
+            const AI_NAME = 'ai';
             // Page size for the chat. The newest page loads first; scrolling to the top
             // fetches the next older page, so the DOM never holds the whole week at once.
             // Queries sort newest-first so a limit keeps RECENT messages (an ascending
@@ -822,6 +832,7 @@
                 const collapsed = stripped.replace(/[^a-z]/g, '');
                 if (collapsed === 'ovi') return '<span class="chat-admin-badge">[★ OVI]</span> ';
                 if (collapsed === 'bot') return '<span class="chat-bot-badge">[BOT]</span> ';
+                if (collapsed === 'ai') return '<span class="chat-ai-badge">[AI]</span> ';
                 if (['admin', 'administrator', 'moderator', 'mod', 'system'].includes(stripped) || ['admin', 'administrator', 'moderator', 'mod', 'system'].includes(collapsed)) {
                     return '<span class="chat-admin-badge">[★ ADMIN]</span> ';
                 }
@@ -1118,8 +1129,9 @@
                     // Only messages sent under the CURRENT name count as mine
                     const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
                     const isBot = m.name === BOT_NAME;
+                    const isAi = m.name === AI_NAME;
                     const badgeHtml = getChatAdminBadge(m.name);
-                    const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '');
+                    const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '') + (isAi ? ' ai-msg' : '');
                     return `
                         <div class="${cls}">
                             <div class="chat-msg-meta">
@@ -1155,7 +1167,8 @@
             // The bot's reply is written by the Worker. Track the newest bot message id
             // so a brand-new reply (not an older one) clears the optimistic indicator.
             function trackBotReply() {
-                const maxBotId = chatMessages.reduce((mx, m) => (m.name === BOT_NAME && m.id > mx ? m.id : mx), 0);
+                const isServerReply = (n) => n === BOT_NAME || n === AI_NAME;
+                const maxBotId = chatMessages.reduce((mx, m) => (isServerReply(m.name) && m.id > mx ? m.id : mx), 0);
                 if (botAwaitingReply && maxBotId > botAwaitingId) resetBotTyping();
                 if (maxBotId > lastBotMsgId) lastBotMsgId = maxBotId;
             }
@@ -1267,7 +1280,8 @@
 
             // ── @MENTION SUGGESTIONS ──
             const MENTION_OPTIONS = [
-                { tag: 'bot', desc: 'say hi — or try "@bot joke" / "@bot define" / "@bot weather" / "@bot time" / "@bot gh"' }
+                { tag: 'bot', desc: 'say hi — or try "@bot joke" / "@bot define" / "@bot weather" / "@bot time" / "@bot gh"' },
+                { tag: 'ai', desc: 'chat with the site AI — "@ai tell me a fun fact"' }
             ];
             let mentionMatches = [];
             let mentionIndex = 0;
@@ -1404,21 +1418,30 @@
             // Highest bot message id rendered so far; used to spot the new reply.
             let lastBotMsgId = 0;
             let botAwaitingId = 0;
+            let botAwaitingHandle = BOT_NAME;
 
             // Mirrors the Worker's botReplyFor(): used only to decide whether to show
             // the optimistic indicator, never to generate the reply text.
             function willTriggerBot(message, senderName) {
-                if (senderName === BOT_NAME) return false;
-                // "@bot" at the start or after whitespace; the negative lookahead keeps
-                // "@bothello" and "email@bot.com" from matching while "@bot, hi",
-                // "@bot!" and "@bot?" still do.
-                return /(^|\s)@bot(?![a-z0-9_])/i.test(message);
+                if (senderName === BOT_NAME || senderName === AI_NAME) return false;
+                // "@bot" or "@ai" at the start or after whitespace; the negative lookahead
+                // keeps "@bothello" and "email@bot.com" from matching while "@bot, hi",
+                // "@bot!" and "@bot?" still do. Mirrors the Worker's mentionRegex().
+                return /(^|\s)@(bot|ai)(?![a-z0-9_])/i.test(message);
             }
 
-            function showBotTyping() {
+            function showBotTyping(handle) {
                 const el = document.getElementById('chatguys-typing');
                 const textEl = document.getElementById('chatguys-typing-text');
+                const badgeEl = document.getElementById('chatguys-typing-badge');
+                const nameEl = document.getElementById('chatguys-typing-name');
                 if (!el) return;
+                const who = handle === AI_NAME ? AI_NAME : BOT_NAME;
+                if (badgeEl) {
+                    badgeEl.textContent = who === AI_NAME ? '[AI]' : '[BOT]';
+                    badgeEl.className = who === AI_NAME ? 'chat-ai-badge' : 'chat-bot-badge';
+                }
+                if (nameEl) nameEl.textContent = who;
                 const wasAtBottom = isChatScrolledToBottom();
                 if (textEl) {
                     const phrase = BOT_TYPING_PHRASES[Math.floor(Math.random() * BOT_TYPING_PHRASES.length)];
@@ -1459,10 +1482,11 @@
             // writes the reply before it responds, so the reload that follows usually
             // already contains it; comparing against the baseline lets us skip the
             // indicator in that case instead of showing it under an existing reply.
-            function scheduleBotReply(baselineId) {
+            function scheduleBotReply(baselineId, handle) {
                 if (lastBotMsgId > baselineId) return;
                 botAwaitingReply = true;
                 botAwaitingId = baselineId;
+                botAwaitingHandle = handle === AI_NAME ? AI_NAME : BOT_NAME;
                 // The Worker delays its reply; poll quickly while we wait so the
                 // indicator tracks the reply's arrival instead of the next 3.5s tick.
                 if (botPromptTimer) clearInterval(botPromptTimer);
@@ -1472,7 +1496,7 @@
                 botShowTimer = setTimeout(() => {
                     botShowTimer = null;
                     if (!botAwaitingReply) return;
-                    showBotTyping();
+                    showBotTyping(botAwaitingHandle);
                     if (botHideTimer) clearTimeout(botHideTimer);
                     botHideTimer = setTimeout(resetBotTyping, BOT_TYPING_MAX_MS);
                 }, BOT_TYPING_SHOW_DELAY);
@@ -1542,11 +1566,12 @@
                             statusEl.className = 'status-msg';
                         }
                         const botMentioned = willTriggerBot(message, name);
+                        const botMentionedHandle = /(^|\s)@ai(?![a-z0-9_])/i.test(message) ? AI_NAME : BOT_NAME;
                         // Show the indicator only after the sender's own message is on screen,
                         // so the bubble never appears above the message that triggered it.
                         reloadChatThen(() => {
                             setTimeout(scrollChatToBottom, 150);
-                            if (botMentioned) scheduleBotReply(botBaselineId);
+                            if (botMentioned) scheduleBotReply(botBaselineId, botMentionedHandle);
                         });
                     })
                     .catch((err) => {

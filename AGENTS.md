@@ -37,6 +37,20 @@ Repository-specific notes for AI agents working in this repo.
   clean tree should produce no diff.
 - Local preview: `python3 -m http.server 12000 --bind 0.0.0.0` from the repo root.
 
+## Chatguys bots
+
+- `chatguys/` is a public room; messages live in Supabase and clear after a week.
+- Two server-side responders post as reserved names, both blocked from clients:
+  `@bot` (deterministic commands in `cloudflare-worker/worker.js`) and `@ai`
+  (Groq chat completions, model from the `GROQ_MODEL` var).
+- The Groq key is a Worker secret (`GROQ_API_KEY`), never sent to the browser and
+  never committed. The client only shows a typing indicator; replies are generated
+  and written by the Worker with the service-role key.
+- `@ai` has short-term memory: it reads the last few room messages as context.
+  Rate-limited per session and per day (KV binding `AI_RATE_LIMIT`, or an
+  in-isolate fallback when unbound).
+- Keep the Worker's `mentionRegex()` and the client's `willTriggerBot()` in sync.
+
 ## Conventions
 
 - Prefer minimal, focused changes. Do not add unrequested files.
