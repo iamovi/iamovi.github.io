@@ -166,6 +166,8 @@ async function botReplyFor(message, senderName) {
   switch (String(verb || '').toLowerCase()) {
     case 'help':
       return BOT_HELP;
+    case 'joke':
+      return jokeReply(sender);
     case 'gh':
     case 'github':
       return githubProfileReply(rest[0]);
@@ -177,11 +179,40 @@ async function botReplyFor(message, senderName) {
 const BOT_HELP = [
   'hey — here is what i can do:',
   '',
+  '@bot joke — tell a random joke',
   '@bot gh <username> — look up a github profile',
   '@bot help — show this list',
   '',
   'anything else and i will just say hi 👋',
 ].join('\n');
+
+// Fetches a random safe-mode joke and prefixes it with the sender's name. Same
+// source as the homepage joke section. Never throws: any failure comes back as
+// a friendly message so the bot always replies instead of going silent.
+async function jokeReply(senderName) {
+  const name = String(senderName || '').trim() || 'there';
+  const header = 'here is a joke for ' + name;
+
+  let res;
+  try {
+    res = await fetch('https://v2.jokeapi.dev/joke/Any?safe-mode', {
+      headers: { 'Accept': 'application/json' },
+    });
+  } catch {
+    return header + '\n...but i could not reach the joke server. try again in a moment.';
+  }
+  if (!res.ok) return header + '\n...but the joke server returned an error (' + res.status + '). try again later.';
+
+  let data;
+  try { data = await res.json(); } catch { return header + '\n...but the joke server sent back something i could not read.'; }
+  if (data.error) return header + '\n...but the joke server had no joke to give right now.';
+
+  if (data.type === 'twopart' && data.setup && data.delivery) {
+    return header + '\n' + data.setup + '\n' + data.delivery;
+  }
+  const single = data.joke || data.setup || '';
+  return single ? header + '\n' + single : header + '\n...but the joke came back empty.';
+}
 
 // Looks up a GitHub user and formats a short profile card. Never throws: any
 // failure (bad name, rate limit, network) comes back as a friendly message so
