@@ -428,6 +428,15 @@
             letter-spacing: 0.05em;
         }
 
+        /* Top-of-list hint/loader for scroll-to-load-older. */
+        .chat-older {
+            text-align: center;
+            padding: 8px 10px 14px;
+            font-size: 12px;
+            color: var(--ink-mid);
+            letter-spacing: 0.05em;
+        }
+
         /* ── SEND BAR ── */
         .chat-send-wrap {
             position: relative;
@@ -708,6 +717,7 @@
             <!-- MESSAGES CONTAINER -->
             <div class="chat-messages-wrap" id="chatguys-messages-wrap">
                 <div class="chat-loading" id="chatguys-loading">[ connecting to chat... ]</div>
+                <div class="chat-older" id="chatguys-older" style="display:none;"></div>
                 <div id="chatguys-messages"></div>
                 <div id="chatguys-typing" class="chat-msg-item bot-msg chat-typing" style="display:none;">
                     <div class="chat-msg-meta">
@@ -766,16 +776,26 @@
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
             const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
             const BOT_NAME = 'bot';
-            // Newest N messages only. The query sorts newest-first so the limit keeps
-            // recent messages (an ascending limit would return the OLDEST of the
-            // window); we reverse before rendering so the order is still oldest-first.
-            const CHAT_MESSAGE_LIMIT = 200;
+            // Page size for the chat. The newest page loads first; scrolling to the top
+            // fetches the next older page, so the DOM never holds the whole week at once.
+            // Queries sort newest-first so a limit keeps RECENT messages (an ascending
+            // limit would return the OLDEST); each page is reversed before display.
+            const CHAT_PAGE_SIZE = 200;
             // Small pause so the sender's own message paints before the typing bubble shows.
             const BOT_TYPING_SHOW_DELAY = 150;
 
             let chatPollTimer = null;
             let isFetchingChat = false;
             let lastChatSnapshot = '';
+
+            // Messages currently on screen, oldest-first. Kept as state (instead of
+            // re-rendering straight from each fetch) so polling can append only NEW
+            // messages while scroll-to-load-older can prepend older ones.
+            let chatMessages = [];
+            let chatNewestId = 0;   // newest id loaded (drives the poll's "newer than" query)
+            let chatOldestId = null; // oldest id loaded (drives scroll-to-load-older)
+            let chatHasMoreOlder = false;
+            let isLoadingOlder = false;
 
             function gbHeaders() {
                 return {
@@ -934,6 +954,11 @@
 
             function initChatguysSection() {
                 lastChatSnapshot = '';
+                chatMessages = [];
+                chatNewestId = 0;
+                chatOldestId = null;
+                chatHasMoreOlder = false;
+                isLoadingOlder = false;
                 resetBotTyping();
                 lastBotMsgId = 0;
                 const name = getSavedNickname();
@@ -1069,69 +1094,120 @@
                 if (wrap) wrap.scrollTop = wrap.scrollHeight;
             }
 
+            function chatMessagesUrl(params) {
+                return `${SUPABASE_URL}/rest/v1/chat_messages?${params}`;
+            }
+
+            function oneWeekAgoIso() {
+                return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            }
+
+            // Renders the accumulated message list (oldest-first) into the container.
+            // Keeps a snapshot so an unchanged list is never re-rendered, which would
+            // otherwise reset scroll position and interrupt text selection on every poll.
+            function renderChatMessages(container) {
+                const myName = getSavedNickname();
+                const snapshot = JSON.stringify(chatMessages) + '::' + myName;
+                if (snapshot === lastChatSnapshot) return false;
+                lastChatSnapshot = snapshot;
+
+                if (!chatMessages.length) {
+                    container.innerHTML = `<p class="chat-empty">[ no messages yet — start the conversation ]</p>`;
+                    return true;
+                }
+
+                const mySessionId = getSessionId();
+                container.innerHTML = chatMessages.map(m => {
+                    const isAdmin = isRestrictedName(m.name);
+                    // Only messages sent under the CURRENT name count as mine
+                    const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
+                    const isBot = m.name === BOT_NAME;
+                    const badgeHtml = getChatAdminBadge(m.name);
+                    const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '');
+                    return `
+                        <div class="${cls}">
+                            <div class="chat-msg-meta">
+                                <span class="chat-msg-name">${badgeHtml}${escapeHtml(m.name)}</span>
+                                <span class="chat-msg-date">${timeAgo(m.created_at)}</span>
+                            </div>
+                            <div class="chat-msg-text">${formatMessageText(m.message)}</div>
+                        </div>
+                    `;
+                }).join('');
+                return true;
+            }
+
+            // Merges incoming rows into chatMessages by id, keeping the list sorted
+            // oldest-first and de-duplicated. Returns true if anything was added.
+            function mergeChatMessages(incoming) {
+                if (!Array.isArray(incoming) || !incoming.length) return false;
+                const seen = new Set(chatMessages.map(m => m.id));
+                let added = false;
+                for (const m of incoming) {
+                    if (!seen.has(m.id)) { chatMessages.push(m); seen.add(m.id); added = true; }
+                }
+                if (added) chatMessages.sort((a, b) => a.id - b.id);
+                return added;
+            }
+
+            function syncChatBounds() {
+                if (!chatMessages.length) { chatNewestId = 0; chatOldestId = null; return; }
+                chatNewestId = chatMessages[chatMessages.length - 1].id;
+                chatOldestId = chatMessages[0].id;
+            }
+
+            // The bot's reply is written by the Worker. Track the newest bot message id
+            // so a brand-new reply (not an older one) clears the optimistic indicator.
+            function trackBotReply() {
+                const maxBotId = chatMessages.reduce((mx, m) => (m.name === BOT_NAME && m.id > mx ? m.id : mx), 0);
+                if (botAwaitingReply && maxBotId > botAwaitingId) resetBotTyping();
+                if (maxBotId > lastBotMsgId) lastBotMsgId = maxBotId;
+            }
+
+            // Fetches the newest page (first load) or only messages newer than what we
+            // already hold (subsequent polls), then appends them.
             function loadChatMessages(onDone) {
                 const container = document.getElementById('chatguys-messages');
                 const loadingEl = document.getElementById('chatguys-loading');
-                if (!container || isFetchingChat) {
+                // isLoadingOlder is a soft lock: while an older page is loading we hold
+                // off, so a poll can't re-render mid-load and throw off the scroll anchor.
+                if (!container || isFetchingChat || isLoadingOlder) {
                     if (onDone) onDone();
                     return;
                 }
 
                 isFetchingChat = true;
-                const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-                const myName = getSavedNickname();
+                const firstLoad = chatNewestId === 0;
+                const query = firstLoad
+                    ? `created_at=gte.${encodeURIComponent(oneWeekAgoIso())}&order=id.desc&limit=${CHAT_PAGE_SIZE}`
+                    : `id=gt.${chatNewestId}&order=id.asc&limit=${CHAT_PAGE_SIZE}`;
 
-                fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=gte.${encodeURIComponent(oneWeekAgoIso)}&order=id.desc&limit=${CHAT_MESSAGE_LIMIT}`, {
-                    headers: gbHeaders()
-                })
+                fetch(chatMessagesUrl(query), { headers: gbHeaders() })
                     .then(r => r.json())
                     .then(rawData => {
                         if (loadingEl) loadingEl.style.display = 'none';
-                        // Newest-first from the query; flip to oldest-first for display.
-                        const data = Array.isArray(rawData) ? rawData.slice().reverse() : rawData;
-                        if (!Array.isArray(data) || data.length === 0) {
-                            if (lastChatSnapshot !== 'empty') {
-                                lastChatSnapshot = 'empty';
-                                container.innerHTML = `<p class="chat-empty">[ no messages yet — start the conversation ]</p>`;
-                            }
+                        const rows = Array.isArray(rawData) ? rawData : [];
+                        const wasAtBottom = isChatScrolledToBottom();
+
+                        if (firstLoad) {
+                            // Newest-first from the query; flip to oldest-first for display.
+                            chatMessages = rows.slice().reverse();
+                            chatHasMoreOlder = rows.length === CHAT_PAGE_SIZE;
+                            syncChatBounds();
+                            updateOlderIndicator();
+                            renderChatMessages(container);
+                            trackBotReply();
+                            scrollChatToBottom();
+                            setTimeout(scrollChatToBottom, 60);
                             return;
                         }
 
-                        // Avoid flickering/re-rendering if messages haven't changed
-                        const snapshot = JSON.stringify(data) + '::' + myName;
-                        if (snapshot === lastChatSnapshot) {
-                            return;
-                        }
-                        lastChatSnapshot = snapshot;
-                        // The bot's reply is written by the Worker. Track the newest bot
-                        // message id so a brand-new reply (not an older one) clears the
-                        // optimistic indicator.
-                        const maxBotId = data.reduce((mx, m) => (m.name === BOT_NAME && m.id > mx ? m.id : mx), 0);
-                        if (botAwaitingReply && maxBotId > botAwaitingId) resetBotTyping();
-                        if (maxBotId > lastBotMsgId) lastBotMsgId = maxBotId;
-
-
-                        const isAtBottom = isChatScrolledToBottom();
-                        const mySessionId = getSessionId();
-                        container.innerHTML = data.map(m => {
-                            const isAdmin = isRestrictedName(m.name);
-                            // Only messages sent under the CURRENT name count as mine
-                            const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
-                            const isBot = m.name === BOT_NAME;
-                            const badgeHtml = getChatAdminBadge(m.name);
-                            const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '');
-                            return `
-                                <div class="${cls}">
-                                    <div class="chat-msg-meta">
-                                        <span class="chat-msg-name">${badgeHtml}${escapeHtml(m.name)}</span>
-                                        <span class="chat-msg-date">${timeAgo(m.created_at)}</span>
-                                    </div>
-                                    <div class="chat-msg-text">${formatMessageText(m.message)}</div>
-                                </div>
-                            `;
-                        }).join('');
-
-                        if (isAtBottom) {
+                        const added = mergeChatMessages(rows);
+                        if (!added) return; // nothing new: leave the DOM (and scroll) alone
+                        syncChatBounds();
+                        renderChatMessages(container);
+                        trackBotReply();
+                        if (wasAtBottom) {
                             scrollChatToBottom();
                             setTimeout(scrollChatToBottom, 60);
                         }
@@ -1143,6 +1219,54 @@
                         isFetchingChat = false;
                         if (onDone) onDone();
                     });
+            }
+
+            // Prepends the next older page when the user scrolls to the top. Keeps the
+            // reading position steady by re-adding the height of the inserted rows.
+            function loadOlderMessages() {
+                const container = document.getElementById('chatguys-messages');
+                const wrap = document.getElementById('chatguys-messages-wrap');
+                if (!container || !wrap || isLoadingOlder || !chatHasMoreOlder || chatOldestId === null) return;
+                if (isFetchingChat) return;
+
+                isLoadingOlder = true;
+                updateOlderIndicator();
+                const prevHeight = wrap.scrollHeight;
+                const prevTop = wrap.scrollTop;
+
+                const query = `id=lt.${chatOldestId}&created_at=gte.${encodeURIComponent(oneWeekAgoIso())}&order=id.desc&limit=${CHAT_PAGE_SIZE}`;
+                fetch(chatMessagesUrl(query), { headers: gbHeaders() })
+                    .then(r => r.json())
+                    .then(rawData => {
+                        const rows = Array.isArray(rawData) ? rawData : [];
+                        // Older than the whole 7-day window: nothing left to page in.
+                        chatHasMoreOlder = rows.length === CHAT_PAGE_SIZE;
+                        if (!rows.length) return;
+                        mergeChatMessages(rows);
+                        syncChatBounds();
+                        renderChatMessages(container);
+                        // Anchor: the rows we just prepended pushed the content down.
+                        wrap.scrollTop = prevTop + (wrap.scrollHeight - prevHeight);
+                    })
+                    .catch(() => { })
+                    .finally(() => {
+                        isLoadingOlder = false;
+                        updateOlderIndicator();
+                    });
+            }
+
+            function updateOlderIndicator() {
+                const el = document.getElementById('chatguys-older');
+                if (!el) return;
+                if (isLoadingOlder) {
+                    el.textContent = '[ loading older messages... ]';
+                    el.style.display = 'block';
+                } else if (chatHasMoreOlder && chatMessages.length) {
+                    el.textContent = '[ scroll up for older ]';
+                    el.style.display = 'block';
+                } else {
+                    el.style.display = 'none';
+                }
             }
 
             // ── @MENTION SUGGESTIONS ──
@@ -1364,8 +1488,7 @@
             function reloadChatThen(onDone) {
                 let tries = 0;
                 const attempt = () => {
-                    if (!isFetchingChat) {
-                        lastChatSnapshot = '';
+                    if (!isFetchingChat && !isLoadingOlder) {
                         loadChatMessages(onDone);
                         return;
                     }
@@ -1508,6 +1631,14 @@
                         startChatPolling();
                     }
                 });
+
+                // Load the previous page when the user scrolls to (near) the top.
+                const chatWrap = document.getElementById('chatguys-messages-wrap');
+                if (chatWrap) {
+                    chatWrap.addEventListener('scroll', () => {
+                        if (chatWrap.scrollTop <= 40) loadOlderMessages();
+                    });
+                }
             });
         })();
     </script>
