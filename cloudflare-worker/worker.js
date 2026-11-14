@@ -172,6 +172,8 @@ async function botReplyFor(message, senderName) {
       return defineReply(rest.join(' '));
     case 'weather':
       return weatherReply(rest.join(' '));
+    case 'time':
+      return timeReply(rest.join(' '));
     case 'gh':
     case 'github':
       return githubProfileReply(rest[0]);
@@ -186,6 +188,7 @@ const BOT_HELP = [
   '@bot joke — tell a random joke',
   '@bot define <word> — look up a word',
   '@bot weather <city> — current weather',
+  '@bot time <place> — local time',
   '@bot gh <username> — look up a github profile',
   '@bot help — show this list',
   '',
@@ -265,24 +268,8 @@ async function weatherReply(place) {
   const query = String(place || '').trim();
   if (!query) return 'usage: @bot weather <city>  —  e.g. @bot weather london';
 
-  let geoRes;
-  try {
-    geoRes = await fetch(
-      'https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name=' +
-      encodeURIComponent(query),
-      { headers: { 'Accept': 'application/json' } }
-    );
-  } catch {
-    return 'could not reach the weather service right now — try again in a moment.';
-  }
-  if (!geoRes.ok) return `the weather service returned an error (${geoRes.status}). try again later.`;
-
-  let geo;
-  try { geo = await geoRes.json(); } catch { return 'the weather service sent back something i could not read.'; }
-  const hit = geo && Array.isArray(geo.results) && geo.results[0];
-  if (!hit) return `i could not find a place called "${query}".`;
-
-  const label = [hit.name, hit.admin1, hit.country].filter(Boolean).join(', ');
+  const hit = await geocodePlace(query);
+  if (typeof hit === 'string') return hit;
 
   let res;
   try {
@@ -303,7 +290,7 @@ async function weatherReply(place) {
     return 'the weather service did not return any readings for that place.';
   }
 
-  const lines = [label];
+  const lines = [placeLabel(hit)];
   lines.push(
     `${weatherCodeText(cur.weather_code)} · ${Math.round(cur.temperature_2m)}°C` +
     (typeof cur.apparent_temperature === 'number' ? ` (feels ${Math.round(cur.apparent_temperature)}°C)` : '')
@@ -327,6 +314,65 @@ function weatherCodeText(code) {
   if (c === 85 || c === 86) return 'snow showers';
   if (c >= 95) return 'thunderstorm';
   return 'unknown conditions';
+}
+
+// Joins the place parts, dropping repeats so a country lookup does not read
+// "Bangladesh, Bangladesh".
+function placeLabel(hit) {
+  const parts = [hit.name, hit.admin1, hit.country]
+    .map((p) => String(p || '').trim())
+    .filter(Boolean);
+  return parts.filter((p, i) => parts.findIndex((q) => q.toLowerCase() === p.toLowerCase()) === i)
+    .join(', ');
+}
+
+// Current local time for a place, via Open-Meteo's geocoding timezone (no API
+// key). Never throws: any failure comes back as a friendly message so the bot
+// always replies instead of going silent.
+async function timeReply(place) {
+  const query = String(place || '').trim();
+  if (!query) return 'usage: @bot time <place>  —  e.g. @bot time japan';
+
+  const hit = await geocodePlace(query);
+  if (typeof hit === 'string') return hit;
+
+  const now = new Date();
+  let time;
+  let date;
+  try {
+    time = new Intl.DateTimeFormat('en-GB', {
+      timeZone: hit.timezone, hour: '2-digit', minute: '2-digit', hour12: false,
+    }).format(now);
+    date = new Intl.DateTimeFormat('en-GB', {
+      timeZone: hit.timezone, weekday: 'short', day: 'numeric', month: 'short',
+    }).format(now);
+  } catch {
+    return `i could not work out the time for "${query}".`;
+  }
+
+  return `${placeLabel(hit)}\n${time} (${date})\n${hit.timezone}`;
+}
+
+// Resolves a place name to a geocoding result. Returns the first hit, or a
+// friendly message string on any failure so callers can pass it straight back.
+async function geocodePlace(query) {
+  let res;
+  try {
+    res = await fetch(
+      'https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name=' +
+      encodeURIComponent(query),
+      { headers: { 'Accept': 'application/json' } }
+    );
+  } catch {
+    return 'could not reach the location service right now — try again in a moment.';
+  }
+  if (!res.ok) return `the location service returned an error (${res.status}). try again later.`;
+
+  let data;
+  try { data = await res.json(); } catch { return 'the location service sent back something i could not read.'; }
+  const hit = data && Array.isArray(data.results) && data.results[0];
+  if (!hit) return `i could not find a place called "${query}".`;
+  return hit;
 }
 
 // Looks up a GitHub user and formats a short profile card. Never throws: any
