@@ -91,7 +91,7 @@ The script exits with a non-zero code, and the workflow fails, if:
 | `blog/` | Post pages |
 | `games/`, `chatguys/`, `game/` | Browser games |
 | `admin/`, `settings/` | Private pages, `noindex` |
-| `cloudflare-worker/`, `supabase/` | Backend for reactions and the guestbook |
+| `cloudflare-worker/`, `supabase/` | Backend for reactions, the guestbook, and the chatguys bots |
 | `scripts/` | Build script and post template |
 | `llms.txt` | Machine-readable summary for AI agents |
 
