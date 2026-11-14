@@ -7,9 +7,9 @@ Repository-specific notes for AI agents working in this repo.
 - Never push to `main`. Create a branch, push that branch, and open a pull
   request. The owner reviews and merges.
 - One PR per task. If a PR already exists for the work, add commits to it.
-- Do NOT add an AI/agent attribution line to PR titles or descriptions (e.g.
-  "This PR was created by an AI agent (OpenHands) on behalf of ..."). Write the
-  PR as the owner, with no mention of the agent.
+- Do NOT add an AI/agent attribution note to PR titles or descriptions (no
+  mention of OpenHands or of an AI agent acting on the owner's behalf). Write
+  the PR as the owner.
 
 ## Commits and attribution
 
