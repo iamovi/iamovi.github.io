@@ -352,15 +352,28 @@
             // The logical world height tracks the canvas box aspect, so a taller
             // phone canvas reveals more of the scene instead of stretching it.
             function resize() {
-                const dpr = Math.min(window.devicePixelRatio || 1, 3);
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 const rect = canvas.getBoundingClientRect();
-                const aspect = rect.height > 0 ? rect.width / rect.height : 16 / 9;
+                // Content box (excludes the 3px border), i.e. the actual drawing
+                // surface, so the aspect and the backing store both match it.
+                const cssW = Math.max(1, canvas.clientWidth || rect.width || W);
+                const cssH = Math.max(1, canvas.clientHeight || rect.height || 405);
+                const aspect = cssW / cssH;
                 const prevGround = GROUND_Y;
                 H = Math.round(W / aspect);
                 GROUND_Y = H - 52;
-                canvas.width = Math.round(W * dpr);
-                canvas.height = Math.round(H * dpr);
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                // Size the backing store to the real device pixels of the CSS box.
+                // Sizing it from the logical width (W * dpr) oversampled ~6x on
+                // phones — every full-frame redraw filled millions of wasted
+                // pixels, which is what made the game feel laggy.
+                const bw = Math.max(1, Math.round(cssW * dpr));
+                const bh = Math.max(1, Math.round(cssH * dpr));
+                if (canvas.width !== bw || canvas.height !== bh) {
+                    canvas.width = bw;
+                    canvas.height = bh;
+                }
+                const scale = bw / W;
+                ctx.setTransform(scale, 0, 0, scale, 0, 0);
                 // Keep everything glued to the (possibly moved) ground line.
                 const dy = GROUND_Y - prevGround;
                 if (dy !== 0) {
@@ -613,8 +626,9 @@
 
             // ── Rendering ──
             function draw() {
-                ctx.clearRect(0, 0, W, H);
-
+                // No clearRect: the opaque background fill below already covers
+                // the whole surface, so clearing first would just double the
+                // full-canvas fill work every frame.
                 ctx.fillStyle = colors.paper;
                 ctx.fillRect(0, 0, W, H);
 
