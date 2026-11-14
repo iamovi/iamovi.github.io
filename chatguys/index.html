@@ -766,6 +766,10 @@
             const CHATGUYS_SESSION_KEY = 'chatguys_session_id';
             const RESERVED_WORDS = ['ovi', 'admin', 'administrator', 'moderator', 'mod', 'system', 'bot'];
             const BOT_NAME = 'bot';
+            // Newest N messages only. The query sorts newest-first so the limit keeps
+            // recent messages (an ascending limit would return the OLDEST of the
+            // window); we reverse before rendering so the order is still oldest-first.
+            const CHAT_MESSAGE_LIMIT = 200;
             // Small pause so the sender's own message paints before the typing bubble shows.
             const BOT_TYPING_SHOW_DELAY = 150;
 
@@ -1077,12 +1081,14 @@
                 const oneWeekAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
                 const myName = getSavedNickname();
 
-                fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=gte.${encodeURIComponent(oneWeekAgoIso)}&order=created_at.asc`, {
+                fetch(`${SUPABASE_URL}/rest/v1/chat_messages?created_at=gte.${encodeURIComponent(oneWeekAgoIso)}&order=id.desc&limit=${CHAT_MESSAGE_LIMIT}`, {
                     headers: gbHeaders()
                 })
                     .then(r => r.json())
-                    .then(data => {
+                    .then(rawData => {
                         if (loadingEl) loadingEl.style.display = 'none';
+                        // Newest-first from the query; flip to oldest-first for display.
+                        const data = Array.isArray(rawData) ? rawData.slice().reverse() : rawData;
                         if (!Array.isArray(data) || data.length === 0) {
                             if (lastChatSnapshot !== 'empty') {
                                 lastChatSnapshot = 'empty';
