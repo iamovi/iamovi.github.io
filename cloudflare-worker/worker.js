@@ -238,11 +238,11 @@ const AI_SYSTEM_PROMPT = [
   '- The room is public and messages are temporary, so do not ask for personal information.',
 ].join('\n');
 
-const AI_MAX_INPUT_CHARS = 500;  // per user message sent to the model
-const AI_MAX_TOKENS = 200;       // caps reply length and cost
-const AI_TIMEOUT_MS = 15000;     // abort a slow Groq call
-const AI_MEMORY_TURNS = 8;       // prior room messages used as context
-const AI_FALLBACK = 'my brain glitched for a second — try again? 🧠';
+const AI_MAX_INPUT_CHARS = 500;        // per user message sent to the model
+const AI_MAX_COMPLETION_TOKENS = 512;  // caps reply length and cost (includes reasoning tokens)
+const AI_TIMEOUT_MS = 15000;           // abort a slow Groq call
+const AI_MEMORY_TURNS = 8;             // prior room messages used as context
+const AI_FALLBACK = 'oof, my brain just buffered for a sec 🙈 try me again in a moment?';
 
 // Reply for a chat mention of the AI, or null to stay quiet.
 async function aiReplyFor(message, senderName, env, sessionId) {
@@ -299,6 +299,21 @@ function aiMessagesFrom(history, prompt, senderName) {
   return messages;
 }
 
+// Builds the Groq request body. gpt-oss models reason by default, so we cap the effort
+// to keep chat replies quick and cheap; other models (e.g. qwen) do not accept that knob.
+function groqBody(env, messages) {
+  const model = env.GROQ_MODEL || 'openai/gpt-oss-120b';
+  const body = {
+    model,
+    messages,
+    max_completion_tokens: AI_MAX_COMPLETION_TOKENS,
+    temperature: 0.7,
+    stream: false,
+  };
+  if (model.includes('gpt-oss')) body.reasoning_effort = 'low';
+  return body;
+}
+
 // Calls Groq's OpenAI-compatible endpoint. Never throws: any failure returns null so
 // the caller can fall back to a friendly line.
 async function callGroq(env, messages) {
@@ -311,21 +326,21 @@ async function callGroq(env, messages) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + env.GROQ_API_KEY,
       },
-      body: JSON.stringify({
-        model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-        messages,
-        max_tokens: AI_MAX_TOKENS,
-        temperature: 0.7,
-        stream: false,
-      }),
+      body: JSON.stringify(groqBody(env, messages)),
       signal: controller.signal,
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn('groq request failed:', res.status, await res.text().catch(() => ''));
+      return null;
+    }
     const data = await res.json();
     const choice = data && data.choices && data.choices[0];
     const out = choice && choice.message && choice.message.content;
     return typeof out === 'string' ? out.trim() : null;
-  } catch { return null; }
+  } catch (err) {
+    console.warn('groq request error:', err && err.message);
+    return null;
+  }
   finally { clearTimeout(timer); }
 }
 
