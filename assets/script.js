@@ -23,6 +23,16 @@
     initMusicPlayer();
   });
 
+  // Email links — the address is split across data attributes so it never
+  // appears as plain text in the HTML for scrapers; assembled here instead.
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.email-link').forEach(function (a) {
+      const user = a.dataset.u;
+      const domain = a.dataset.d;
+      if (user && domain) a.href = 'mailto:' + user + '@' + domain;
+    });
+  });
+
   function formatTime(seconds) {
     if (!isFinite(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
