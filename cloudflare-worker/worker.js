@@ -168,6 +168,8 @@ async function botReplyFor(message, senderName) {
       return BOT_HELP;
     case 'joke':
       return jokeReply(sender);
+    case 'define':
+      return defineReply(rest.join(' '));
     case 'gh':
     case 'github':
       return githubProfileReply(rest[0]);
@@ -180,11 +182,49 @@ const BOT_HELP = [
   'hey — here is what i can do:',
   '',
   '@bot joke — tell a random joke',
+  '@bot define <word> — look up a word',
   '@bot gh <username> — look up a github profile',
   '@bot help — show this list',
   '',
   'anything else and i will just say hi 👋',
 ].join('\n');
+
+// Looks up a word and returns its part of speech and first definition. Accepts
+// multi-word terms ("machine learning"). Never throws: any failure comes back as
+// a friendly message so the bot always replies instead of going silent.
+async function defineReply(term) {
+  const word = String(term || '').trim();
+  if (!word) return 'usage: @bot define <word>  —  e.g. @bot define serendipity';
+
+  let res;
+  try {
+    res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word), {
+      headers: { 'Accept': 'application/json' },
+    });
+  } catch {
+    return 'could not reach the dictionary right now — try again in a moment.';
+  }
+  if (res.status === 404) return `no definition found for "${word}".`;
+  if (!res.ok) return `the dictionary returned an error (${res.status}). try again later.`;
+
+  let data;
+  try { data = await res.json(); } catch { return 'the dictionary sent back something i could not read.'; }
+  if (!Array.isArray(data) || !data.length) return `no definition found for "${word}".`;
+
+  const entry = data[0] || {};
+  const phonetic = entry.phonetic
+    || (entry.phonetics || []).map((p) => p && p.text).find(Boolean)
+    || '';
+  const meaning = (entry.meanings || []).find((m) => m && (m.definitions || []).length);
+  if (!meaning) return `no definition found for "${word}".`;
+
+  const definition = String(meaning.definitions[0].definition || '').trim();
+  const pos = meaning.partOfSpeech ? meaning.partOfSpeech + ' — ' : '';
+  const clipped = definition.length > 280 ? definition.slice(0, 279).trimEnd() + '…' : definition;
+
+  const head = entry.word || word;
+  return (phonetic ? head + ' ' + phonetic : head) + '\n\n' + pos + clipped;
+}
 
 // Fetches a random safe-mode joke and prefixes it with the sender's name. Same
 // source as the homepage joke section. Never throws: any failure comes back as
