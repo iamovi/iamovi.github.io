@@ -140,6 +140,11 @@
         // Deep cosmic night pulse
         playTone({ type: 'sawtooth', freq: 220, endFreq: 440, vol: 0.07, duration: 0.18 });
         playTone({ type: 'sine', freq: 440, endFreq: 880, vol: 0.06, duration: 0.2, delay: 0.08 });
+      } else if (theme === 'orange') {
+        // Bright citrus sparkle (juicy high plucks)
+        playTone({ type: 'triangle', freq: 659, endFreq: 988, vol: 0.09, duration: 0.12 });
+        playTone({ type: 'triangle', freq: 988, endFreq: 1319, vol: 0.06, duration: 0.14, delay: 0.07 });
+        playNoise({ vol: 0.04, duration: 0.03, filterFreq: 4200 });
       } else {
         // Classic Manga crisp tactile chime
         playTone({ type: 'sine', freq: 523, endFreq: 784, vol: 0.09, duration: 0.12 });

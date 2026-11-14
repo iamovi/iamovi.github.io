@@ -49,13 +49,13 @@
     _dotEl = document.createElement('div');
     _dotEl.setAttribute('data-cursor-el', '');
     var theme = getTheme();
-    var bg = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#b83d5a' : (theme === 'matcha' ? '#3d662c' : (theme === 'gameboy' ? '#0f380f' : '#1a0f00')));
+    var bg = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#b83d5a' : (theme === 'matcha' ? '#3d662c' : (theme === 'gameboy' ? '#0f380f' : (theme === 'orange' ? '#ea580c' : '#1a0f00'))));
     var blend = theme === 'midnight' ? 'normal' : 'multiply';
     var shadow = theme === 'midnight'
       ? '0 0 0 1px #121215, 0 0 8px rgba(232, 232, 237, 0.45)'
       : (theme === 'sakura' ? '0 0 0 1px #fff5f7, 0 0 6px rgba(224, 122, 147, 0.5)'
       : (theme === 'matcha' ? '0 0 0 1px #f4f6ec, 0 0 6px rgba(78, 130, 56, 0.5)'
-      : (theme === 'gameboy' ? '0 0 0 1px #9bbc0f, 0 0 5px rgba(48, 98, 48, 0.5)' : 'none')));
+      : (theme === 'gameboy' ? '0 0 0 1px #9bbc0f, 0 0 5px rgba(48, 98, 48, 0.5)' : (theme === 'orange' ? '0 0 0 1px #ffd9a8, 0 0 6px rgba(234, 88, 12, 0.5)' : 'none'))));
     _dotEl.style.cssText = 'position:fixed;top:0;left:0;width:12px;height:12px;background:' + bg + ';border-radius:50%;pointer-events:none;z-index:99999;transition:transform 0.04s linear;mix-blend-mode:' + blend + ';box-shadow:' + shadow + ';';
     document.body.appendChild(_dotEl);
     document.addEventListener('mousemove', _dotHandler);
@@ -73,12 +73,12 @@
     _crosshairEl = document.createElement('div');
     _crosshairEl.setAttribute('data-cursor-el', '');
     var theme = getTheme();
-    var stroke = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#b83d5a' : (theme === 'matcha' ? '#3d662c' : (theme === 'gameboy' ? '#0f380f' : '#1a0f00')));
+    var stroke = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#b83d5a' : (theme === 'matcha' ? '#3d662c' : (theme === 'gameboy' ? '#0f380f' : (theme === 'orange' ? '#ea580c' : '#1a0f00'))));
     var filter = theme === 'midnight'
       ? 'filter:drop-shadow(0 0 3px rgba(0,0,0,0.9));'
       : (theme === 'sakura' ? 'filter:drop-shadow(0 0 2px rgba(224, 122, 147, 0.45));'
       : (theme === 'matcha' ? 'filter:drop-shadow(0 0 2px rgba(78, 130, 56, 0.45));'
-      : (theme === 'gameboy' ? 'filter:drop-shadow(0 0 2px rgba(48, 98, 48, 0.5));' : '')));
+      : (theme === 'gameboy' ? 'filter:drop-shadow(0 0 2px rgba(48, 98, 48, 0.5));' : (theme === 'orange' ? 'filter:drop-shadow(0 0 2px rgba(234, 88, 12, 0.5));' : ''))));
     _crosshairEl.innerHTML = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><line x1="16" y1="2" x2="16" y2="12" stroke="' + stroke + '" stroke-width="2"/><line x1="16" y1="20" x2="16" y2="30" stroke="' + stroke + '" stroke-width="2"/><line x1="2" y1="16" x2="12" y2="16" stroke="' + stroke + '" stroke-width="2"/><line x1="20" y1="16" x2="30" y2="16" stroke="' + stroke + '" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="none" stroke="' + stroke + '" stroke-width="1.5"/></svg>';
     _crosshairEl.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:99999;transition:transform 0.04s linear;' + filter;
     document.body.appendChild(_crosshairEl);
@@ -97,12 +97,12 @@
     var angle = Math.random() * 360;
     var br = Math.random() > 0.5 ? '50%' : '20% 80% 70% 30% / 30% 60% 40% 70%';
     var theme = getTheme();
-    var color = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#c44868' : (theme === 'matcha' ? '#3d662c' : (theme === 'gameboy' ? '#0f380f' : '#1a0f00')));
+    var color = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#c44868' : (theme === 'matcha' ? '#3d662c' : (theme === 'gameboy' ? '#0f380f' : (theme === 'orange' ? '#c2410c' : '#1a0f00'))));
     var shadow = theme === 'midnight'
       ? 'box-shadow:0 0 4px rgba(232,232,237,0.35);'
       : (theme === 'sakura' ? 'box-shadow:0 0 4px rgba(224,122,147,0.4);'
       : (theme === 'matcha' ? 'box-shadow:0 0 4px rgba(78,130,56,0.4);'
-      : (theme === 'gameboy' ? 'box-shadow:0 0 4px rgba(48,98,48,0.4);' : '')));
+      : (theme === 'gameboy' ? 'box-shadow:0 0 4px rgba(48,98,48,0.4);' : (theme === 'orange' ? 'box-shadow:0 0 4px rgba(234,88,12,0.45);' : ''))));
     drop.style.cssText = 'position:fixed;left:' + (e.clientX - size/2) + 'px;top:' + (e.clientY - size/2) + 'px;width:' + size + 'px;height:' + size + 'px;background:' + color + ';' + shadow + 'border-radius:' + br + ';pointer-events:none;z-index:99998;opacity:0.85;transform:rotate(' + angle + 'deg) scale(1);transition:opacity 0.6s ease,transform 0.6s ease;';
     document.body.appendChild(drop);
     requestAnimationFrame(function() {
@@ -137,12 +137,12 @@
           ? 'linear-gradient(to right,transparent,#568a40 30%,#a2d688 50%,#568a40 70%,transparent)'
           : (theme === 'gameboy'
             ? 'linear-gradient(to right,transparent,#306230 30%,#8bac0f 50%,#306230 70%,transparent)'
-            : 'linear-gradient(to right,transparent,#1a0f00 30%,#1a0f00 70%,transparent)')));
+            : (theme === 'orange' ? 'linear-gradient(to right,transparent,#ea580c 30%,#fdba74 50%,#ea580c 70%,transparent)' : 'linear-gradient(to right,transparent,#1a0f00 30%,#1a0f00 70%,transparent)'))));
     var glow = theme === 'midnight'
       ? 'box-shadow:0 0 6px rgba(232,232,237,0.6);'
       : (theme === 'sakura' ? 'box-shadow:0 0 6px rgba(224,122,147,0.7);'
       : (theme === 'matcha' ? 'box-shadow:0 0 6px rgba(86,138,64,0.7);'
-      : (theme === 'gameboy' ? 'box-shadow:0 0 6px rgba(48,98,48,0.7);' : '')));
+      : (theme === 'gameboy' ? 'box-shadow:0 0 6px rgba(48,98,48,0.7);' : (theme === 'orange' ? 'box-shadow:0 0 6px rgba(234,88,12,0.7);' : ''))));
     slash.style.cssText = 'position:fixed;left:' + _prevX + 'px;top:' + _prevY + 'px;width:' + Math.min(len,60) + 'px;height:2px;background:' + grad + ';' + glow + 'transform-origin:0 50%;transform:rotate('+angle+'deg);pointer-events:none;z-index:99998;opacity:0.9;transition:opacity 0.35s ease;';
     document.body.appendChild(slash);
     requestAnimationFrame(function() {
@@ -163,12 +163,12 @@
     var burst = document.createElement('div');
     burst.setAttribute('data-cursor-el', '');
     var theme = getTheme();
-    var bColor = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#e07a93' : (theme === 'matcha' ? '#568a40' : (theme === 'gameboy' ? '#306230' : '#1a0f00')));
+    var bColor = theme === 'midnight' ? '#e8e8ed' : (theme === 'sakura' ? '#e07a93' : (theme === 'matcha' ? '#568a40' : (theme === 'gameboy' ? '#306230' : (theme === 'orange' ? '#ea580c' : '#1a0f00'))));
     var bShadow = theme === 'midnight'
       ? 'box-shadow:0 0 8px rgba(232,232,237,0.5);'
       : (theme === 'sakura' ? 'box-shadow:0 0 8px rgba(224,122,147,0.6);'
       : (theme === 'matcha' ? 'box-shadow:0 0 8px rgba(86,138,64,0.6);'
-      : (theme === 'gameboy' ? 'box-shadow:0 0 8px rgba(48,98,48,0.6);' : '')));
+      : (theme === 'gameboy' ? 'box-shadow:0 0 8px rgba(48,98,48,0.6);' : (theme === 'orange' ? 'box-shadow:0 0 8px rgba(234,88,12,0.6);' : ''))));
     burst.style.cssText = 'position:fixed;left:' + (e.clientX - 12) + 'px;top:' + (e.clientY - 12) + 'px;width:24px;height:24px;border:2px solid ' + bColor + ';' + bShadow + 'border-radius:50%;pointer-events:none;z-index:99999;opacity:0.8;transform:scale(0.3);transition:transform 0.3s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.3s ease;';
     document.body.appendChild(burst);
     requestAnimationFrame(function() {

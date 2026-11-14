@@ -121,6 +121,30 @@
     --join-shadow: none;
 }
 
+[data-theme="orange"] {
+    /* Orange Theme - Pixel orange grove on warm citrus paper */
+    --ink: #3f1d04;
+    --paper: #ffd9a8;
+    --paper-dark: #ffc178;
+    --ink-light: #5e2f0c;
+    --ink-mid: #7d4a1c;
+    --ink-faint: #6b4423;
+    --speed: 0.15s;
+    --bg-pattern: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%20shape-rendering='crispEdges'%3E%3Cpath%20fill='%23f59e0b'%20fill-opacity='0.20'%20d='M73,13h3v1h-3zM71,14h4v1h-4zM70,15h4v1h-4zM70,16h3v1h-3zM69,17h3v1h-3zM69,18h2v1h-2zM23,19h3v1h-3zM69,19h1v1h-1zM21,20h5v1h-5zM19,21h6v1h-6zM19,22h5v1h-5zM18,23h5v1h-5zM18,24h4v1h-4zM17,25h4v1h-4zM17,26h3v1h-3zM17,27h2v1h-2zM51,58h3v1h-3zM48,59h6v1h-6zM47,60h6v1h-6zM46,61h6v1h-6zM45,62h6v1h-6zM45,63h5v1h-5zM45,64h4v1h-4zM44,65h4v1h-4zM44,66h3v1h-3zM44,67h2v1h-2zM87,74h3v1h-3zM85,75h4v1h-4zM84,76h4v1h-4zM83,77h4v1h-4zM83,78h3v1h-3zM14,79h3v1h-3zM82,79h3v1h-3zM12,80h4v1h-4zM82,80h2v1h-2zM11,81h4v1h-4zM82,81h1v1h-1zM11,82h3v1h-3zM10,83h3v1h-3zM10,84h2v1h-2zM10,85h1v1h-1z'/%3E%3Cpath%20fill='%23ea580c'%20fill-opacity='0.26'%20d='M75,14h3v1h-3zM74,15h5v1h-5zM73,16h6v1h-6zM72,17h8v1h-8zM71,18h9v1h-9zM70,19h10v1h-10zM26,20h2v1h-2zM70,20h9v1h-9zM25,21h5v1h-5zM70,21h9v1h-9zM24,22h6v1h-6zM71,22h7v1h-7zM23,23h8v1h-8zM73,23h3v1h-3zM22,24h9v1h-9zM21,25h11v1h-11zM20,26h12v1h-12zM19,27h13v1h-13zM18,28h13v1h-13zM18,29h13v1h-13zM19,30h11v1h-11zM19,31h11v1h-11zM21,32h7v1h-7zM23,33h3v1h-3zM54,59h3v1h-3zM53,60h5v1h-5zM52,61h7v1h-7zM51,62h9v1h-9zM50,63h10v1h-10zM49,64h11v1h-11zM48,65h13v1h-13zM47,66h14v1h-14zM46,67h15v1h-15zM45,68h15v1h-15zM45,69h15v1h-15zM45,70h15v1h-15zM46,71h13v1h-13zM47,72h11v1h-11zM48,73h9v1h-9zM51,74h3v1h-3zM89,75h3v1h-3zM88,76h5v1h-5zM87,77h7v1h-7zM86,78h8v1h-8zM85,79h10v1h-10zM16,80h3v1h-3zM84,80h11v1h-11zM15,81h5v1h-5zM83,81h12v1h-12zM14,82h6v1h-6zM83,82h11v1h-11zM13,83h8v1h-8zM83,83h11v1h-11zM12,84h9v1h-9zM84,84h9v1h-9zM11,85h10v1h-10zM85,85h7v1h-7zM11,86h9v1h-9zM87,86h3v1h-3zM11,87h9v1h-9zM12,88h7v1h-7zM14,89h3v1h-3z'/%3E%3Cpath%20fill='%239a3412'%20fill-opacity='0.32'%20d='M74,12h1v1h-1zM71,13h2v1h-2zM76,13h2v1h-2zM70,14h1v1h-1zM78,14h1v1h-1zM69,15h1v1h-1zM79,15h1v1h-1zM69,16h1v1h-1zM79,16h1v1h-1zM24,18h1v1h-1zM68,18h1v1h-1zM80,18h1v1h-1zM21,19h2v1h-2zM26,19h2v1h-2zM19,20h2v1h-2zM28,20h2v1h-2zM69,20h1v1h-1zM79,20h1v1h-1zM18,21h1v1h-1zM30,21h1v1h-1zM69,21h1v1h-1zM79,21h1v1h-1zM18,22h1v1h-1zM30,22h1v1h-1zM70,22h1v1h-1zM78,22h1v1h-1zM17,23h1v1h-1zM31,23h1v1h-1zM71,23h2v1h-2zM76,23h2v1h-2zM17,24h1v1h-1zM31,24h1v1h-1zM74,24h1v1h-1zM16,26h1v1h-1zM32,26h1v1h-1zM17,28h1v1h-1zM31,28h1v1h-1zM17,29h1v1h-1zM31,29h1v1h-1zM18,30h1v1h-1zM30,30h1v1h-1zM18,31h1v1h-1zM30,31h1v1h-1zM19,32h2v1h-2zM28,32h2v1h-2zM21,33h2v1h-2zM26,33h2v1h-2zM24,34h1v1h-1zM52,57h1v1h-1zM48,58h3v1h-3zM54,58h3v1h-3zM47,59h1v1h-1zM57,59h1v1h-1zM46,60h1v1h-1zM58,60h1v1h-1zM45,61h1v1h-1zM59,61h1v1h-1zM44,62h1v1h-1zM60,62h1v1h-1zM44,63h1v1h-1zM60,63h1v1h-1zM44,64h1v1h-1zM60,64h1v1h-1zM43,66h1v1h-1zM61,66h1v1h-1zM44,68h1v1h-1zM60,68h1v1h-1zM44,69h1v1h-1zM60,69h1v1h-1zM44,70h1v1h-1zM60,70h1v1h-1zM45,71h1v1h-1zM59,71h1v1h-1zM46,72h1v1h-1zM58,72h1v1h-1zM47,73h1v1h-1zM57,73h1v1h-1zM88,73h1v1h-1zM48,74h3v1h-3zM54,74h3v1h-3zM85,74h2v1h-2zM90,74h2v1h-2zM52,75h1v1h-1zM84,75h1v1h-1zM92,75h1v1h-1zM83,76h1v1h-1zM93,76h1v1h-1zM82,77h1v1h-1zM94,77h1v1h-1zM15,78h1v1h-1zM82,78h1v1h-1zM94,78h1v1h-1zM12,79h2v1h-2zM17,79h2v1h-2zM11,80h1v1h-1zM19,80h1v1h-1zM81,80h1v1h-1zM95,80h1v1h-1zM10,81h1v1h-1zM20,81h1v1h-1zM10,82h1v1h-1zM20,82h1v1h-1zM82,82h1v1h-1zM94,82h1v1h-1zM82,83h1v1h-1zM94,83h1v1h-1zM9,84h1v1h-1zM21,84h1v1h-1zM83,84h1v1h-1zM93,84h1v1h-1zM84,85h1v1h-1zM92,85h1v1h-1zM10,86h1v1h-1zM20,86h1v1h-1zM85,86h2v1h-2zM90,86h2v1h-2zM10,87h1v1h-1zM20,87h1v1h-1zM88,87h1v1h-1zM11,88h1v1h-1zM19,88h1v1h-1zM12,89h2v1h-2zM17,89h2v1h-2zM15,90h1v1h-1z'/%3E%3Cpath%20fill='%234d7c0f'%20fill-opacity='0.24'%20d='M70,10h1v1h-1zM69,11h2v1h-2zM46,12h1v1h-1zM18,16h1v1h-1zM17,17h2v1h-2zM36,44h1v1h-1zM90,46h1v1h-1zM8,52h1v1h-1zM45,55h1v1h-1zM44,56h2v1h-2zM83,71h1v1h-1zM82,72h2v1h-2zM11,76h1v1h-1zM10,77h2v1h-2zM64,92h1v1h-1z'/%3E%3Cpath%20fill='%23365314'%20fill-opacity='0.30'%20d='M69,10h1v1h-1zM71,11h1v1h-1zM17,16h1v1h-1zM19,17h1v1h-1zM44,55h1v1h-1zM46,56h1v1h-1zM82,71h1v1h-1zM84,72h1v1h-1zM10,76h1v1h-1zM12,77h1v1h-1z'/%3E%3C/svg%3E");
+    --lb-bg: var(--paper);
+    --lb-ink: var(--ink);
+    --shadow: var(--ink);
+    --card-shadow: var(--ink);
+    --skeleton-base: var(--paper-dark);
+    --skeleton-shimmer: #ffe4c0;
+    --menu-border-left: 1.5px solid var(--ink);
+    --menu-shadow: -10px 0 30px rgba(63, 29, 4, 0.24);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
+}
+
 /* ── MIDNIGHT DARK MODE POLISH ── */
 
 /* Menu side border & shadow: replaces the thick 8px stark white wall with a refined 1.5px border & dark depth */
@@ -675,4 +699,70 @@
 
 [data-theme="gameboy"] * {
     scrollbar-color: #306230 #9bbc0f;
+}
+
+/* ── ORANGE THEME POLISH ── */
+
+[data-theme="orange"] body {
+    background-size: 100px 100px !important;
+}
+
+[data-theme="orange"] .highlight {
+    background: linear-gradient(180deg, transparent 60%, rgba(234, 88, 12, 0.38) 60%);
+}
+
+[data-theme="orange"] ::selection {
+    background: #ffc178;
+    color: #3f1d04;
+}
+
+[data-theme="orange"] .reaction-btn.reacted,
+[data-theme="orange"] .reaction-btn.reacted:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+}
+
+[data-theme="orange"] .reaction-btn.reacted .reaction-count,
+[data-theme="orange"] .reaction-btn.reacted:hover .reaction-count {
+    color: var(--paper);
+    font-weight: bold;
+}
+
+[data-theme="orange"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #fdba74 0%, #ea580c 50%, #9a3412 100%);
+    border: 2px solid rgba(63, 29, 4, 0.25);
+}
+
+[data-theme="orange"] * {
+    scrollbar-color: #ea580c rgba(255, 217, 168, 0.5);
+}
+
+/* ── ORANGE PIXEL TREE CORNER DECORATION ── */
+[data-theme="orange"] body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: clamp(100px, 14vw, 165px);
+    height: clamp(117px, 16vw, 193px);
+    background-image: url("./orange_tree.svg");
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    background-size: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.92;
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 600px) {
+    [data-theme="orange"] body::after {
+        width: clamp(75px, 20vw, 95px);
+        height: clamp(88px, 23vw, 111px);
+        opacity: 0.75;
+    }
 }
