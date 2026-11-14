@@ -19,6 +19,10 @@
     --skeleton-shimmer: #d4be88;
     --menu-border-left: 1.5px solid var(--ink);
     --menu-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
 }
 
 [data-theme="midnight"] {
@@ -36,6 +40,9 @@
     --shadow: rgba(0, 0, 0, 0.85);
     --card-shadow: #2c2c36;
     --border-soft: #5c5d6b;
+    --bubble-border: var(--ink-mid);
+    --panel-shadow: 4px 4px 0px var(--card-shadow);
+    --join-shadow: 6px 6px 0px var(--card-shadow);
     --skeleton-base: #1a1a1f;
     --skeleton-shimmer: #2b2b34;
     --menu-border-left: 1.5px solid var(--border-soft);
@@ -60,6 +67,10 @@
     --skeleton-shimmer: #ffebf1;
     --menu-border-left: 1.5px solid var(--ink);
     --menu-shadow: -10px 0 30px rgba(50, 18, 28, 0.2);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
 }
 
 [data-theme="matcha"] {
@@ -80,6 +91,10 @@
     --skeleton-shimmer: #eff5e6;
     --menu-border-left: 1.5px solid var(--ink);
     --menu-shadow: -10px 0 30px rgba(20, 34, 20, 0.2);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
 }
 
 [data-theme="gameboy"] {
@@ -100,6 +115,10 @@
     --skeleton-shimmer: #a8c818;
     --menu-border-left: 1.5px solid var(--ink);
     --menu-shadow: -10px 0 30px rgba(15, 56, 15, 0.25);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
 }
 
 /* ── MIDNIGHT DARK MODE POLISH ── */
@@ -453,31 +472,6 @@
 
 [data-theme="midnight"] .home-btn:hover {
     box-shadow: 6px 6px 0 var(--border-soft);
-}
-
-/* ── CHATGUYS (MIDNIGHT THEME) ── */
-[data-theme="midnight"] .chat-panel {
-    border-color: var(--border-soft);
-    box-shadow: 4px 4px 0px var(--card-shadow);
-}
-
-[data-theme="midnight"] .chat-topbar {
-    border-bottom-color: var(--border-soft);
-}
-
-[data-theme="midnight"] .chat-send-wrap {
-    border-top-color: var(--border-soft);
-}
-
-[data-theme="midnight"] .chat-msg-item.own-msg {
-    border-color: var(--ink-mid);
-    box-shadow: 3px 3px 0px var(--card-shadow);
-}
-
-[data-theme="midnight"] .modal-card,
-[data-theme="midnight"] .chatguys-join-card {
-    border-color: var(--border-soft);
-    box-shadow: 6px 6px 0px var(--card-shadow);
 }
 
 /* ── SAKURA THEME POLISH ── */
