@@ -2,6 +2,12 @@
 
 Repository-specific notes for AI agents working in this repo.
 
+## Git workflow
+
+- Never push to `main`. Create a branch, push that branch, and open a pull
+  request. The owner reviews and merges.
+- One PR per task. If a PR already exists for the work, add commits to it.
+
 ## Commits and attribution
 
 - Commit as the repository owner, not as the agent:
