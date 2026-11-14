@@ -84,15 +84,15 @@ export default {
         // with the service-role key. Replying server-side (instead of in the browser)
         // is what lets the 'bot' name stay reserved.
         if (response.ok && supabasePath === '/rest/v1/chat_messages') {
-          const reply = botReplyFor(body.message, body.name);
-          if (reply) {
-              // Do not hold the sender's POST open for the delay; let the reply land a
-              // moment later so the "computing..." indicator has time to show instead
-              // of the reply appearing in the same frame as the message that triggered it.
-              const write = writeBotReply(env, reply);
-              if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(write);
-              else await write;
-          }
+          // Generate and write the reply in the background so the sender's POST is
+          // never held open: the delay lets the "computing..." indicator show first,
+          // and some replies (e.g. "@bot gh") need a network round trip of their own.
+          const replyTask = (async () => {
+            const reply = await botReplyFor(body.message, body.name);
+            if (reply) await writeBotReply(env, reply);
+          })();
+          if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(replyTask);
+          else await replyTask;
         }
       return new Response(response.body, {
         status: response.status,
@@ -150,14 +150,78 @@ async function writeBotReply(env, reply) {
 // Reply for a chat mention of the bot, or null to stay quiet. The client mirrors
 // the mention rule in willTriggerBot() to show its typing indicator, so keep the
 // two in sync when changing how mentions are matched.
-function botReplyFor(message, senderName) {
+async function botReplyFor(message, senderName) {
   if (String(senderName || '').toLowerCase() === 'bot') return null;
   const text = String(message || '');
   // "@bot" at the start or after whitespace; the negative lookahead keeps
   // "@bothello" and "email@bot.com" from matching.
-  if (!/(^|\s)@bot(?![a-z0-9_])/i.test(text)) return null;
+  const mention = /(^|\s)@bot(?![a-z0-9_])/i.exec(text);
+  if (!mention) return null;
+
   const sender = String(senderName || '').trim() || 'there';
-  return 'hey ' + sender;
+  // Everything after "@bot" is the command, e.g. "@bot gh torvalds" -> "gh torvalds".
+  const command = text.slice(mention.index + mention[0].length).trim();
+  const [verb, ...rest] = command.split(/\s+/);
+
+  switch (String(verb || '').toLowerCase()) {
+    case 'help':
+      return BOT_HELP;
+    case 'gh':
+    case 'github':
+      return githubProfileReply(rest[0]);
+    default:
+      return 'hey ' + sender;
+  }
+}
+
+const BOT_HELP = [
+  'hey — here is what i can do:',
+  '',
+  '@bot gh <username> — look up a github profile',
+  '@bot help — show this list',
+  '',
+  'anything else and i will just say hi 👋',
+].join('\n');
+
+// Looks up a GitHub user and formats a short profile card. Never throws: any
+// failure (bad name, rate limit, network) comes back as a friendly message so
+// the bot always replies instead of going silent.
+async function githubProfileReply(username) {
+  const login = String(username || '').trim().replace(/^@/, '');
+  if (!login) return 'usage: @bot gh <username>  —  e.g. @bot gh torvalds';
+  if (!/^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){0,38}$/i.test(login)) {
+    return `"${login}" does not look like a github username.`;
+  }
+
+  let res;
+  try {
+    res = await fetch('https://api.github.com/users/' + encodeURIComponent(login), {
+      headers: {
+        'User-Agent': 'iamovi-chatguys-bot',
+        'Accept': 'application/vnd.github+json',
+      },
+    });
+  } catch {
+    return 'could not reach github right now — try again in a moment.';
+  }
+
+  if (res.status === 404) return `no github user named "${login}".`;
+  if (res.status === 403 || res.status === 429) {
+    return 'github is rate-limiting me right now — try again later.';
+  }
+  if (!res.ok) return `github returned an error (${res.status}). try again later.`;
+
+  let user;
+  try { user = await res.json(); } catch { return 'github sent back something i could not read.'; }
+
+  const lines = [`@${user.login}`];
+  if (user.name) lines.push(user.name);
+  if (user.bio) lines.push(user.bio);
+  lines.push(
+    `${user.public_repos} repos · ${user.followers} followers`,
+    user.html_url
+  );
+  return lines.join('\n');
 }
 
 async function handleNotify(request, env, corsHeaders) {
