@@ -4,26 +4,26 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dino Run — Hasan Ovi</title>
+    <title>Dino — Hasan Ovi</title>
 
     <link rel="canonical" href="https://iamovi.github.io/games/dino/">
     <link rel="describedby" href="https://iamovi.github.io/llms.txt">
     <meta name="description"
-        content="Dino Run — an endless runner by Hasan Ovi. Jump the cacti, duck the birds, and keep running as the desert speeds up.">
+        content="Dino — an endless runner by Hasan Ovi. Jump the cacti, duck the birds, and keep running as the desert speeds up.">
     <meta name="author" content="Hasan Ovi">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="Dino Run — Hasan Ovi">
+    <meta property="og:title" content="Dino — Hasan Ovi">
     <meta property="og:description"
-        content="Dino Run — an endless runner by Hasan Ovi. Jump the cacti, duck the birds, and chase your best score.">
+        content="Dino — an endless runner by Hasan Ovi. Jump the cacti, duck the birds, and chase your best score.">
     <meta property="og:image" content="https://iamovi.github.io/assets/og-image.jpg">
     <meta property="og:url" content="https://iamovi.github.io/games/dino/">
     <meta property="og:type" content="website">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Dino Run — Hasan Ovi">
+    <meta name="twitter:title" content="Dino — Hasan Ovi">
     <meta name="twitter:description"
-        content="Dino Run — an endless runner by Hasan Ovi. Jump the cacti, duck the birds, and chase your best score.">
+        content="Dino — an endless runner by Hasan Ovi. Jump the cacti, duck the birds, and chase your best score.">
     <meta name="twitter:image" content="https://iamovi.github.io/assets/og-image.jpg">
 
     <link rel="icon" href="../../samurai-jack.png">
@@ -216,8 +216,14 @@
             .back { top: 12px; left: 12px; font-size: 11px; }
             .scoreboard { top: 12px; right: 12px; gap: 14px; }
             .score-num { font-size: 18px; }
-            canvas { width: 94vw; }
             .overlay h2 { font-size: 22px; }
+        }
+        /* Taller canvas in phone portrait: drive the height from the viewport so
+           the game fills the screen instead of sitting in a small 16:9 letterbox.
+           Both dimensions are set, so the base aspect-ratio is ignored and the
+           logical world height follows the real box (see resize()). */
+        @media (max-width: 600px) and (orientation: portrait) {
+            canvas { width: 94vw; height: min(56vh, 520px); }
         }
         @media (max-height: 560px) {
             .scoreboard, .back { position: absolute; }
@@ -242,12 +248,12 @@
 
     <main class="stage">
         <canvas id="game" role="img"
-            aria-label="Dino Run: a small dinosaur runs across a desert, jumping cacti and ducking under birds. Press space to jump, down arrow to duck."></canvas>
+            aria-label="Dino: a small dinosaur runs across a desert, jumping cacti and ducking under birds. Press space to jump, down arrow to duck."></canvas>
 
         <!-- READY -->
         <div class="overlay" id="overlay-ready">
             <div class="overlay-card">
-                <h2>Dino Run</h2>
+                <h2>Dino</h2>
                 <p>Press space or tap to jump.<br>Hold ↓ or swipe down to duck under birds.<br>It only gets faster.</p>
                 <button class="btn" id="start-btn" type="button">[ Start ]</button>
             </div>
@@ -290,8 +296,9 @@
             'use strict';
 
             // ── Logical coordinate space (canvas is scaled to fit) ──
-            const W = 720, H = 405;
-            const GROUND_Y = H - 52;          // baseline the dino stands on
+            const W = 720;
+            let H = 405;                      // derived from the canvas box aspect
+            let GROUND_Y = H - 52;            // baseline the dino stands on
 
             const GRAVITY = 2600;             // px/s^2
             const JUMP_V = -820;              // px/s
@@ -324,7 +331,7 @@
             const storedBest = Number(localStorage.getItem(BEST_KEY));
             let best = Number.isFinite(storedBest) && storedBest > 0 ? storedBest : 0;
 
-            let dino, obstacles, spawnTimer, elapsed, speed, distance, shake;
+            let dino, obstacles, clouds, spawnTimer, elapsed, speed, distance, shake;
             let holdingDuck = false;
             let last = 0, rafId = null;
             let flashUntil = 0;
@@ -342,11 +349,32 @@
             }
 
             // ── Canvas sizing (crisp on high-DPI) ──
+            // The logical world height tracks the canvas box aspect, so a taller
+            // phone canvas reveals more of the scene instead of stretching it.
             function resize() {
                 const dpr = Math.min(window.devicePixelRatio || 1, 3);
+                const rect = canvas.getBoundingClientRect();
+                const aspect = rect.height > 0 ? rect.width / rect.height : 16 / 9;
+                const prevGround = GROUND_Y;
+                H = Math.round(W / aspect);
+                GROUND_Y = H - 52;
                 canvas.width = Math.round(W * dpr);
                 canvas.height = Math.round(H * dpr);
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                // Keep everything glued to the (possibly moved) ground line.
+                const dy = GROUND_Y - prevGround;
+                if (dy !== 0) {
+                    if (dino) { dino.y += dy; }
+                    if (obstacles) for (const o of obstacles) o.y += dy;
+                }
+                if (state === 'ready' && dino) { dino.y = GROUND_Y; dino.v = 0; }
+                // Re-scatter clouds into the new sky band so none sit on the ground.
+                if (clouds) {
+                    const band = cloudBand();
+                    for (const c of clouds) {
+                        if (c.y > band.bottom) c.y = band.top + Math.random() * Math.max(30, band.bottom - band.top);
+                    }
+                }
                 draw();
             }
 
@@ -354,6 +382,7 @@
             function reset() {
                 dino = { y: GROUND_Y, v: 0, ducking: false, legT: 0 };
                 obstacles = [];
+                clouds = [];
                 spawnTimer = 0.85;             // breather before the first obstacle
                 elapsed = 0;
                 speed = SPEED_START;
@@ -361,6 +390,35 @@
                 shake = 0;
                 score = 0;
                 scoreNum.textContent = '0';
+                seedClouds();
+            }
+
+            // Scatter clouds across the sky band (above the play line) so the tall
+            // phone canvas reads as open desert rather than empty space.
+            function cloudBand() {
+                return { top: 26, bottom: GROUND_Y - 150 };
+            }
+            function makeCloud(x) {
+                const band = cloudBand();
+                const span = Math.max(30, band.bottom - band.top);
+                return {
+                    x: x,
+                    y: band.top + Math.random() * span,
+                    s: 0.7 + Math.random() * 0.7,   // scale
+                    v: 0.12 + Math.random() * 0.12  // parallax speed factor
+                };
+            }
+            function seedClouds() {
+                clouds = [];
+                // Stratify across the band so the tall sky never reads as empty.
+                const n = 6;
+                const band = cloudBand();
+                const span = Math.max(30, band.bottom - band.top);
+                for (let i = 0; i < n; i++) {
+                    const c = makeCloud((i / n) * W + Math.random() * (W / n));
+                    c.y = band.top + ((i + 0.5) / n) * span + (Math.random() - 0.5) * (span / n);
+                    clouds.push(c);
+                }
             }
 
             function setState(next) {
@@ -525,6 +583,17 @@
                 for (const o of obstacles) o.x -= speed * dt;
                 while (obstacles.length && obstacles[0].x + obstacles[0].w < -30) obstacles.shift();
 
+                // Clouds drift with the world at a slower, parallax pace.
+                const band = cloudBand();
+                for (const c of clouds) {
+                    c.x -= speed * c.v * dt;
+                    if (c.x < -70) {
+                        c.x = W + 20 + Math.random() * 80;
+                        c.y = band.top + Math.random() * Math.max(30, band.bottom - band.top);
+                        c.s = 0.7 + Math.random() * 0.7;
+                    }
+                }
+
                 // Score: distance-based, like the original (10 per ~100px)
                 const next = Math.floor(distance / 10);
                 if (next !== score) {
@@ -556,6 +625,7 @@
                 ctx.save();
                 ctx.translate(shakeX, shakeY);
 
+                drawClouds();
                 drawGround();
                 for (const o of obstacles) {
                     if (o.type === 'bird') drawBird(o); else drawCactus(o);
@@ -583,6 +653,26 @@
                     ctx.fillText(String(score), W - 26, 22);
                     ctx.restore();
                 }
+            }
+
+            // Soft puffs in the paper-dark tone, with a faint ink outline so they
+            // stay visible in both light and dark themes.
+            function drawClouds() {
+                ctx.save();
+                ctx.strokeStyle = colors.inkMid;
+                ctx.fillStyle = colors.paperDark;
+                ctx.lineWidth = 2;
+                for (const c of clouds) {
+                    const s = c.s;
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, 13 * s, 0, Math.PI * 2);
+                    ctx.arc(c.x + 15 * s, c.y - 6 * s, 16 * s, 0, Math.PI * 2);
+                    ctx.arc(c.x + 34 * s, c.y, 13 * s, 0, Math.PI * 2);
+                    ctx.arc(c.x + 17 * s, c.y + 7 * s, 13 * s, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+                ctx.restore();
             }
 
             function drawGround() {
