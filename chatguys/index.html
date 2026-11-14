@@ -137,13 +137,6 @@
             line-height: 1.1;
         }
 
-        .chat-sub {
-            font-size: 11.5px;
-            color: var(--ink-mid);
-            margin-top: 4px;
-            line-height: 1.4;
-        }
-
         /* ── JOIN CARD ── */
         .chatguys-join-card {
             padding: 18px 0 0;
@@ -584,10 +577,6 @@
                 font-size: 20px;
             }
 
-            .chat-sub {
-                font-size: 11px;
-            }
-
             .chatguys-join-card {
                 padding: 12px 0 0;
             }
@@ -710,13 +699,13 @@
                     <button class="change-name-btn" onclick="openChangeNameModal()">[ change name ]</button>
                 </div>
             </div>
-            <p class="chat-sub">public live chatroom — messages are automatically cleared after 1 week.</p>
         </header>
 
         <!-- JOIN VIEW (Shown when no nickname is saved) -->
         <div id="chatguys-join-view" class="chatguys-join-card" style="display:none;">
             <div class="chatguys-card-header">enter your nickname to join</div>
             <p class="chatguys-card-sub">Choose a display name (restricted names like "Ovi" and "admin" are reserved).</p>
+            <p class="chatguys-card-sub">public live chatroom — messages are automatically cleared after 1 week.</p>
             <div class="form-row">
                 <input type="text" id="chatguys-join-name" class="chat-input" placeholder="e.g. cyber_samurai"
                     maxlength="24" autocomplete="off" />
