@@ -191,7 +191,8 @@ const BOT_HELP = [
 // a friendly message so the bot always replies instead of going silent.
 async function jokeReply(senderName) {
   const name = String(senderName || '').trim() || 'there';
-  const header = 'here is a joke for ' + name;
+  // Blank line after the header so the joke stands apart from the greeting.
+  const header = 'here is a joke for ' + name + '\n';
 
   let res;
   try {
