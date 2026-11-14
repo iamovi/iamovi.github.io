@@ -706,7 +706,7 @@
             <p class="chatguys-card-sub">Choose a display name (restricted names like "Ovi" and "admin" are reserved).</p>
             <div class="form-row">
                 <input type="text" id="chatguys-join-name" class="chat-input" placeholder="e.g. cyber_samurai"
-                    maxlength="24" autocomplete="off" autofocus />
+                    maxlength="24" autocomplete="off" />
                 <button class="chat-btn" onclick="joinChatguys()">[ join chat ]</button>
             </div>
             <div id="chatguys-join-error" class="status-msg error" style="display:none; margin-top: 10px;"></div>
@@ -976,15 +976,11 @@
                     purgeOldChatMessages();
                     loadChatMessages();
                     startChatPolling();
-                    const input = document.getElementById('chatguys-msg-input');
-                    if (input) setTimeout(() => input.focus(), 80);
                 } else {
                     stopChatPolling();
                     joinView.style.display = 'block';
                     roomView.style.display = 'none';
                     if (headerUser) headerUser.style.display = 'none';
-                    const joinInput = document.getElementById('chatguys-join-name');
-                    if (joinInput) setTimeout(() => joinInput.focus(), 80);
                 }
             }
 
@@ -1600,6 +1596,17 @@
                         e.preventDefault();
                         applyMention(parseInt(item.dataset.index, 10) || 0);
                     });
+                }
+
+                // Tapping [ send ] would normally move focus onto the button, closing
+                // the on-screen keyboard, and the post-send refocus reopens it — a
+                // visible close/open flicker. Preventing the default on the press
+                // events keeps the input focused; the click that sends still fires.
+                const sendBtn = document.getElementById('chatguys-send-btn');
+                if (sendBtn) {
+                    const keepInputFocus = (e) => e.preventDefault();
+                    sendBtn.addEventListener('pointerdown', keepInputFocus);
+                    sendBtn.addEventListener('mousedown', keepInputFocus);
                 }
 
                 const joinInput = document.getElementById('chatguys-join-name');
