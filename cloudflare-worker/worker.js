@@ -170,6 +170,8 @@ async function botReplyFor(message, senderName) {
       return jokeReply(sender);
     case 'define':
       return defineReply(rest.join(' '));
+    case 'weather':
+      return weatherReply(rest.join(' '));
     case 'gh':
     case 'github':
       return githubProfileReply(rest[0]);
@@ -183,6 +185,7 @@ const BOT_HELP = [
   '',
   '@bot joke — tell a random joke',
   '@bot define <word> — look up a word',
+  '@bot weather <city> — current weather',
   '@bot gh <username> — look up a github profile',
   '@bot help — show this list',
   '',
@@ -253,6 +256,77 @@ async function jokeReply(senderName) {
   }
   const single = data.joke || data.setup || '';
   return single ? header + '\n' + single : header + '\n...but the joke came back empty.';
+}
+
+// Fetches current weather for a place name via Open-Meteo (no API key). Never
+// throws: any failure comes back as a friendly message so the bot always
+// replies instead of going silent.
+async function weatherReply(place) {
+  const query = String(place || '').trim();
+  if (!query) return 'usage: @bot weather <city>  —  e.g. @bot weather london';
+
+  let geoRes;
+  try {
+    geoRes = await fetch(
+      'https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&format=json&name=' +
+      encodeURIComponent(query),
+      { headers: { 'Accept': 'application/json' } }
+    );
+  } catch {
+    return 'could not reach the weather service right now — try again in a moment.';
+  }
+  if (!geoRes.ok) return `the weather service returned an error (${geoRes.status}). try again later.`;
+
+  let geo;
+  try { geo = await geoRes.json(); } catch { return 'the weather service sent back something i could not read.'; }
+  const hit = geo && Array.isArray(geo.results) && geo.results[0];
+  if (!hit) return `i could not find a place called "${query}".`;
+
+  const label = [hit.name, hit.admin1, hit.country].filter(Boolean).join(', ');
+
+  let res;
+  try {
+    res = await fetch(
+      'https://api.open-meteo.com/v1/forecast?current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&latitude=' +
+      encodeURIComponent(hit.latitude) + '&longitude=' + encodeURIComponent(hit.longitude),
+      { headers: { 'Accept': 'application/json' } }
+    );
+  } catch {
+    return 'could not reach the weather service right now — try again in a moment.';
+  }
+  if (!res.ok) return `the weather service returned an error (${res.status}). try again later.`;
+
+  let data;
+  try { data = await res.json(); } catch { return 'the weather service sent back something i could not read.'; }
+  const cur = data && data.current;
+  if (!cur || typeof cur.temperature_2m !== 'number') {
+    return 'the weather service did not return any readings for that place.';
+  }
+
+  const lines = [label];
+  lines.push(
+    `${weatherCodeText(cur.weather_code)} · ${Math.round(cur.temperature_2m)}°C` +
+    (typeof cur.apparent_temperature === 'number' ? ` (feels ${Math.round(cur.apparent_temperature)}°C)` : '')
+  );
+  if (typeof cur.wind_speed_10m === 'number') lines.push(`wind ${Math.round(cur.wind_speed_10m)} km/h`);
+  return lines.join('\n');
+}
+
+// WMO weather interpretation codes, grouped so the wording stays short.
+function weatherCodeText(code) {
+  const c = Number(code);
+  if (c === 0) return 'clear sky';
+  if (c === 1) return 'mainly clear';
+  if (c === 2) return 'partly cloudy';
+  if (c === 3) return 'overcast';
+  if (c === 45 || c === 48) return 'foggy';
+  if (c >= 51 && c <= 57) return 'drizzle';
+  if (c >= 61 && c <= 67) return 'rain';
+  if (c >= 71 && c <= 77) return 'snow';
+  if (c >= 80 && c <= 82) return 'rain showers';
+  if (c === 85 || c === 86) return 'snow showers';
+  if (c >= 95) return 'thunderstorm';
+  return 'unknown conditions';
 }
 
 // Looks up a GitHub user and formats a short profile card. Never throws: any
