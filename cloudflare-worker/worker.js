@@ -88,7 +88,7 @@ export default {
           // never held open: the delay lets the "computing..." indicator show first,
           // and some replies (e.g. "@bot gh") need a network round trip of their own.
           const replyTask = (async () => {
-            const reply = await botReplyFor(body.message, body.name);
+            const reply = await botReplyFor(body.message, body.name, env);
             if (reply) await writeBotReply(env, reply);
           })();
           if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(replyTask);
@@ -150,7 +150,7 @@ async function writeBotReply(env, reply) {
 // Reply for a chat mention of the bot, or null to stay quiet. The client mirrors
 // the mention rule in willTriggerBot() to show its typing indicator, so keep the
 // two in sync when changing how mentions are matched.
-async function botReplyFor(message, senderName) {
+async function botReplyFor(message, senderName, env) {
   if (String(senderName || '').toLowerCase() === 'bot') return null;
   const text = String(message || '');
   // "@bot" at the start or after whitespace; the negative lookahead keeps
@@ -172,7 +172,7 @@ async function botReplyFor(message, senderName) {
       return defineReply(rest.join(' '));
     case 'gh':
     case 'github':
-      return githubProfileReply(rest[0]);
+      return githubProfileReply(rest[0], env);
     default:
       return 'hey ' + sender;
   }
@@ -258,28 +258,43 @@ async function jokeReply(senderName) {
 // Looks up a GitHub user and formats a short profile card. Never throws: any
 // failure (bad name, rate limit, network) comes back as a friendly message so
 // the bot always replies instead of going silent.
-async function githubProfileReply(username) {
+async function githubProfileReply(username, env) {
   const login = String(username || '').trim().replace(/^@/, '');
   if (!login) return 'usage: @bot gh <username>  —  e.g. @bot gh torvalds';
   if (!/^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){0,38}$/i.test(login)) {
     return `"${login}" does not look like a github username.`;
   }
 
+  const headers = {
+    'User-Agent': 'iamovi-chatguys-bot',
+    'Accept': 'application/vnd.github+json',
+  };
+  // Unauthenticated GitHub calls share Cloudflare's egress IPs, where the limit
+  // is 60 req/hour for every customer on that IP. A token raises it to 5000/hour
+  // and is scoped to this app. Optional: without the secret the call still works,
+  // it just hits the shared limit sooner.
+  const token = env && env.GITHUB_TOKEN;
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+
   let res;
   try {
-    res = await fetch('https://api.github.com/users/' + encodeURIComponent(login), {
-      headers: {
-        'User-Agent': 'iamovi-chatguys-bot',
-        'Accept': 'application/vnd.github+json',
-      },
-    });
+    res = await fetch('https://api.github.com/users/' + encodeURIComponent(login), { headers });
   } catch {
     return 'could not reach github right now — try again in a moment.';
   }
 
   if (res.status === 404) return `no github user named "${login}".`;
   if (res.status === 403 || res.status === 429) {
-    return 'github is rate-limiting me right now — try again later.';
+    // Secondary limits send Retry-After; the hourly limit sends X-RateLimit-Reset.
+    const retryAfter = Number(res.headers.get('Retry-After'));
+    const reset = Number(res.headers.get('X-RateLimit-Reset'));
+    const wait = retryAfter > 0 ? retryAfter * 1000
+      : reset > 0 ? Math.max(0, reset * 1000 - Date.now())
+        : 0;
+    const mins = wait > 0 ? Math.max(1, Math.ceil(wait / 60000)) : 0;
+    return mins
+      ? `github is rate-limiting me — try again in about ${mins} min.`
+      : 'github is rate-limiting me right now — try again later.';
   }
   if (!res.ok) return `github returned an error (${res.status}). try again later.`;
 
