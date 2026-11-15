@@ -853,6 +853,14 @@
             // Skip a heartbeat when the previous one is still recent (e.g. a quick tab
             // focus), so flipping tabs does not spam the table.
             const PRESENCE_MIN_GAP_MS = 4000;
+            // Two chatguys tabs in one browser share a single session row (the session id
+            // lives in localStorage), so a tab that closes must not mark the shared
+            // session offline while a sibling is still open. Each tab registers itself
+            // here and only the last one left backdates. A tab silent for this long is
+            // treated as gone (2.5x the heartbeat, so a slow beat is not read as a close).
+            const PRESENCE_TABS_KEY = 'chatguys_presence_tabs';
+            const PRESENCE_TAB_STALE_MS = 20000;
+            let presenceTabId = null;
             let presenceHeartbeatTimer = null;
             let presenceCountTimer = null;
             let lastPresencePing = 0;
@@ -1157,11 +1165,51 @@
             function presenceHeartbeat() {
                 if (!getSavedNickname()) return Promise.resolve();
                 lastPresencePing = Date.now();
+                presenceRegisterTab();
                 return fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
                     method: 'POST',
                     headers: { ...gbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
                     body: JSON.stringify({ session_id: getSessionId(), last_seen: new Date().toISOString() })
                 }).catch(() => { });
+            }
+
+            // Registers this tab in the shared list and returns the live sibling ids. Each
+            // tab keeps its own entry fresh on every heartbeat, so a closed or crashed
+            // tab simply ages out instead of lingering as a phantom sibling.
+            function presenceRegisterTab() {
+                try {
+                    const now = Date.now();
+                    let tabs = {};
+                    try { tabs = JSON.parse(localStorage.getItem(PRESENCE_TABS_KEY) || '{}') || {}; } catch (e) { tabs = {}; }
+                    for (const id in tabs) {
+                        if (!(now - tabs[id] < PRESENCE_TAB_STALE_MS)) delete tabs[id];
+                    }
+                    tabs[presenceTabId] = now;
+                    localStorage.setItem(PRESENCE_TABS_KEY, JSON.stringify(tabs));
+                    return Object.keys(tabs);
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Drops this tab from the shared list and reports how many siblings are still
+            // live. Null means the list is unusable, in which case we fall back to
+            // backdating (never leave the count stale).
+            function presenceUnregisterTab() {
+                try {
+                    const now = Date.now();
+                    let tabs = {};
+                    try { tabs = JSON.parse(localStorage.getItem(PRESENCE_TABS_KEY) || '{}') || {}; } catch (e) { tabs = {}; }
+                    delete tabs[presenceTabId];
+                    const live = [];
+                    for (const id in tabs) {
+                        if (now - tabs[id] < PRESENCE_TAB_STALE_MS) live.push(id);
+                    }
+                    localStorage.setItem(PRESENCE_TABS_KEY, JSON.stringify(tabs));
+                    return live.length;
+                } catch (e) {
+                    return null;
+                }
             }
 
             // Marks this session offline at once by backdating its heartbeat, so the
@@ -1173,8 +1221,20 @@
             // where a plain fetch would be cancelled. The heartbeat runs this same
             // request every few seconds, so the CORS preflight is already cached by the
             // time we leave and the farewell goes out on the warm connection.
+            //
+            // A sibling tab sharing this session means the visitor is still in the room,
+            // so the row is left alone and the surviving tab keeps beating. A refresh is
+            // a close immediately followed by a reopen: the next tab to beat updates the
+            // shared row right away, so the brief backdate is never observed.
             function presenceGoOffline() {
                 if (!getSavedNickname()) return;
+                const live = presenceUnregisterTab();
+                if (live === null || live > 0) return;
+                // The row is about to be backdated, so the min-gap (which assumes the row
+                // is still fresh) no longer applies: the next startPresence must announce
+                // again. Otherwise a bfcache Back inside the min-gap would trust the stale
+                // row and leave the visitor shown offline until the next heartbeat.
+                lastPresencePing = 0;
                 fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
                     method: 'POST',
                     headers: { ...gbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
@@ -1209,6 +1269,10 @@
 
             function startPresence() {
                 stopPresence();
+                // Fresh per-tab identity for the sibling guard. A reload keeps the same
+                // session row, but the old tab entry is left to age out — harmless.
+                presenceTabId = 'tab-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+                presenceRegisterTab();
                 // Announce first, then read the count — otherwise our own first read can
                 // beat our own heartbeat and briefly show one person too few. A quick tab
                 // flip skips the redundant beat (the previous one is still inside the
