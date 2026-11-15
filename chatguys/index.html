@@ -141,34 +141,12 @@
         .chat-presence {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 0.05em;
             color: var(--ink-mid);
             text-transform: uppercase;
             white-space: nowrap;
-        }
-
-        .chat-presence-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #22c55e;
-            box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
-            animation: presencePulse 1.6s ease-in-out infinite;
-        }
-
-        @keyframes presencePulse {
-            50% {
-                transform: scale(0.65);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .chat-presence-dot {
-                animation: none;
-            }
         }
 
         /* ── JOIN CARD ── */
@@ -733,7 +711,7 @@
                     </a>
                     <h1 class="chat-title">[ chatguys ]</h1>
                     <span class="chat-presence" id="chatguys-presence" style="display:none;" title="people in the room right now">
-                        <span class="chat-presence-dot" aria-hidden="true"></span>Active: <span id="chatguys-presence-count">00</span>
+                        [ Active: <span id="chatguys-presence-count">00</span> ]
                     </span>
                 </div>
                 <div class="chat-topbar" id="chatguys-header-user" style="display:none;">
