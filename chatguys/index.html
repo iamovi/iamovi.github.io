@@ -137,6 +137,40 @@
             line-height: 1.1;
         }
 
+        /* ── LIVE PRESENCE BADGE ── */
+        .chat-presence {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--ink-mid);
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .chat-presence-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+            animation: presencePulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes presencePulse {
+            50% {
+                transform: scale(0.65);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .chat-presence-dot {
+                animation: none;
+            }
+        }
+
         /* ── JOIN CARD ── */
         .chatguys-join-card {
             padding: 18px 0 0;
@@ -580,6 +614,10 @@
                 font-size: 20px;
             }
 
+            .chat-presence {
+                font-size: 12px;
+            }
+
             .chatguys-join-card {
                 padding: 12px 0 0;
             }
@@ -694,6 +732,9 @@
                         <i class="ri-arrow-left-line"></i> back to init_ovi
                     </a>
                     <h1 class="chat-title">[ chatguys ]</h1>
+                    <span class="chat-presence" id="chatguys-presence" style="display:none;" title="people in the room right now">
+                        <span class="chat-presence-dot" aria-hidden="true"></span>Active: <span id="chatguys-presence-count">00</span>
+                    </span>
                 </div>
                 <div class="chat-topbar" id="chatguys-header-user" style="display:none;">
                     <div class="chat-user-tag">
@@ -794,6 +835,18 @@
             let chatPollTimer = null;
             let isFetchingChat = false;
             let lastChatSnapshot = '';
+
+            // ── LIVE PRESENCE ──
+            // A session counts as "online" while its heartbeat is inside this window.
+            // Heartbeats run every 20s, so 50s tolerates a couple of missed beats (a
+            // backgrounded tab) before the visitor is dropped from the count.
+            const PRESENCE_HEARTBEAT_MS = 20000;
+            const PRESENCE_ONLINE_WINDOW_MS = 50000;
+            // Skip a heartbeat when the previous one is still recent (e.g. a quick tab
+            // focus), so flipping tabs does not spam the table.
+            const PRESENCE_MIN_GAP_MS = 15000;
+            let presenceTimer = null;
+            let lastPresencePing = 0;
 
             // Messages currently on screen, oldest-first. Kept as state (instead of
             // re-rendering straight from each fetch) so polling can append only NEW
@@ -984,8 +1037,10 @@
                     purgeOldChatMessages();
                     loadChatMessages();
                     startChatPolling();
+                    startPresence();
                 } else {
                     stopChatPolling();
+                    stopPresence();
                     joinView.style.display = 'block';
                     roomView.style.display = 'none';
                     if (headerUser) headerUser.style.display = 'none';
@@ -1085,6 +1140,55 @@
                     method: 'DELETE',
                     headers: gbHeaders()
                 }).catch(() => { });
+            }
+
+            // ── LIVE PRESENCE ──
+            // Upserts this session's heartbeat, then refreshes the header count.
+            // The table is keyed on session_id, so a returning visitor just updates
+            // their own row instead of adding one.
+            function presenceTick() {
+                if (!getSavedNickname()) return;
+                lastPresencePing = Date.now();
+                fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
+                    method: 'POST',
+                    headers: { ...gbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+                    body: JSON.stringify({ session_id: getSessionId(), last_seen: new Date().toISOString() })
+                }).catch(() => { });
+                fetchPresenceCount();
+            }
+
+            function fetchPresenceCount() {
+                const sinceIso = new Date(Date.now() - PRESENCE_ONLINE_WINDOW_MS).toISOString();
+                fetch(`${SUPABASE_URL}/rest/v1/chat_presence?select=count&last_seen=gte.${encodeURIComponent(sinceIso)}`, {
+                    headers: gbHeaders()
+                })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(rows => {
+                        if (!Array.isArray(rows) || !rows.length) return;
+                        setPresenceCount(Number(rows[0].count) || 0);
+                    })
+                    .catch(() => { });
+            }
+
+            function setPresenceCount(n) {
+                const wrap = document.getElementById('chatguys-presence');
+                const countEl = document.getElementById('chatguys-presence-count');
+                if (!wrap || !countEl) return;
+                countEl.textContent = String(n).padStart(2, '0');
+                wrap.style.display = 'inline-flex';
+            }
+
+            function startPresence() {
+                stopPresence();
+                presenceTick();
+                presenceTimer = setInterval(presenceTick, PRESENCE_HEARTBEAT_MS);
+            }
+
+            function stopPresence() {
+                if (presenceTimer) {
+                    clearInterval(presenceTimer);
+                    presenceTimer = null;
+                }
             }
 
             function isChatScrolledToBottom() {
@@ -1655,9 +1759,15 @@
                 document.addEventListener('visibilitychange', function () {
                     if (document.hidden) {
                         stopChatPolling();
+                        stopPresence();
                     } else if (getSavedNickname()) {
                         loadChatMessages();
                         startChatPolling();
+                        // Re-announce presence on return (skipped if we beat recently),
+                        // so the visitor is back in the count without a full restart.
+                        if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceTick();
+                        stopPresence();
+                        presenceTimer = setInterval(presenceTick, PRESENCE_HEARTBEAT_MS);
                     }
                 });
 
