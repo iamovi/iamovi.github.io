@@ -21,6 +21,7 @@ export default {
     if (url.pathname === '/notify') { return handleNotify(request, env, corsHeaders); }
     if (url.pathname === '/contact-file') { return handleContactFile(request, env, corsHeaders); }
     if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
+    if (url.pathname === '/link-preview') { return handleLinkPreview(request, env, corsHeaders); }
     if (url.pathname.startsWith('/vault/')) { return handleVault(request, env, corsHeaders, url); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
@@ -948,6 +949,201 @@ async function sendTg(chatId, text, env) {
   );
 }
 
+
+// ---------- LINK PREVIEWS (Open Graph / Twitter Card) ----------
+// A chat message that contains a URL gets a small preview card. The browser cannot
+// fetch the page itself (CORS, and no HTML parser), so this route fetches the target
+// server-side, parses a few metadata tags, and returns a tiny JSON blob. Public
+// endpoint: it only ever exposes metadata the target already serves to anyone.
+
+const PREVIEW_TIMEOUT_MS = 6000;
+const PREVIEW_MAX_BYTES = 256 * 1024;   // read at most the first 256 KB of HTML
+const PREVIEW_MAX_REDIRECTS = 3;
+
+// Internal hosts and non-http(s) schemes are refused before any fetch, so a chat
+// message cannot make the Worker probe its own network or hit internal services.
+const PREVIEW_BLOCKED_HOSTS = new Set([
+  'localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]', 'metadata.google.internal',
+]);
+
+// Returns a normalized http(s) URL, or null when the input is not previewable.
+function normalizePreviewUrl(raw) {
+  let u;
+  try { u = new URL(String(raw || '')); } catch { return null; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  const host = u.hostname.toLowerCase();
+  if (!host || PREVIEW_BLOCKED_HOSTS.has(host)) return null;
+  if (host.endsWith('.local') || host.endsWith('.internal')) return null;
+  // Private IPv4 ranges (a literal IP, not a hostname).
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const [a, b] = ipv4.slice(1).map(Number);
+    if (a === 10 || a === 127 || a === 0) return null;
+    if (a === 192 && b === 168) return null;
+    if (a === 172 && b >= 16 && b <= 31) return null;
+    if (a === 169 && b === 254) return null; // link-local / cloud metadata
+  }
+  return u.href;
+}
+
+function decodeEntities(str) {
+  return String(str)
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&amp;/g, '&');
+}
+
+// Reads one <meta> tag's content by property= or name=, regardless of attribute order.
+function metaContent(head, key) {
+  const tagRe = /<meta\b[^>]*>/gi;
+  let m;
+  while ((m = tagRe.exec(head))) {
+    const tag = m[0];
+    const attr = tag.match(/(?:property|name)\s*=\s*["']([^"']+)["']/i);
+    if (!attr || attr[1].toLowerCase() !== key) continue;
+    const content = tag.match(/content\s*=\s*["']([^"']*)["']/i);
+    if (content) return decodeEntities(content[1]).trim();
+  }
+  return '';
+}
+
+function parseLinkPreview(htmlText, finalUrl) {
+  // Only scan <head>; everything we need lives there.
+  const headMatch = htmlText.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i);
+  const head = headMatch ? headMatch[1] : htmlText.slice(0, 100000);
+
+  const title = metaContent(head, 'og:title')
+    || (head.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i) || [])[1]?.trim()
+    || '';
+  const description = metaContent(head, 'og:description') || metaContent(head, 'description');
+  let image = metaContent(head, 'og:image') || metaContent(head, 'twitter:image');
+  const siteName = metaContent(head, 'og:site_name');
+
+  let u;
+  try { u = new URL(finalUrl); } catch { u = null; }
+  if (image && u) {
+    try { image = new URL(image, u).href; } catch { image = ''; }
+  } else if (image) {
+    image = '';
+  }
+
+  return {
+    url: finalUrl,
+    title: decodeEntities(title).slice(0, 300),
+    description: decodeEntities(description).slice(0, 400),
+    image,
+    site_name: siteName ? decodeEntities(siteName).slice(0, 120) : (u ? u.hostname.replace(/^www\./, '') : ''),
+  };
+}
+
+async function handleLinkPreview(request, env, corsHeaders) {
+  const json = (obj, status = 200) =>
+    new Response(JSON.stringify(obj), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (request.method !== 'GET') return json({ ok: false, error: 'method_not_allowed' }, 405);
+
+  const target = normalizePreviewUrl(new URL(request.url).searchParams.get('url'));
+  if (!target) return json({ ok: false, error: 'invalid_url' }, 400);
+
+  // Cache successful previews at the edge; previews change rarely. Wrapped in
+  // try/catch so a cache hiccup degrades to a plain fetch instead of a 500.
+  let cache = null;
+  let cacheKey = null;
+  try {
+    cache = typeof caches !== 'undefined' ? caches.default : null;
+    cacheKey = new Request('https://preview-cache.iamovi.internal/' + encodeURIComponent(target));
+    if (cache) {
+      const hit = await cache.match(cacheKey);
+      if (hit) return new Response(hit.body, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+  } catch { cache = null; }
+
+  const result = await fetchAndParsePreview(target);
+  if (!result) return json({ ok: false, error: 'unreachable' }, 502);
+
+  if (cache && cacheKey) {
+    try {
+      await cache.put(cacheKey, new Response(JSON.stringify({ ok: true, preview: result }), {
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' },
+      }));
+    } catch { /* caching is best-effort */ }
+  }
+  return json({ ok: true, preview: result });
+}
+
+// Follows redirects manually so every hop is re-checked against the SSRF guard, then
+// streams at most PREVIEW_MAX_BYTES of the body. Never throws: returns null on failure.
+async function fetchAndParsePreview(target) {
+  let current = target;
+  try {
+    for (let hop = 0; hop <= PREVIEW_MAX_REDIRECTS; hop++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), PREVIEW_TIMEOUT_MS);
+      let res;
+      try {
+        res = await fetch(current, {
+          redirect: 'manual',
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; iamovi-link-preview/1.0)',
+            'Accept': 'text/html,application/xhtml+xml',
+          },
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get('location');
+        const next = location ? normalizePreviewUrl(new URL(location, current).href) : null;
+        if (!next) return null;
+        current = next;
+        continue;
+      }
+      if (!res.ok) return null;
+
+      const type = (res.headers.get('content-type') || '').toLowerCase();
+      if (type && !type.includes('html') && !type.includes('xml')) return null;
+
+      const html = await readCappedText(res, PREVIEW_MAX_BYTES);
+      if (!html) return null;
+      return parseLinkPreview(html, current);
+    }
+  } catch { return null; }
+  return null;
+}
+
+// Reads a response body as text, stopping after `limit` bytes so a huge page cannot
+// exhaust the Worker's memory budget.
+async function readCappedText(res, limit) {
+  if (!res.body) return (await res.text()).slice(0, limit);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let out = '';
+  let read = 0;
+  try {
+    while (read < limit) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      read += value.byteLength;
+      out += decoder.decode(value, { stream: true });
+    }
+    out += decoder.decode();
+  } finally {
+    try { await reader.cancel(); } catch { /* already done */ }
+  }
+  return out;
+}
 
 // ---------- PRIVATE PHOTO VAULT (Backblaze B2) ----------
 // Every route requires a valid admin session AND the email in the ADMIN_EMAIL secret.
