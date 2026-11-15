@@ -50,6 +50,10 @@ Repository-specific notes for AI agents working in this repo.
   Rate-limited per session and per day (KV binding `AI_RATE_LIMIT`, or an
   in-isolate fallback when unbound).
 - Keep the Worker's `mentionRegex()` and the client's `willTriggerBot()` in sync.
+- Link previews: a message containing a URL gets an Open Graph card. The Worker's
+  `/link-preview?url=` route fetches the page, parses the tags, and caches the result;
+  the browser cannot (CORS, no HTML parser). The SSRF guard in `normalizePreviewUrl()`
+  re-checks every redirect hop, so keep it in place when touching that path.
 
 ## Conventions
 

@@ -463,6 +463,77 @@
             word-break: break-all;
         }
 
+        /* ── LINK PREVIEW CARD ── */
+        .chat-preview:empty {
+            display: none;
+        }
+
+        .chat-preview {
+            margin-top: 8px;
+        }
+
+        .chat-preview-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border: 1px solid var(--border-soft);
+            background: var(--paper);
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+            transition: transform var(--speed), box-shadow var(--speed);
+        }
+
+        .chat-preview-card:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 2px 2px 0 var(--card-shadow);
+        }
+
+        .chat-preview-img {
+            display: block;
+            width: 100%;
+            max-height: 160px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-soft);
+            background: var(--paper-dark);
+        }
+
+        .chat-preview-body {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 8px 10px;
+        }
+
+        .chat-preview-site {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+        }
+
+        .chat-preview-title {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--ink);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .chat-preview-desc {
+            font-size: 11.5px;
+            line-height: 1.4;
+            color: var(--ink-mid);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
         .chat-empty, .chat-loading {
             text-align: center;
             padding: 30px 10px;
@@ -1030,6 +1101,99 @@
                 return escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
             }
 
+            // First http(s) URL in a message, with trailing sentence punctuation trimmed,
+            // or '' when there is none. Used to decide whether a message gets a preview.
+            function firstUrlIn(text) {
+                const m = String(text || '').match(/https?:\/\/[^\s<]+/);
+                return m ? m[0].replace(/[.,!?;:)\]}'"]+$/, '') : '';
+            }
+
+            // ── LINK PREVIEWS ──
+            // The Worker fetches the target page and parses its Open Graph tags (the
+            // browser cannot: CORS, and no HTML parser). Each URL is fetched once per
+            // page load — the in-flight promise is cached so duplicate links share a
+            // request, and a failed lookup is remembered as null so it is not retried.
+            const LINK_PREVIEW_URL = SUPABASE_URL.replace('/proxy', '/link-preview');
+            const previewCache = new Map();
+
+            function getPreview(url) {
+                if (!previewCache.has(url)) {
+                    previewCache.set(url, fetchPreview(url));
+                }
+                return previewCache.get(url);
+            }
+
+            async function fetchPreview(url) {
+                try {
+                    const res = await fetch(LINK_PREVIEW_URL + '?url=' + encodeURIComponent(url));
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    return (data && data.ok && data.preview) ? data.preview : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Slot markup for a message: an empty container the hydrator fills in. The
+            // URL rides in a data attribute (escaped) so it never touches the DOM as HTML.
+            function previewSlotHtml(message) {
+                const url = firstUrlIn(message);
+                return url ? `<div class="chat-preview" data-url="${escapeHtml(url)}"></div>` : '';
+            }
+
+            // Builds the card with DOM APIs, so preview data (which is third-party and
+            // untrusted) is inserted as text and never parsed as HTML.
+            function renderPreviewCard(slot, p) {
+                slot.textContent = '';
+                const card = document.createElement('a');
+                card.className = 'chat-preview-card';
+                card.href = p.url;
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
+
+                if (p.image) {
+                    const img = document.createElement('img');
+                    img.className = 'chat-preview-img';
+                    img.src = p.image;
+                    img.alt = '';
+                    img.loading = 'lazy';
+                    img.referrerPolicy = 'no-referrer';
+                    // A broken/blocked image should not leave an empty box behind.
+                    img.addEventListener('error', () => img.remove());
+                    card.appendChild(img);
+                }
+
+                const body = document.createElement('div');
+                body.className = 'chat-preview-body';
+                const add = (cls, value) => {
+                    if (!value) return;
+                    const span = document.createElement('span');
+                    span.className = cls;
+                    span.textContent = value;
+                    body.appendChild(span);
+                };
+                add('chat-preview-site', p.site_name);
+                add('chat-preview-title', p.title);
+                add('chat-preview-desc', p.description);
+                card.appendChild(body);
+                slot.appendChild(card);
+            }
+
+            // Fills every preview slot in a freshly rendered list. Called after each
+            // render; the cache makes a re-render (new message arrived) instant.
+            function hydrateChatPreviews(container) {
+                const slots = container.querySelectorAll('.chat-preview[data-url]');
+                if (!slots.length) return;
+                slots.forEach(slot => {
+                    const url = slot.dataset.url;
+                    if (!url) { slot.remove(); return; }
+                    getPreview(url).then(p => {
+                        if (!p) { slot.remove(); return; }
+                        if (slot.isConnected) renderPreviewCard(slot, p);
+                    });
+                });
+            }
+
             function initChatguysSection() {
                 lastChatSnapshot = '';
                 chatMessages = [];
@@ -1351,9 +1515,11 @@
                                 <span class="chat-msg-date">${timeAgo(m.created_at)}</span>
                             </div>
                             <div class="chat-msg-text">${formatMessageText(m.message)}</div>
+                            ${previewSlotHtml(m.message)}
                         </div>
                     `;
                 }).join('');
+                hydrateChatPreviews(container);
                 return true;
             }
 
