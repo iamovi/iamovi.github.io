@@ -837,19 +837,22 @@
             let lastChatSnapshot = '';
 
             // ── LIVE PRESENCE ──
-            // The write and the read are on separate clocks: writing our own row is
-            // infrequent, but reading the count has to be quick or the badge lags
-            // behind someone else joining. The count poll matches the chat poll cadence.
+            // Two clocks. The heartbeat (write) only has to prove the tab is still
+            // alive, so it stays slow; the count (read) is what the eye notices, so it
+            // runs fast. A normal departure does not wait for either clock — closing or
+            // refreshing the tab marks the session offline immediately (see
+            // presenceGoOffline), so the window exists only to catch a tab that died
+            // without saying goodbye (crash, process kill).
             //
             // A session counts as "online" while its heartbeat is inside this window.
-            // Heartbeats run every 15s, so 40s tolerates a couple of missed beats (a
-            // backgrounded tab) before the visitor drops out of the count.
-            const PRESENCE_HEARTBEAT_MS = 15000;
-            const PRESENCE_COUNT_MS = 3000;
-            const PRESENCE_ONLINE_WINDOW_MS = 40000;
+            // 3x the heartbeat tolerates a missed beat or two on a flaky connection
+            // before the visitor drops out of the count.
+            const PRESENCE_HEARTBEAT_MS = 8000;
+            const PRESENCE_COUNT_MS = 2000;
+            const PRESENCE_ONLINE_WINDOW_MS = 24000;
             // Skip a heartbeat when the previous one is still recent (e.g. a quick tab
             // focus), so flipping tabs does not spam the table.
-            const PRESENCE_MIN_GAP_MS = 8000;
+            const PRESENCE_MIN_GAP_MS = 4000;
             let presenceHeartbeatTimer = null;
             let presenceCountTimer = null;
             let lastPresencePing = 0;
@@ -1152,18 +1155,38 @@
             // Upserts this session's heartbeat. The table is keyed on session_id, so a
             // returning visitor just updates their own row instead of adding one.
             function presenceHeartbeat() {
-                if (!getSavedNickname()) return;
+                if (!getSavedNickname()) return Promise.resolve();
                 lastPresencePing = Date.now();
-                fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
+                return fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
                     method: 'POST',
                     headers: { ...gbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
                     body: JSON.stringify({ session_id: getSessionId(), last_seen: new Date().toISOString() })
                 }).catch(() => { });
             }
 
+            // Marks this session offline at once by backdating its heartbeat, so the
+            // count drops the moment the visitor leaves instead of waiting for the
+            // online window to expire. A keepalive POST upsert is used rather than
+            // sendBeacon: the upsert needs the Prefer: resolution=merge-duplicates
+            // header, which sendBeacon cannot send, so the row would 409 instead of
+            // updating. keepalive survives the page teardown of a close or refresh,
+            // where a plain fetch would be cancelled. The heartbeat runs this same
+            // request every few seconds, so the CORS preflight is already cached by the
+            // time we leave and the farewell goes out on the warm connection.
+            function presenceGoOffline() {
+                if (!getSavedNickname()) return;
+                fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
+                    method: 'POST',
+                    headers: { ...gbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+                    body: JSON.stringify({ session_id: getSessionId(), last_seen: '1970-01-01T00:00:00.000Z' }),
+                    keepalive: true
+                }).catch(() => { });
+            }
+
             // Reads how many sessions beat inside the freshness window. Cheap enough to
-            // run every few seconds, which is what keeps the badge near-instant.
+            // run every couple of seconds, which is what keeps the badge near-instant.
             function fetchPresenceCount() {
+                if (!getSavedNickname()) return;
                 const sinceIso = new Date(Date.now() - PRESENCE_ONLINE_WINDOW_MS).toISOString();
                 fetch(`${SUPABASE_URL}/rest/v1/chat_presence?select=count&last_seen=gte.${encodeURIComponent(sinceIso)}`, {
                     headers: gbHeaders()
@@ -1186,10 +1209,12 @@
 
             function startPresence() {
                 stopPresence();
-                // Announce immediately, then poll the count straight away so the badge
-                // paints without waiting a full interval.
-                presenceHeartbeat();
-                fetchPresenceCount();
+                // Announce first, then read the count — otherwise our own first read can
+                // beat our own heartbeat and briefly show one person too few. A quick tab
+                // flip skips the redundant beat (the previous one is still inside the
+                // online window) but still refreshes the count.
+                if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceHeartbeat().then(fetchPresenceCount);
+                else fetchPresenceCount();
                 presenceHeartbeatTimer = setInterval(presenceHeartbeat, PRESENCE_HEARTBEAT_MS);
                 presenceCountTimer = setInterval(fetchPresenceCount, PRESENCE_COUNT_MS);
             }
@@ -1204,6 +1229,14 @@
                     presenceCountTimer = null;
                 }
             }
+
+            // Leaving the page (close, refresh, navigate away) should drop this session
+            // from the count at once, not on the next timeout. pagehide covers close,
+            // navigation and bfcache, and the keepalive request outlives the unload.
+            // This is separate from visibilitychange: a merely hidden tab pauses its
+            // heartbeat (the bandwidth saving) and ages out of the window, while an
+            // actual departure is reported immediately here.
+            window.addEventListener('pagehide', presenceGoOffline);
 
             function isChatScrolledToBottom() {
                 const wrap = document.getElementById('chatguys-messages-wrap');
@@ -1777,13 +1810,7 @@
                     } else if (getSavedNickname()) {
                         loadChatMessages();
                         startChatPolling();
-                        // Re-announce on return (skipped if we beat recently), then
-                        // resume the fast count poll so the badge catches up at once.
-                        if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceHeartbeat();
-                        fetchPresenceCount();
-                        stopPresence();
-                        presenceHeartbeatTimer = setInterval(presenceHeartbeat, PRESENCE_HEARTBEAT_MS);
-                        presenceCountTimer = setInterval(fetchPresenceCount, PRESENCE_COUNT_MS);
+                        startPresence();
                     }
                 });
 
