@@ -169,6 +169,30 @@
     --menu-shadow: -10px 0 30px rgba(0, 0, 0, 0.9);
 }
 
+[data-theme="notebook"] {
+    /* Notebook Theme - Blue pen on ruled graph paper, yellow pixel pencil */
+    --ink: #1f2d4f;
+    --paper: #fbf7ec;
+    --paper-dark: #efe7d2;
+    --ink-light: #33477a;
+    --ink-mid: #5a6c96;
+    --ink-faint: #5f6b87;
+    --speed: 0.15s;
+    --bg-pattern: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%3E%3Cpath%20d='M0%2027.5H28M27.5%200V28'%20stroke='%235b8fd4'%20stroke-width='0.9'%20stroke-opacity='0.42'/%3E%3C/svg%3E");
+    --lb-bg: var(--paper);
+    --lb-ink: var(--ink);
+    --shadow: var(--ink);
+    --card-shadow: var(--ink);
+    --skeleton-base: var(--paper-dark);
+    --skeleton-shimmer: #f6efdc;
+    --menu-border-left: 1.5px solid var(--ink);
+    --menu-shadow: -10px 0 30px rgba(31, 45, 79, 0.2);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
+}
+
 /* ── SPACE THEME POLISH ── */
 
 [data-theme="space"] body {
@@ -1178,5 +1202,72 @@
         width: clamp(75px, 20vw, 95px);
         height: clamp(88px, 23vw, 111px);
         opacity: 0.4;
+    }
+}
+
+/* ── NOTEBOOK THEME POLISH ── */
+
+[data-theme="notebook"] body {
+    background-size: 28px 28px !important;
+    background-attachment: fixed;
+}
+
+[data-theme="notebook"] .highlight {
+    background: linear-gradient(180deg, transparent 60%, rgba(91, 143, 212, 0.38) 60%);
+}
+
+[data-theme="notebook"] ::selection {
+    background: #cfe2f7;
+    color: #1f2d4f;
+}
+
+[data-theme="notebook"] .reaction-btn.reacted,
+[data-theme="notebook"] .reaction-btn.reacted:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+}
+
+[data-theme="notebook"] .reaction-btn.reacted .reaction-count,
+[data-theme="notebook"] .reaction-btn.reacted:hover .reaction-count {
+    color: var(--paper);
+    font-weight: bold;
+}
+
+[data-theme="notebook"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #9dbfe6 0%, #5b8fd4 50%, #2f5a9e 100%);
+    border: 2px solid rgba(31, 45, 79, 0.22);
+}
+
+[data-theme="notebook"] * {
+    scrollbar-color: #5b8fd4 rgba(251, 247, 236, 0.5);
+}
+
+/* ── NOTEBOOK PIXEL PENCIL CORNER DECORATION ── */
+[data-theme="notebook"] body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: clamp(96px, 14vw, 158px);
+    height: clamp(96px, 14vw, 158px);
+    background-image: url("./pencil.svg");
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    background-size: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 600px) {
+    [data-theme="notebook"] body::after {
+        width: clamp(70px, 20vw, 92px);
+        height: clamp(70px, 20vw, 92px);
+        opacity: 0.45;
     }
 }

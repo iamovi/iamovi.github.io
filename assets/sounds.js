@@ -150,6 +150,11 @@
         playTone({ type: 'sine', freq: 174, endFreq: 349, vol: 0.09, duration: 0.3 });
         playTone({ type: 'sine', freq: 523, endFreq: 1046, vol: 0.05, duration: 0.28, delay: 0.1 });
         playNoise({ vol: 0.03, duration: 0.05, filterFreq: 900 });
+      } else if (theme === 'notebook') {
+        // Pencil scratch across paper (dry raspy stroke, then a light tap)
+        playNoise({ vol: 0.07, duration: 0.06, filterFreq: 5200 });
+        playNoise({ vol: 0.05, duration: 0.05, filterFreq: 3600, delay: 0.07 });
+        playTone({ type: 'triangle', freq: 392, endFreq: 523, vol: 0.05, duration: 0.09, delay: 0.12 });
       } else {
         // Classic Manga crisp tactile chime
         playTone({ type: 'sine', freq: 523, endFreq: 784, vol: 0.09, duration: 0.12 });
