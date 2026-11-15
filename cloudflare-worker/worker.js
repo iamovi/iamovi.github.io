@@ -1081,9 +1081,64 @@ async function handleLinkPreview(request, env, corsHeaders) {
   return json({ ok: true, preview: result });
 }
 
+// oEmbed providers for hosts whose HTML is not scrapable. YouTube serves a JS shell
+// to non-browser requests — its og: tags come back empty — so a preview built from
+// its HTML is blank; oEmbed returns the title and thumbnail reliably.
+const OEMBED_PROVIDERS = [
+  {
+    match: /^(?:www\.|m\.|music\.)?youtube\.com$|^youtu\.be$/i,
+    endpoint: 'https://www.youtube.com/oembed?format=json&url=',
+  },
+  {
+    match: /^(?:www\.|player\.)?vimeo\.com$/i,
+    endpoint: 'https://vimeo.com/api/oembed.json?url=',
+  },
+];
+
+function oembedProviderFor(url) {
+  let host;
+  try { host = new URL(url).hostname.toLowerCase(); } catch { return null; }
+  return OEMBED_PROVIDERS.find(p => p.match.test(host)) || null;
+}
+
+function hostnameOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
+
+// Asks the provider's oEmbed endpoint for the title/thumbnail. Never throws: returns
+// null on any failure so the caller can fall back to scraping the page HTML.
+async function fetchOembed(target, provider) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PREVIEW_TIMEOUT_MS);
+  try {
+    const res = await fetch(provider.endpoint + encodeURIComponent(target), {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !data.title) return null;
+    return {
+      url: target,
+      title: String(data.title).slice(0, 300),
+      description: String(data.description || '').slice(0, 400),
+      image: data.thumbnail_url ? String(data.thumbnail_url) : '',
+      site_name: data.provider_name ? String(data.provider_name).slice(0, 120) : hostnameOf(target),
+    };
+  } catch { return null; }
+  finally { clearTimeout(timer); }
+}
+
 // Follows redirects manually so every hop is re-checked against the SSRF guard, then
 // streams at most PREVIEW_MAX_BYTES of the body. Never throws: returns null on failure.
 async function fetchAndParsePreview(target) {
+  // Known video hosts answer oEmbed with clean metadata; try that before scraping.
+  const provider = oembedProviderFor(target);
+  if (provider) {
+    const viaOembed = await fetchOembed(target, provider);
+    if (viaOembed) return viaOembed;
+  }
+
   let current = target;
   try {
     for (let hop = 0; hop <= PREVIEW_MAX_REDIRECTS; hop++) {
@@ -1095,8 +1150,10 @@ async function fetchAndParsePreview(target) {
           redirect: 'manual',
           signal: controller.signal,
           headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; iamovi-link-preview/1.0)',
+            // A browser-like UA: many sites serve a stripped or blocked page to bots.
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml',
+            'Accept-Language': 'en-US,en;q=0.9',
           },
         });
       } finally {
@@ -1117,7 +1174,10 @@ async function fetchAndParsePreview(target) {
 
       const html = await readCappedText(res, PREVIEW_MAX_BYTES);
       if (!html) return null;
-      return parseLinkPreview(html, current);
+      const parsed = parseLinkPreview(html, current);
+      // A page with neither a title nor an image has nothing worth showing.
+      if (!parsed.title && !parsed.image) return null;
+      return parsed;
     }
   } catch { return null; }
   return null;
