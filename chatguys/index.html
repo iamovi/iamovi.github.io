@@ -837,15 +837,21 @@
             let lastChatSnapshot = '';
 
             // ── LIVE PRESENCE ──
+            // The write and the read are on separate clocks: writing our own row is
+            // infrequent, but reading the count has to be quick or the badge lags
+            // behind someone else joining. The count poll matches the chat poll cadence.
+            //
             // A session counts as "online" while its heartbeat is inside this window.
-            // Heartbeats run every 20s, so 50s tolerates a couple of missed beats (a
-            // backgrounded tab) before the visitor is dropped from the count.
-            const PRESENCE_HEARTBEAT_MS = 20000;
-            const PRESENCE_ONLINE_WINDOW_MS = 50000;
+            // Heartbeats run every 15s, so 40s tolerates a couple of missed beats (a
+            // backgrounded tab) before the visitor drops out of the count.
+            const PRESENCE_HEARTBEAT_MS = 15000;
+            const PRESENCE_COUNT_MS = 3000;
+            const PRESENCE_ONLINE_WINDOW_MS = 40000;
             // Skip a heartbeat when the previous one is still recent (e.g. a quick tab
             // focus), so flipping tabs does not spam the table.
-            const PRESENCE_MIN_GAP_MS = 15000;
-            let presenceTimer = null;
+            const PRESENCE_MIN_GAP_MS = 8000;
+            let presenceHeartbeatTimer = null;
+            let presenceCountTimer = null;
             let lastPresencePing = 0;
 
             // Messages currently on screen, oldest-first. Kept as state (instead of
@@ -1143,10 +1149,9 @@
             }
 
             // ── LIVE PRESENCE ──
-            // Upserts this session's heartbeat, then refreshes the header count.
-            // The table is keyed on session_id, so a returning visitor just updates
-            // their own row instead of adding one.
-            function presenceTick() {
+            // Upserts this session's heartbeat. The table is keyed on session_id, so a
+            // returning visitor just updates their own row instead of adding one.
+            function presenceHeartbeat() {
                 if (!getSavedNickname()) return;
                 lastPresencePing = Date.now();
                 fetch(`${SUPABASE_URL}/rest/v1/chat_presence?on_conflict=session_id`, {
@@ -1154,9 +1159,10 @@
                     headers: { ...gbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
                     body: JSON.stringify({ session_id: getSessionId(), last_seen: new Date().toISOString() })
                 }).catch(() => { });
-                fetchPresenceCount();
             }
 
+            // Reads how many sessions beat inside the freshness window. Cheap enough to
+            // run every few seconds, which is what keeps the badge near-instant.
             function fetchPresenceCount() {
                 const sinceIso = new Date(Date.now() - PRESENCE_ONLINE_WINDOW_MS).toISOString();
                 fetch(`${SUPABASE_URL}/rest/v1/chat_presence?select=count&last_seen=gte.${encodeURIComponent(sinceIso)}`, {
@@ -1180,14 +1186,22 @@
 
             function startPresence() {
                 stopPresence();
-                presenceTick();
-                presenceTimer = setInterval(presenceTick, PRESENCE_HEARTBEAT_MS);
+                // Announce immediately, then poll the count straight away so the badge
+                // paints without waiting a full interval.
+                presenceHeartbeat();
+                fetchPresenceCount();
+                presenceHeartbeatTimer = setInterval(presenceHeartbeat, PRESENCE_HEARTBEAT_MS);
+                presenceCountTimer = setInterval(fetchPresenceCount, PRESENCE_COUNT_MS);
             }
 
             function stopPresence() {
-                if (presenceTimer) {
-                    clearInterval(presenceTimer);
-                    presenceTimer = null;
+                if (presenceHeartbeatTimer) {
+                    clearInterval(presenceHeartbeatTimer);
+                    presenceHeartbeatTimer = null;
+                }
+                if (presenceCountTimer) {
+                    clearInterval(presenceCountTimer);
+                    presenceCountTimer = null;
                 }
             }
 
@@ -1763,11 +1777,13 @@
                     } else if (getSavedNickname()) {
                         loadChatMessages();
                         startChatPolling();
-                        // Re-announce presence on return (skipped if we beat recently),
-                        // so the visitor is back in the count without a full restart.
-                        if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceTick();
+                        // Re-announce on return (skipped if we beat recently), then
+                        // resume the fast count poll so the badge catches up at once.
+                        if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceHeartbeat();
+                        fetchPresenceCount();
                         stopPresence();
-                        presenceTimer = setInterval(presenceTick, PRESENCE_HEARTBEAT_MS);
+                        presenceHeartbeatTimer = setInterval(presenceHeartbeat, PRESENCE_HEARTBEAT_MS);
+                        presenceCountTimer = setInterval(fetchPresenceCount, PRESENCE_COUNT_MS);
                     }
                 });
 
