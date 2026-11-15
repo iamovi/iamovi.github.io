@@ -43,9 +43,45 @@
     }
   }
 
+  function updateSpaceStars() {
+    if (typeof document === 'undefined') return;
+    function sync() {
+      var currentTheme = getTheme();
+      var existing = document.getElementById('space-stars');
+      if (currentTheme === 'space') {
+        if (!existing && document.body) {
+          var wrap = document.createElement('div');
+          wrap.id = 'space-stars';
+          wrap.setAttribute('aria-hidden', 'true');
+          var count = 22;
+          for (var i = 0; i < count; i++) {
+            var s = document.createElement('div');
+            s.className = 'space-star';
+            var left = Math.random() * 100;
+            var top = Math.random() * 100;
+            var delay = (Math.random() * 4).toFixed(1);
+            var dur = (2.4 + Math.random() * 3.2).toFixed(1);
+            var size = Math.random() > 0.75 ? 3 : 2;
+            s.style.cssText = 'left:' + left.toFixed(1) + '%;top:' + top.toFixed(1) + '%;--delay:' + delay + 's;--dur:' + dur + 's;width:' + size + 'px;height:' + size + 'px;';
+            wrap.appendChild(s);
+          }
+          document.body.appendChild(wrap);
+        }
+      } else {
+        if (existing) existing.remove();
+      }
+    }
+    if (document.body) {
+      sync();
+    } else {
+      document.addEventListener('DOMContentLoaded', sync, { once: true });
+    }
+  }
+
   function apply(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     updateSakuraPetals();
+    updateSpaceStars();
   }
 
   window.OviTheme = {

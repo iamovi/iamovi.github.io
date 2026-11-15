@@ -145,6 +145,11 @@
         playTone({ type: 'triangle', freq: 659, endFreq: 988, vol: 0.09, duration: 0.12 });
         playTone({ type: 'triangle', freq: 988, endFreq: 1319, vol: 0.06, duration: 0.14, delay: 0.07 });
         playNoise({ vol: 0.04, duration: 0.03, filterFreq: 4200 });
+      } else if (theme === 'space') {
+        // Deep cosmic drift (low swell rising into a distant twinkle)
+        playTone({ type: 'sine', freq: 174, endFreq: 349, vol: 0.09, duration: 0.3 });
+        playTone({ type: 'sine', freq: 523, endFreq: 1046, vol: 0.05, duration: 0.28, delay: 0.1 });
+        playNoise({ vol: 0.03, duration: 0.05, filterFreq: 900 });
       } else {
         // Classic Manga crisp tactile chime
         playTone({ type: 'sine', freq: 523, endFreq: 784, vol: 0.09, duration: 0.12 });
