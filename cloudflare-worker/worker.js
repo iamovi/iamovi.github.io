@@ -1389,7 +1389,8 @@ async function handleVault(request, env, corsHeaders, url) {
       return json({ ok: true });
     }
   } catch (e) {
-    return json({ error: 'storage_error', detail: String((e && e.message) || e).slice(0, 120) }, 502);
+    console.error('vault storage error:', e);
+    return json({ error: 'storage_error' }, 502);
   }
 
   return json({ error: 'not_found' }, 404);

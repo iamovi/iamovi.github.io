@@ -1039,20 +1039,26 @@
                 } catch (e) { }
             }
 
+            // 16 bytes of CSPRNG output as hex. The session id decides which
+            // messages are "mine" and keys the presence row, so it must not be
+            // predictable — never Math.random().
+            function randomSessionToken() {
+                const bytes = crypto.getRandomValues(new Uint8Array(16));
+                return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+            }
+
             function getSessionId() {
                 try {
                     let sid = localStorage.getItem(CHATGUYS_SESSION_KEY);
                     if (!sid) {
-                        // Generate a random UUID using crypto API
-                        sid = 'cg-' + ([1e7] + -1e3 + -4e3 + -8e3 + -1e11)
-                            .replace(/[018]/g, c =>
-                                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-                            );
+                        sid = 'cg-' + randomSessionToken();
                         localStorage.setItem(CHATGUYS_SESSION_KEY, sid);
                     }
                     return sid;
                 } catch (e) {
-                    return 'fallback-' + Math.random().toString(36).slice(2);
+                    // localStorage unavailable (private mode, blocked storage): the id
+                    // cannot persist, but it still has to come from the CSPRNG.
+                    return 'cg-' + randomSessionToken();
                 }
             }
 
