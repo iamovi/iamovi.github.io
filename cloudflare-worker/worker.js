@@ -375,7 +375,9 @@ const _aiMemWindow = new Map();
 
 // Error reports share the AI_RATE_LIMIT namespace. Client-side dedupe already
 // caps a page at 3, but a broken build could still fan out across visitors, so
-// the Worker enforces its own daily ceiling before touching Telegram.
+// the Worker enforces its own daily ceiling before touching Telegram. The
+// ceiling is best-effort, not a hard guarantee: concurrent reports can read a
+// stale count before writes propagate, and KV allows only 1 write/sec per key.
 const ERR_LIMIT_GLOBAL_DAY = 50;
 let _errMemDay = '';
 let _errMemCount = 0;
