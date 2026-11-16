@@ -21,3 +21,8 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 [[kv_namespaces]]
 binding = "AI_RATE_LIMIT"
 id = "52f76bab4a0148e78744a97c777cd175"
+
+# Ships Worker console.* output to the dashboard (Workers Logs), so server-side
+# errors are visible without a Tail Worker. Free plan: 200k events/day, 3-day retention.
+[observability]
+enabled = true

@@ -373,6 +373,31 @@ const AI_LIMIT_PER_MIN = 5;       // per session, per minute
 const AI_LIMIT_GLOBAL_DAY = 200;  // across everyone, per day
 const _aiMemWindow = new Map();
 
+// Error reports share the AI_RATE_LIMIT namespace. Client-side dedupe already
+// caps a page at 3, but a broken build could still fan out across visitors, so
+// the Worker enforces its own daily ceiling before touching Telegram.
+const ERR_LIMIT_GLOBAL_DAY = 50;
+let _errMemDay = '';
+let _errMemCount = 0;
+
+async function allowErrorReport(env) {
+  const day = new Date().toISOString().slice(0, 10);
+  const kv = env.AI_RATE_LIMIT;
+  if (kv) {
+    try {
+      const key = 'e:' + day;
+      const used = Number(await kv.get(key)) || 0;
+      if (used >= ERR_LIMIT_GLOBAL_DAY) return false;
+      await kv.put(key, String(used + 1), { expirationTtl: 172800 });
+      return true;
+    } catch { return false; } // fail-closed: an alert channel must not amplify
+  }
+  if (_errMemDay !== day) { _errMemDay = day; _errMemCount = 0; }
+  if (_errMemCount >= ERR_LIMIT_GLOBAL_DAY) return false;
+  _errMemCount += 1;
+  return true;
+}
+
 async function allowAiRequest(env, sessionId) {
   const now = Date.now();
   const minute = Math.floor(now / 60000);
@@ -646,6 +671,16 @@ async function handleNotify(request, env, corsHeaders) {
     text = `💬 New reply\nName: ${clip(body.name, 40)}\n\n${clip(body.message, 300)}`;
   } else if (body.type === 'reaction') {
     text = `👍 New reaction: ${clip(body.reaction, 10)} on ${clip(body.target_type, 20)}:${clip(body.target_id, 40)}`;
+  } else if (body.type === 'error') {
+    if (!(await allowErrorReport(env))) return json({ ok: false, throttled: true }, 429);
+    const where = clip(body.page, 80) || 'unknown page';
+    const msg = clip(body.message, 300) || 'no message';
+    const src = clip(body.source, 120);
+    const line = clip(body.line, 10);
+    const stack = clip(body.stack, 700);
+    text = `🐞 Client error\nPage: ${where}\nMessage: ${msg}`
+      + (src ? `\nAt: ${src}${line ? ':' + line : ''}` : '')
+      + (stack ? `\n\n${stack}` : '');
   } else {
     return json({ ok: false }, 400);
   }
