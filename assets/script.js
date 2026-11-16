@@ -103,14 +103,27 @@
         body.style.width = '';
         body.style.overflow = '';
         html.style.overflow = '';
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        if (resetScrollOnMenuClose) {
+          resetScrollOnMenuClose = false;
+          window.scrollTo(0, 0);
+        } else {
+          window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
       }
     });
   };
 
+  // Set when a nav link switches sections while the menu is open. The menu's
+  // close handler would otherwise restore the previous section's scroll offset,
+  // leaving the newly shown section scrolled down; this makes it land at the top.
+  let resetScrollOnMenuClose = false;
+
   window.showSection = function (sectionName) {
     // Save current section to sessionStorage (no URL change)
     sessionStorage.setItem('section', sectionName);
+
+    const menu = document.querySelector('.slide-menu');
+    if (menu && menu.classList.contains('open')) resetScrollOnMenuClose = true;
 
     // Use requestAnimationFrame for smooth section switching
     requestAnimationFrame(() => {
