@@ -55,6 +55,20 @@ Repository-specific notes for AI agents working in this repo.
   the browser cannot (CORS, no HTML parser). The SSRF guard in `normalizePreviewUrl()`
   re-checks every redirect hop, so keep it in place when touching that path.
 
+## Error reporting
+
+- `assets/errors.js` is loaded in `<head>` on every public page (after `theme.js`,
+  before anything that can throw). It forwards `window.onerror` and
+  `unhandledrejection` to the Worker's `/notify` as `type: 'error'`, which relays
+  to Telegram.
+- Client-side it dedupes identical errors and caps at 3 per page load. The Worker
+  caps all error reports at 50/day (`ERR_LIMIT_GLOBAL_DAY`, shared `AI_RATE_LIMIT`
+  KV namespace) so a broken build cannot flood Telegram. That limiter fails
+  **closed** — unlike the AI limiter, which fails open.
+- Worker `console.*` output ships to the dashboard via `[observability]` in
+  `wrangler.toml` (Workers Logs, free plan). There is no Sentry integration and
+  none is wanted; do not add a browser error SDK.
+
 ## Conventions
 
 - Prefer minimal, focused changes. Do not add unrequested files.
