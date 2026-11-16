@@ -5,6 +5,10 @@ on:
     - cron: '0 9 */5 * *'  # every 5 days at 9am UTC
   workflow_dispatch:        # allow manual trigger from GitHub Actions tab
 
+# The job only pings Supabase with a secret; it never touches the repo, so the
+# GITHUB_TOKEN needs no scopes at all.
+permissions: {}
+
 jobs:
   ping:
     runs-on: ubuntu-latest
