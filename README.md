@@ -81,6 +81,9 @@ The script exits with a non-zero code, and the workflow fails, if:
 - a `slug` in `blog.json` has no `blog/<slug>/content.html`
 - a post has no parseable date (add `published`)
 - a `<!-- build:* -->` marker is missing from a generated file
+- a post page still contains an unfilled `{{PLACEHOLDER}}` — add the matching
+  value in `render_post()`, or remove the placeholder from
+  `scripts/post-template.html`
 
 ## Layout
 
