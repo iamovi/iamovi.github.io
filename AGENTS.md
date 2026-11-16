@@ -62,9 +62,11 @@ Repository-specific notes for AI agents working in this repo.
   `unhandledrejection` to the Worker's `/notify` as `type: 'error'`, which relays
   to Telegram.
 - Client-side it dedupes identical errors and caps at 3 per page load. The Worker
-  caps all error reports at 50/day (`ERR_LIMIT_GLOBAL_DAY`, shared `AI_RATE_LIMIT`
-  KV namespace) so a broken build cannot flood Telegram. That limiter fails
-  **closed** — unlike the AI limiter, which fails open.
+  applies a best-effort 50/day cap (`ERR_LIMIT_GLOBAL_DAY`, shared `AI_RATE_LIMIT`
+  KV namespace) to keep a broken build from flooding Telegram. It is a soft limit:
+  concurrent reports can read a stale counter before writes propagate, and KV
+  allows only 1 write/sec per key. Telegram's own ~1 msg/sec per-chat limit is the
+  backstop. That limiter fails **closed** — unlike the AI limiter, which fails open.
 - Worker `console.*` output ships to the dashboard via `[observability]` in
   `wrangler.toml` (Workers Logs, free plan). There is no Sentry integration and
   none is wanted; do not add a browser error SDK.
