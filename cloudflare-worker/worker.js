@@ -1,5 +1,11 @@
 const SUPABASE_ORIGIN = 'https://nusyixchzeiplwwmqlbw.supabase.co';
 
+// Umami tracker, proxied through this Worker (see handleUmamiScript/handleUmamiSend).
+// Loading it from cloud.umami.is directly gets it blocked by ad blockers; our own
+// domain is not on those lists. Paths avoid "analytics"/"umami" for the same reason.
+const UMAMI_SCRIPT_URL = 'https://cloud.umami.is/script.js';
+const UMAMI_COLLECT_URL = 'https://gateway.umami.is/api/send';
+
 export default {
   async fetch(request, env, ctx) {
     const SUPABASE_URL = SUPABASE_ORIGIN;
@@ -9,7 +15,9 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization, X-Admin-Token',
+      // x-umami-* are set by the tracker on its collection POST, which the browser
+      // preflights because they are non-simple headers.
+      'Access-Control-Allow-Headers': 'Content-Type, Prefer, apikey, Authorization, X-Admin-Token, x-umami-website-id, x-umami-hostname, x-umami-cache',
     };
 
     if (request.method === 'OPTIONS') {
@@ -22,6 +30,8 @@ export default {
     if (url.pathname === '/contact-file') { return handleContactFile(request, env, corsHeaders); }
     if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
     if (url.pathname === '/link-preview') { return handleLinkPreview(request, env, corsHeaders); }
+    if (url.pathname === '/s.js') { return handleUmamiScript(request, corsHeaders); }
+    if (url.pathname === '/api/send') { return handleUmamiSend(request, corsHeaders); }
     if (url.pathname.startsWith('/vault/')) { return handleVault(request, env, corsHeaders, url); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
@@ -1040,6 +1050,85 @@ function parseLinkPreview(htmlText, finalUrl) {
     image,
     site_name: siteName ? decodeEntities(siteName).slice(0, 120) : (u ? u.hostname.replace(/^www\./, '') : ''),
   };
+}
+
+// ── Umami proxy ─────────────────────────────────────────────────────────────
+// Serve the tracker from our own origin so ad blockers that block cloud.umami.is
+// don't drop it, and forward collection requests to Umami Cloud. The tracker reads
+// `data-host-url` and POSTs JSON to `<host>/api/send`.
+
+async function handleUmamiScript(request, corsHeaders) {
+  const js = (body, status = 200, extra = {}) =>
+    new Response(body, {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/javascript; charset=utf-8', ...extra },
+    });
+
+  if (request.method !== 'GET' && request.method !== 'HEAD') return js('', 405);
+
+  const cacheKey = new Request('https://umami-proxy.iamovi.internal/s.js');
+  let cache = null;
+  try {
+    cache = typeof caches !== 'undefined' ? caches.default : null;
+    if (cache) {
+      const hit = await cache.match(cacheKey);
+      if (hit) return js(await hit.text(), 200, { 'Cache-Control': 'public, max-age=3600' });
+    }
+  } catch { cache = null; }
+
+  let upstream;
+  try {
+    upstream = await fetch(UMAMI_SCRIPT_URL, { cf: { cacheTtl: 3600, cacheEverything: true } });
+  } catch {
+    return js('', 502);
+  }
+  if (!upstream.ok) return js('', 502);
+
+  const body = await upstream.text();
+  if (cache) {
+    try {
+      await cache.put(cacheKey, new Response(body, {
+        headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+      }));
+    } catch { /* caching is best-effort */ }
+  }
+  return js(body, 200, { 'Cache-Control': 'public, max-age=3600' });
+}
+
+async function handleUmamiSend(request, corsHeaders) {
+  if (request.method !== 'POST') {
+    return new Response(null, { status: 405, headers: corsHeaders });
+  }
+
+  const body = await request.text();
+  const headers = { 'Content-Type': 'application/json' };
+
+  // Forward the visitor's UA and IP so Umami can record device and location data.
+  // CF-Connecting-IP is set by Cloudflare and cannot be spoofed by the client.
+  const ua = request.headers.get('User-Agent');
+  if (ua) headers['User-Agent'] = ua;
+  const ip = request.headers.get('CF-Connecting-IP');
+  if (ip) headers['X-Forwarded-For'] = ip;
+  for (const h of ['x-umami-website-id', 'x-umami-hostname', 'x-umami-cache']) {
+    const v = request.headers.get(h);
+    if (v) headers[h] = v;
+  }
+
+  let upstream;
+  try {
+    upstream = await fetch(UMAMI_COLLECT_URL, { method: 'POST', headers, body });
+  } catch {
+    return new Response('{}', { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+
+  // Collection is fire-and-forget from the page's perspective, and the tracker
+  // calls .json() on any ok response, so always answer 200 with a JSON body.
+  // Upstream errors are swallowed so a hiccup never surfaces to the visitor.
+  const text = upstream.ok ? await upstream.text() : '';
+  return new Response(text || '{}', {
+    status: 200,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }
 
 async function handleLinkPreview(request, env, corsHeaders) {
