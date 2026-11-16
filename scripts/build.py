@@ -161,20 +161,12 @@ def render_post(post, template):
     return page
 
 
-def write_posts(posts):
+def render_posts(posts):
     template = TEMPLATE.read_text(encoding="utf-8")
-    written = 0
-    for post in posts:
-        target = ROOT / "blog" / post["slug"] / "index.html"
-        page = render_post(post, template)
-        if not target.exists() or target.read_text(encoding="utf-8") != page:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(page, encoding="utf-8")
-            written += 1
-    return written
+    return [(post["slug"], render_post(post, template)) for post in posts]
 
 
-def write_feed(posts):
+def render_feed(posts):
     items = []
     for post in posts:
         url = "%s/blog/%s/" % (SITE, post["slug"])
@@ -195,10 +187,10 @@ def write_feed(posts):
             )
         )
     source = FEED.read_text(encoding="utf-8")
-    FEED.write_text(replace_between(source, "feed-items", "\n" + "\n".join(items) + "\n\n  ", FEED), encoding="utf-8")
+    return replace_between(source, "feed-items", "\n" + "\n".join(items) + "\n\n  ", FEED)
 
 
-def write_sitemap(posts):
+def render_sitemap(posts):
     entries = []
     for post in posts:
         entries.append(
@@ -209,10 +201,7 @@ def write_sitemap(posts):
             % (SITE, post["slug"], parse_published(post).strftime("%Y-%m-%d"))
         )
     source = SITEMAP.read_text(encoding="utf-8")
-    SITEMAP.write_text(
-        replace_between(source, "blog-urls", "\n" + "\n".join(entries) + "\n  ", SITEMAP),
-        encoding="utf-8",
-    )
+    return replace_between(source, "blog-urls", "\n" + "\n".join(entries) + "\n  ", SITEMAP)
 
 
 def main():
@@ -253,11 +242,24 @@ def main():
     else:
         source = replace_between(source, "blog", "", INDEX)
 
+    # Render every output before writing any of it. render_post() and
+    # parse_published() are where the build can fail, so doing all of it up front
+    # means a failed run leaves the tree untouched instead of half-baked.
+    post_pages = render_posts(posts)
+    feed_text = render_feed(posts)
+    sitemap_text = render_sitemap(posts)
+
     INDEX.write_text(source, encoding="utf-8")
 
-    written = write_posts(posts)
-    write_feed(posts)
-    write_sitemap(posts)
+    written = 0
+    for slug, page in post_pages:
+        target = ROOT / "blog" / slug / "index.html"
+        if not target.exists() or target.read_text(encoding="utf-8") != page:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(page, encoding="utf-8")
+            written += 1
+    FEED.write_text(feed_text, encoding="utf-8")
+    SITEMAP.write_text(sitemap_text, encoding="utf-8")
 
     print("  baked %d projects (%d pages)" % (len(projects), total_pages))
     print("  baked %d blog post(s)" % len(posts))
