@@ -2,6 +2,18 @@
 
 Repository-specific notes for AI agents working in this repo.
 
+## Working style
+
+- Verify before stating. If a claim is checkable, check it — do not assert what
+  you have not confirmed.
+- After finishing a task, surface anything material found along the way: a bug,
+  a rule that contradicts the request, a doc that misleads. One or two points,
+  not a list. If nothing matters, say nothing.
+- Suggestions are suggestions. Ask before acting on a judgment call, even when
+  the fix looks obvious.
+- If an instruction conflicts with a rule in this file, say so rather than
+  silently picking one.
+
 ## Git workflow
 
 - Never push to `main`. Create a branch, push that branch, and open a pull
