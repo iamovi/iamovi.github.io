@@ -98,6 +98,31 @@ The script exits with a non-zero code, and the workflow fails, if:
 | `scripts/` | Build script and post template |
 | `llms.txt` | Machine-readable summary for AI agents |
 
+## Live chat (chatguys)
+
+Messages are stored in Supabase (`chat_messages`) and pushed to open tabs by a
+Cloudflare Durable Object (`ChatRoom` in `cloudflare-worker/worker.js`). The
+object holds no state of its own: it only fans each stored row out to the open
+sockets, so Supabase stays the source of truth.
+
+- A client inserts through the Worker (`/proxy/...`), which stores the row and
+  then broadcasts it. A socket can only *receive* — the public route is `/ws`,
+  and it requires a WebSocket upgrade, so a client cannot inject a fabricated
+  message. The internal `/broadcast` path is reachable only by the Worker.
+- The online count comes from the connected sockets, de-duplicated by session id,
+  so two tabs from one visitor count once.
+- Sockets hibernate while idle. A non-hibernating object would bill its full
+  memory for every second a socket is open, which would exhaust the Workers Free
+  daily budget; this is why the class uses `state.acceptWebSocket()` rather than
+  `ws.addEventListener()`.
+- Polling is still the fallback. If the socket never opens, or drops, the client
+  reverts to the original 3.5s message poll and REST presence. While the socket is
+  live it keeps a slow 30s poll as a backstop, so a silently dropped connection
+  cannot hide messages.
+
+The Durable Object needs the `CHAT_ROOM` binding and the `v1` migration in
+`wrangler.toml`; both apply on the next `wrangler deploy`.
+
 ## Local preview
 
 ```

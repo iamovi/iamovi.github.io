@@ -985,6 +985,24 @@
             let presenceCountTimer = null;
             let lastPresencePing = 0;
 
+            // ── LIVE SOCKET ──
+            // The room is served by a Cloudflare Durable Object that fans each stored
+            // row out to every open socket (see ChatRoom in worker.js). Polling stays
+            // the default: the socket is a pure upgrade. If it never opens, or drops,
+            // the code below falls back to exactly the polling + REST presence that
+            // shipped before, so a broken socket degrades to the old behaviour rather
+            // than an empty room.
+            const CHAT_WS_URL = SUPABASE_URL.replace(/^https:/, 'wss:').replace(/\/proxy$/, '/ws');
+            // A dead socket is not always noticed promptly (a dropped network can take
+            // minutes to surface as a close), so while live we still poll slowly. A
+            // missed frame is caught here; the live path stays the fast one.
+            const CHAT_SAFETY_POLL_MS = 30000;
+            let chatSocket = null;
+            let chatLive = false;
+            let chatSafetyTimer = null;
+            let chatRetryTimer = null;
+            let chatRetryBackoff = 0;
+
             // Messages currently on screen, oldest-first. Kept as state (instead of
             // re-rendering straight from each fetch) so polling can append only NEW
             // messages while scroll-to-load-older can prepend older ones.
@@ -1283,9 +1301,14 @@
                     loadChatMessages();
                     startChatPolling();
                     startPresence();
+                    // Polling and REST presence start first and the socket upgrades on
+                    // top of them; whichever is live wins. See the socket's open/close
+                    // handlers for the handover.
+                    startLiveChat();
                 } else {
                     stopChatPolling();
                     stopPresence();
+                    stopLiveChat();
                     joinView.style.display = 'block';
                     roomView.style.display = 'none';
                     if (headerUser) headerUser.style.display = 'none';
@@ -1370,6 +1393,135 @@
             function startChatPolling() {
                 stopChatPolling();
                 chatPollTimer = setInterval(loadChatMessages, 3500);
+            }
+
+            // ── LIVE SOCKET LIFECYCLE ──
+            // Called once the room is shown. Opens the socket and, until it is up, keeps
+            // the normal poller running. Everything here is defensive: a throw would
+            // surface as an unhandled rejection and be reported to Telegram.
+            function startLiveChat() {
+                stopLiveChat();
+                if (typeof WebSocket !== 'function') return; // no socket support: polling stays
+                connectChatSocket();
+            }
+
+            function connectChatSocket() {
+                if (chatSocket) return;
+                let ws;
+                try {
+                    ws = new WebSocket(CHAT_WS_URL + '?session=' + encodeURIComponent(getSessionId()));
+                } catch (e) {
+                    scheduleChatReconnect();
+                    return;
+                }
+                chatSocket = ws;
+
+                ws.addEventListener('open', () => {
+                    if (chatSocket !== ws) return;
+                    chatLive = true;
+                    chatRetryBackoff = 0;
+                    // The socket now carries new messages, so drop the 3.5s poller. The
+                    // slow safety poll stays as a backstop.
+                    stopChatPolling();
+                    startChatSafetyPoll();
+                    // The DO knows who is connected, so the 2s count poll stops while
+                    // live. The heartbeat keeps running: it is a cheap write, and it
+                    // keeps the REST table complete so a visitor on the polling fallback
+                    // still sees everyone in the room.
+                    stopPresenceCount();
+                    startPresenceHeartbeat();
+                    // Catch anything sent while we were connecting or disconnected.
+                    loadChatMessages();
+                });
+
+                ws.addEventListener('message', (event) => {
+                    if (chatSocket !== ws) return;
+                    let frame;
+                    try { frame = JSON.parse(event.data); } catch { return; }
+                    if (!frame) return;
+                    if (frame.type === 'presence') {
+                        setPresenceCount(Number(frame.count) || 0);
+                        return;
+                    }
+                    // A chat row: same shape as a polled row, so it merges identically.
+                    if (frame.id != null) handleLiveRow(frame);
+                });
+
+                ws.addEventListener('close', () => {
+                    if (chatSocket !== ws) return;
+                    chatSocket = null;
+                    chatLive = false;
+                    stopChatSafetyPoll();
+                    // Back to the old behaviour until the socket is back: the 3.5s
+                    // poller and the REST presence heartbeat/count both resume.
+                    if (getSavedNickname()) {
+                        startChatPolling();
+                        startPresence();
+                    }
+                    scheduleChatReconnect();
+                });
+
+                // 'error' is always followed by 'close', so reconnection is handled there.
+                ws.addEventListener('error', () => { try { ws.close(); } catch (e) { /* ignore */ } });
+            }
+
+            function scheduleChatReconnect() {
+                if (chatRetryTimer) return;
+                if (!getSavedNickname()) return;
+                if (typeof document !== 'undefined' && document.hidden) return; // resumed on focus
+                // 1s, 2s, 4s ... capped at 30s, so a Worker outage is not hammered.
+                chatRetryBackoff = Math.min(chatRetryBackoff ? chatRetryBackoff * 2 : 1000, 30000);
+                chatRetryTimer = setTimeout(() => {
+                    chatRetryTimer = null;
+                    if (getSavedNickname()) connectChatSocket();
+                }, chatRetryBackoff);
+            }
+
+            function stopLiveChat() {
+                stopChatSafetyPoll();
+                if (chatRetryTimer) {
+                    clearTimeout(chatRetryTimer);
+                    chatRetryTimer = null;
+                }
+                if (chatSocket) {
+                    const ws = chatSocket;
+                    chatSocket = null;
+                    chatLive = false;
+                    try { ws.close(); } catch (e) { /* ignore */ }
+                }
+                chatRetryBackoff = 0;
+            }
+
+            function startChatSafetyPoll() {
+                stopChatSafetyPoll();
+                chatSafetyTimer = setInterval(() => {
+                    if (getSavedNickname()) loadChatMessages();
+                }, CHAT_SAFETY_POLL_MS);
+            }
+
+            function stopChatSafetyPoll() {
+                if (chatSafetyTimer) {
+                    clearInterval(chatSafetyTimer);
+                    chatSafetyTimer = null;
+                }
+            }
+
+            // A row pushed by the socket: merge it exactly like a polled row, then
+            // re-render only if something was actually added. Presence is handled by
+            // the DO, so this only touches messages.
+            function handleLiveRow(row) {
+                const container = document.getElementById('chatguys-messages');
+                if (!container) return;
+                if (isLoadingOlder) return; // hold off, like the poller, to keep the anchor
+                const wasAtBottom = isChatScrolledToBottom();
+                if (!mergeChatMessages([row])) return;
+                syncChatBounds();
+                renderChatMessages(container);
+                trackBotReply();
+                if (wasAtBottom) {
+                    scrollChatToBottom();
+                    setTimeout(scrollChatToBottom, 60);
+                }
             }
 
             function stopChatPolling() {
@@ -1507,8 +1659,17 @@
                 // online window) but still refreshes the count.
                 if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceHeartbeat().then(fetchPresenceCount);
                 else fetchPresenceCount();
-                presenceHeartbeatTimer = setInterval(presenceHeartbeat, PRESENCE_HEARTBEAT_MS);
+                startPresenceHeartbeat();
                 presenceCountTimer = setInterval(fetchPresenceCount, PRESENCE_COUNT_MS);
+            }
+
+            // The heartbeat alone, without the count poll: the live socket supplies the
+            // count, but the REST row still has to stay fresh for anyone who is on the
+            // polling fallback and reading the table.
+            function startPresenceHeartbeat() {
+                if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+                if (Date.now() - lastPresencePing > PRESENCE_MIN_GAP_MS) presenceHeartbeat();
+                presenceHeartbeatTimer = setInterval(presenceHeartbeat, PRESENCE_HEARTBEAT_MS);
             }
 
             function stopPresence() {
@@ -1516,6 +1677,13 @@
                     clearInterval(presenceHeartbeatTimer);
                     presenceHeartbeatTimer = null;
                 }
+                stopPresenceCount();
+            }
+
+            // The heartbeat (which keeps this visitor's row fresh for anyone on the
+            // polling fallback) and the count poll (which the live socket replaces) are
+            // stopped independently, so going live stops the read but not the write.
+            function stopPresenceCount() {
                 if (presenceCountTimer) {
                     clearInterval(presenceCountTimer);
                     presenceCountTimer = null;
@@ -1528,7 +1696,25 @@
             // This is separate from visibilitychange: a merely hidden tab pauses its
             // heartbeat (the bandwidth saving) and ages out of the window, while an
             // actual departure is reported immediately here.
-            window.addEventListener('pagehide', presenceGoOffline);
+            window.addEventListener('pagehide', function () {
+                // Closing the socket makes the DO drop this session from the live count
+                // at once. The REST farewell below is the fallback path (no socket).
+                stopLiveChat();
+                presenceGoOffline();
+            });
+
+            // A bfcache restore (Back/Forward) brings the page back without re-running
+            // init, and pagehide already closed the socket, so re-establish everything
+            // here. The polling fallback starts first (exactly as init does) and the
+            // socket's open handler stops it again if the socket comes back.
+            window.addEventListener('pageshow', function (event) {
+                if (!event.persisted) return;
+                if (!getSavedNickname()) return;
+                loadChatMessages();
+                startChatPolling();
+                startPresence();
+                startLiveChat();
+            });
 
             function isChatScrolledToBottom() {
                 const wrap = document.getElementById('chatguys-messages-wrap');
@@ -2096,15 +2282,23 @@
                     });
                 }
 
-                // Pause polling when tab is not visible to save bandwidth, resume immediately on focus
+                // Pause polling when tab is not visible to save bandwidth, resume immediately on focus.
+                // The live socket is deliberately NOT closed when hidden: it hibernates
+                // server-side (so it costs nothing while idle) and keeping it open means
+                // a backgrounded tab still receives messages and still counts as present.
                 document.addEventListener('visibilitychange', function () {
                     if (document.hidden) {
                         stopChatPolling();
-                        stopPresence();
+                        if (!chatLive) stopPresence();
                     } else if (getSavedNickname()) {
+                        // Catch up on anything that arrived while hidden, then make sure
+                        // both the socket and the polling fallback are in the right state.
                         loadChatMessages();
-                        startChatPolling();
-                        startPresence();
+                        if (!chatLive) {
+                            startChatPolling();
+                            startPresence();
+                            connectChatSocket();
+                        }
                     }
                 });
 

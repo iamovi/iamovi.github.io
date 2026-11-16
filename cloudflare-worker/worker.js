@@ -33,6 +33,9 @@ export default {
     if (url.pathname === '/s.js') { return handleUmamiScript(request, corsHeaders); }
     if (url.pathname === '/api/send') { return handleUmamiSend(request, corsHeaders); }
     if (url.pathname.startsWith('/vault/')) { return handleVault(request, env, corsHeaders, url); }
+    // Live chat socket. Public, but read-only: a socket can never inject a message,
+    // it only receives rows the Worker has already stored in Supabase.
+    if (url.pathname === '/ws') { return handleChatSocket(request, env); }
     const supabasePath = url.pathname.replace('/proxy', '');
     const targetURL = SUPABASE_URL + supabasePath + url.search;
 
@@ -81,34 +84,57 @@ export default {
         );
       }
       // Re-serialize body since we already consumed the stream
+      const isChatInsert = supabasePath === '/rest/v1/chat_messages';
       const supabaseRequest = new Request(targetURL, {
         method: request.method,
         headers: {
           'Content-Type': 'application/json',
           'apikey': ANON_KEY,
           'Authorization': 'Bearer ' + ANON_KEY,
-          'Prefer': request.headers.get('Prefer') || '',
+          // A chat insert asks for the stored row back so it can be fanned out to the
+          // live sockets. The sender ignores the response body (it only checks r.ok),
+          // so returning the row instead of nothing is invisible to it.
+          'Prefer': isChatInsert ? 'return=representation' : (request.headers.get('Prefer') || ''),
         },
         body: JSON.stringify(body),
       });
       const response = await fetch(supabaseRequest);
 
+      if (response.ok && isChatInsert) {
+        // Fan the stored row out to the live sockets. This is best-effort: the
+        // polling fallback still delivers it if no socket is listening.
+        const rowsText = await response.text();
+        let rows = [];
+        try { rows = JSON.parse(rowsText); } catch { rows = []; }
+        if (Array.isArray(rows)) {
+          for (const row of rows) {
+            if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(broadcastChatRow(env, row));
+            else await broadcastChatRow(env, row);
+          }
+        }
+
         // The bot posts as the reserved name 'bot', so it can only be triggered here,
         // with the service-role key. Replying server-side (instead of in the browser)
         // is what lets the 'bot' name stay reserved.
-        if (response.ok && supabasePath === '/rest/v1/chat_messages') {
-          // Generate and write the reply in the background so the sender's POST is
-          // never held open: the delay lets the "computing..." indicator show first,
-          // and some replies (e.g. "@bot gh") need a network round trip of their own.
-          const replyTask = (async () => {
-            const botReply = await botReplyFor(body.message, body.name);
-            if (botReply) await writeBotReply(env, botReply, 'bot');
-            const aiReply = await aiReplyFor(body.message, body.name, env, body.session_id);
-            if (aiReply) await writeBotReply(env, aiReply, 'ai');
-          })();
-          if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(replyTask);
-          else await replyTask;
-        }
+        //
+        // Generate and write the reply in the background so the sender's POST is
+        // never held open: the delay lets the "computing..." indicator show first,
+        // and some replies (e.g. "@bot gh") need a network round trip of their own.
+        const replyTask = (async () => {
+          const botReply = await botReplyFor(body.message, body.name);
+          if (botReply) await writeBotReply(env, botReply, 'bot');
+          const aiReply = await aiReplyFor(body.message, body.name, env, body.session_id);
+          if (aiReply) await writeBotReply(env, aiReply, 'ai');
+        })();
+        if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(replyTask);
+        else await replyTask;
+
+        return new Response(rowsText, {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       return new Response(response.body, {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -150,22 +176,143 @@ async function writeBotReply(env, reply, name = 'bot') {
   if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
   try {
     const AUTH_KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
-    await fetch(SUPABASE_ORIGIN + '/rest/v1/chat_messages', {
+    const res = await fetch(SUPABASE_ORIGIN + '/rest/v1/chat_messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': AUTH_KEY,
         'Authorization': 'Bearer ' + AUTH_KEY,
-        'Prefer': 'return=minimal',
+        'Prefer': 'return=representation',
       },
       body: JSON.stringify({ name, message: reply, session_id: name }),
     });
+    // Broadcast the stored reply so a live client shows it (and clears its typing
+    // indicator) at once instead of on the next poll.
+    if (res.ok) {
+      let rows = [];
+      try { rows = JSON.parse(await res.text()); } catch { rows = []; }
+      if (Array.isArray(rows)) for (const row of rows) await broadcastChatRow(env, row);
+    }
   } catch { /* the user's message is already saved; a failed reply is not fatal */ }
 }
 
 // Names whose chat rows are written only by this Worker. A client can never post as one
 // of these (see the insert guard above and the RLS insert policy).
 const SERVER_ONLY_NAMES = ['bot', 'ai'];
+
+// ── Live chat (Durable Object) ───────────────────────────────────────────────
+// One object holds every open chat socket and fans new rows out to them. It stores
+// nothing: Supabase stays the source of truth, so a client that misses a frame (or
+// has no socket at all) still catches up on its next poll.
+//
+// Sockets hibernate while idle. A non-hibernating object would bill its full 128 MB
+// for every second a socket is open, which blows the Workers Free daily budget; a
+// hibernating one bills nothing until a message arrives. That is why the class uses
+// state.acceptWebSocket() + webSocketMessage() rather than ws.addEventListener().
+
+// Fan a stored chat row out to every open socket. Best-effort by design.
+async function broadcastChatRow(env, row) {
+  if (!env.CHAT_ROOM || !row || row.id == null) return;
+  try {
+    const stub = env.CHAT_ROOM.get(env.CHAT_ROOM.idFromName('room'));
+    await stub.fetch('https://chat.internal/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(row),
+    });
+  } catch { /* a live-update miss is not fatal; polling still delivers the row */ }
+}
+
+async function handleChatSocket(request, env) {
+  if (request.headers.get('Upgrade') !== 'websocket') {
+    return new Response('expected websocket', { status: 426 });
+  }
+  if (!env.CHAT_ROOM) return new Response('live chat unavailable', { status: 503 });
+  const stub = env.CHAT_ROOM.get(env.CHAT_ROOM.idFromName('room'));
+  return stub.fetch(request);
+}
+
+export class ChatRoom {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  // Distinct sessions currently connected. One visitor with three tabs is one
+  // socket each but a single session, so counting sockets would inflate the badge.
+  // The session id rides on the socket as an attachment, which survives hibernation.
+  // `except` skips one socket: webSocketClose() runs while the departing socket is
+  // still in getWebSockets(), so without this the count would include someone who
+  // has just left.
+  sessionIds(except) {
+    const ids = new Set();
+    for (const ws of this.state.getWebSockets()) {
+      if (ws === except) continue;
+      try {
+        const att = ws.deserializeAttachment();
+        if (att && att.sessionId) ids.add(att.sessionId);
+      } catch { /* a socket with no attachment just does not count */ }
+    }
+    return ids;
+  }
+
+  sendToAll(text, except) {
+    let sent = 0;
+    for (const ws of this.state.getWebSockets()) {
+      if (ws === except) continue;
+      try { ws.send(text); sent++; } catch { /* a dead socket is dropped by the platform */ }
+    }
+    return sent;
+  }
+
+  presenceFrame(except) {
+    return JSON.stringify({ type: 'presence', count: this.sessionIds(except).size });
+  }
+
+  // Internal-only: reached by broadcastChatRow(), never by a browser, because the
+  // public route is /ws and that only accepts an Upgrade. A client therefore cannot
+  // inject a fabricated row into the room.
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === '/broadcast') {
+      const body = await request.text();
+      return new Response(JSON.stringify({ sent: this.sendToAll(body) }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (request.headers.get('Upgrade') === 'websocket') {
+      const pair = new WebSocketPair();
+      const [client, server] = Object.values(pair);
+      this.state.acceptWebSocket(server);
+      // Remember who this socket belongs to so the count stays per-visitor.
+      const sessionId = url.searchParams.get('session') || '';
+      if (sessionId) {
+        try { server.serializeAttachment({ sessionId }); } catch { /* count falls back to sockets */ }
+      }
+      // Tell the room the count changed, and tell the newcomer the current one.
+      this.sendToAll(this.presenceFrame());
+      return new Response(null, { status: 101, webSocket: client });
+    }
+    return new Response('not found', { status: 404 });
+  }
+
+  // The socket is strictly one-way: the client never sends, and anything it does
+  // send is ignored. The handler still has to exist so a stray frame wakes the object
+  // cleanly instead of erroring.
+  async webSocketMessage() { /* receive-only socket: nothing to do */ }
+
+  async webSocketClose(ws) {
+    // The departing socket is still listed here, so exclude it from the count and
+    // from the fan-out. webSocketClose() may fire more than once for one socket.
+    try { ws.close(); } catch { /* already closing */ }
+    this.sendToAll(this.presenceFrame(ws), ws);
+  }
+
+  async webSocketError(ws) {
+    try { ws.close(); } catch { /* already closing */ }
+    this.sendToAll(this.presenceFrame(ws), ws);
+  }
+}
 
 // Matches "@<handle>" at the start of a message or after whitespace. The negative
 // lookahead keeps "@bothello" and "email@bot.com" from matching while "@bot, hi",

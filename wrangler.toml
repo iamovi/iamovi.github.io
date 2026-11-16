@@ -22,6 +22,18 @@ GROQ_MODEL = "openai/gpt-oss-120b"
 binding = "AI_RATE_LIMIT"
 id = "52f76bab4a0148e78744a97c777cd175"
 
+# Holds the open chat sockets and fans new chat rows out to them (see ChatRoom in
+# worker.js). Nothing is stored: Supabase remains the source of truth, and clients
+# keep polling as a fallback, so losing this object costs latency, not messages.
+# SQLite-backed because the Workers Free plan only allows new_sqlite_classes.
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatRoom"]
+
 # Ships Worker console.* output to the dashboard (Workers Logs), so server-side
 # errors are visible without a Tail Worker. Free plan: 200k events/day, 3-day retention.
 [observability]
