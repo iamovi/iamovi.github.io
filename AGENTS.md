@@ -36,6 +36,11 @@ Repository-specific notes for AI agents working in this repo.
   `sitemap.xml`) from `blog.json`. It must stay idempotent — re-running it on a
   clean tree should produce no diff.
 - Local preview: `python3 -m http.server 12000 --bind 0.0.0.0` from the repo root.
+- Two READMEs, on purpose. GitHub surfaces `.github/README.md` (preview +
+  license card) and hides the root `README.md` (build and content docs), which
+  the card links to. Do not merge them. Card links need `../README.md`: relative
+  links resolve against the file's own directory, so a plain `README.md` would
+  point at the card itself.
 
 ## Chatguys bots
 
