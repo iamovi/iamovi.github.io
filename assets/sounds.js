@@ -155,6 +155,11 @@
         playNoise({ vol: 0.07, duration: 0.06, filterFreq: 5200 });
         playNoise({ vol: 0.05, duration: 0.05, filterFreq: 3600, delay: 0.07 });
         playTone({ type: 'triangle', freq: 392, endFreq: 523, vol: 0.05, duration: 0.09, delay: 0.12 });
+      } else if (theme === 'minecraft') {
+        // Block placement "pop": dull low thud with a quick pitch drop
+        playTone({ type: 'triangle', freq: 196, endFreq: 110, vol: 0.11, duration: 0.09 });
+        playNoise({ vol: 0.06, duration: 0.03, filterFreq: 1200 });
+        playTone({ type: 'square', freq: 330, endFreq: 262, vol: 0.05, duration: 0.06, delay: 0.05 });
       } else {
         // Classic Manga crisp tactile chime
         playTone({ type: 'sine', freq: 523, endFreq: 784, vol: 0.09, duration: 0.12 });

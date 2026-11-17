@@ -193,6 +193,30 @@
     --join-shadow: none;
 }
 
+[data-theme="minecraft"] {
+    /* Minecraft Theme - Grass & dirt blocks under an open sky, pixel-art cube */
+    --ink: #241408;
+    --paper: #C2A173;
+    --paper-dark: #A9865E;
+    --ink-light: #3A2410;
+    --ink-mid: #5A4326;
+    --ink-faint: #6B5433;
+    --speed: 0.15s;
+    --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='16' height='16' fill='%23A17A52'/%3E%3Crect x='14' y='14' width='1' height='1' fill='%237A5836'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='15' y='5' width='1' height='1' fill='%238C6743'/%3E%3Crect x='9' y='4' width='1' height='1' fill='%238C6743'/%3E%3Crect x='1' y='12' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%238C6743'/%3E%3Crect x='7' y='0' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='10' y='14' width='1' height='1' fill='%237A5836'/%3E%3Crect x='6' y='7' width='1' height='1' fill='%237A5836'/%3E%3Crect x='15' y='0' width='1' height='1' fill='%237A5836'/%3E%3Crect x='14' y='8' width='1' height='1' fill='%238C6743'/%3E%3Crect x='2' y='8' width='1' height='1' fill='%238C6743'/%3E%3Crect x='7' y='9' width='1' height='1' fill='%238C6743'/%3E%3Crect x='3' y='12' width='1' height='1' fill='%238C6743'/%3E%3Crect x='9' y='12' width='1' height='1' fill='%238C6743'/%3E%3Crect x='0' y='0' width='1' height='1' fill='%238C6743'/%3E%3Crect x='1' y='15' width='1' height='1' fill='%238C6743'/%3E%3Crect x='12' y='13' width='1' height='1' fill='%238C6743'/%3E%3Crect x='6' y='8' width='1' height='1' fill='%238C6743'/%3E%3Crect x='9' y='10' width='1' height='1' fill='%238C6743'/%3E%3Crect x='13' y='3' width='1' height='1' fill='%238C6743'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%238C6743'/%3E%3Crect x='15' y='5' width='1' height='1' fill='%237A5836'/%3E%3Crect x='6' y='14' width='1' height='1' fill='%237A5836'/%3E%3Crect x='4' y='13' width='1' height='1' fill='%237A5836'/%3E%3Crect x='3' y='12' width='1' height='1' fill='%238C6743'/%3E%3Crect x='6' y='0' width='1' height='1' fill='%238C6743'/%3E%3Crect x='9' y='0' width='1' height='1' fill='%238C6743'/%3E%3Crect x='12' y='3' width='1' height='1' fill='%238C6743'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%238C6743'/%3E%3Crect x='0' y='10' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='12' y='2' width='1' height='1' fill='%238C6743'/%3E%3Crect x='6' y='7' width='1' height='1' fill='%238C6743'/%3E%3Crect x='11' y='11' width='1' height='1' fill='%237A5836'/%3E%3Crect x='4' y='15' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='4' y='12' width='1' height='1' fill='%238C6743'/%3E%3Crect x='4' y='9' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='7' y='6' width='1' height='1' fill='%238C6743'/%3E%3Crect x='6' y='12' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='2' y='13' width='1' height='1' fill='%238C6743'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%237A5836'/%3E%3Crect x='8' y='7' width='1' height='1' fill='%23B18A60'/%3E%3Crect x='12' y='8' width='1' height='1' fill='%238C6743'/%3E%3Crect x='15' y='9' width='1' height='1' fill='%237A5836'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%238C6743'/%3E%3C/svg%3E");
+    --lb-bg: var(--paper);
+    --lb-ink: var(--ink);
+    --shadow: var(--ink);
+    --card-shadow: var(--ink);
+    --skeleton-base: var(--paper-dark);
+    --skeleton-shimmer: #D2B183;
+    --menu-border-left: 3px solid var(--ink);
+    --menu-shadow: -10px 0 30px rgba(36, 20, 8, 0.35);
+    --border-soft: var(--ink);
+    --bubble-border: var(--ink);
+    --panel-shadow: none;
+    --join-shadow: none;
+}
+
 /* ── SPACE THEME POLISH ── */
 
 [data-theme="space"] body {
@@ -1269,5 +1293,111 @@
         width: clamp(70px, 20vw, 92px);
         height: clamp(70px, 20vw, 92px);
         opacity: 0.45;
+    }
+}
+
+/* ── MINECRAFT THEME POLISH ── */
+
+[data-theme="minecraft"] body {
+    background-size: 16px 16px !important;
+    background-attachment: fixed;
+}
+
+/* Hard square edges are the strongest "Minecraft" signal: kill every radius.
+   Excludes [data-cursor-el] so the custom cursor (a separate user setting)
+   keeps its designed shape instead of being silently squared. */
+[data-theme="minecraft"] *:not([data-cursor-el]),
+[data-theme="minecraft"] *:not([data-cursor-el])::before,
+[data-theme="minecraft"] *:not([data-cursor-el])::after {
+    border-radius: 0 !important;
+}
+
+/* Chunky 3px block borders + a stepped "bevel" shadow, like an inventory slot */
+[data-theme="minecraft"] .menu-button,
+[data-theme="minecraft"] .page-btn,
+[data-theme="minecraft"] .theme-toggle,
+[data-theme="minecraft"] .music-button,
+[data-theme="minecraft"] .skill-tag,
+[data-theme="minecraft"] .waifu-reload,
+[data-theme="minecraft"] .reaction-btn,
+[data-theme="minecraft"] .genjutsu-inline-btn {
+    border: 3px solid var(--ink) !important;
+    box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.22), inset 3px 3px 0 rgba(255, 255, 255, 0.20) !important;
+    text-shadow: none;
+}
+
+[data-theme="minecraft"] .menu-button:hover,
+[data-theme="minecraft"] .page-btn:hover,
+[data-theme="minecraft"] .theme-toggle:hover,
+[data-theme="minecraft"] .music-button:hover,
+[data-theme="minecraft"] .skill-tag:hover,
+[data-theme="minecraft"] .waifu-reload:hover {
+    background: var(--ink) !important;
+    color: var(--paper) !important;
+}
+
+[data-theme="minecraft"] .highlight {
+    background: linear-gradient(180deg, transparent 58%, rgba(93, 158, 62, 0.55) 58%);
+}
+
+[data-theme="minecraft"] ::selection {
+    background: #5D9E3E;
+    color: #FFFFFF;
+}
+
+[data-theme="minecraft"] .reaction-btn.reacted,
+[data-theme="minecraft"] .reaction-btn.reacted:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+}
+
+[data-theme="minecraft"] .reaction-btn.reacted .reaction-count,
+[data-theme="minecraft"] .reaction-btn.reacted:hover .reaction-count {
+    color: var(--paper);
+    font-weight: bold;
+}
+
+[data-theme="minecraft"] ::-webkit-scrollbar-thumb {
+    background: #6E4A2E;
+    border: 2px solid #7CBD56;
+}
+
+[data-theme="minecraft"] * {
+    scrollbar-color: #6E4A2E #C2A173;
+}
+
+/* Slab-style heading underline, echoing the block grid */
+[data-theme="minecraft"] .header-top-row h1,
+[data-theme="minecraft"] .settings-section-title {
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.28);
+}
+
+/* ── MINECRAFT GRASS BLOCK CORNER DECORATION ── */
+[data-theme="minecraft"] body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: clamp(96px, 14vw, 158px);
+    height: clamp(96px, 14vw, 158px);
+    background-image: url("./grass_block.svg");
+    background-repeat: no-repeat;
+    background-position: bottom right;
+    background-size: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 600px) {
+    [data-theme="minecraft"] body::after {
+        width: clamp(70px, 20vw, 92px);
+        height: clamp(70px, 20vw, 92px);
+        opacity: 0.5;
     }
 }
