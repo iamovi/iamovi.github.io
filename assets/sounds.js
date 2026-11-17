@@ -191,28 +191,36 @@
     // Page load sound (only if user has enabled it)
     setTimeout(sfx_pageLoad, 200);
 
+    // e.target isn't always an Element (can be document, window or a text node),
+    // so resolve to an Element before calling .closest()
+    function closestEl(e, selector) {
+      let t = e && e.target;
+      if (t && t.nodeType === 3) t = t.parentElement; // text node -> parent
+      return (t && typeof t.closest === 'function') ? t.closest(selector) : null;
+    }
+
     // Hover on interactive elements
     let lastHover = null;
     document.addEventListener('mouseover', function (e) {
-      const el = e.target.closest('a, button, .menu-link, .page-btn, .skill-tag, .music-button, .theme-toggle, .menu-button');
+      const el = closestEl(e, 'a, button, .menu-link, .page-btn, .skill-tag, .music-button, .theme-toggle, .menu-button');
       if (el && el !== lastHover) {
         lastHover = el;
         sfx_hover();
       }
     });
     document.addEventListener('mouseout', function (e) {
-      const el = e.target.closest('a, button, .menu-link, .page-btn, .skill-tag, .music-button, .theme-toggle, .menu-button');
+      const el = closestEl(e, 'a, button, .menu-link, .page-btn, .skill-tag, .music-button, .theme-toggle, .menu-button');
       if (el) lastHover = null;
     });
 
     // Clicks
     document.addEventListener('click', function (e) {
-      const sfxBtn = e.target.closest('.sfx-toggle');
+      const sfxBtn = closestEl(e, '.sfx-toggle');
       if (sfxBtn) return; // handled by toggleSfx
-      const themeBtn = e.target.closest('.theme-card');
+      const themeBtn = closestEl(e, '.theme-card');
       if (themeBtn) return; // handled by selectTheme -> sfx_themeChange
-      const btn = e.target.closest('button, .page-btn, .menu-button, .music-button, .theme-toggle, .waifu-reload');
-      const link = e.target.closest('a');
+      const btn = closestEl(e, 'button, .page-btn, .menu-button, .music-button, .theme-toggle, .waifu-reload');
+      const link = closestEl(e, 'a');
       if (btn) sfx_click();
       else if (link) sfx_linkClick();
     });
