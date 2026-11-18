@@ -749,11 +749,20 @@
 
     window.deleteVaultPhoto = async function (id) {
       if (!confirm('Delete this photo permanently?')) return;
-      await vaultFetch('/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
+      const statusEl = document.getElementById('vault-status');
+      try {
+        const res = await vaultFetch('/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (!res.ok) throw new Error((await res.json()).error || res.status);
+        statusEl.textContent = '[ deleted ]';
+        statusEl.className = 'status-msg ok';
+      } catch (e) {
+        statusEl.textContent = '[ could not delete: ' + e.message + ' ]';
+        statusEl.className = 'status-msg err';
+      }
       window.loadVault();
     }
 
