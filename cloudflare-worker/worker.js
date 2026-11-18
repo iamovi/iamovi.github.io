@@ -1364,8 +1364,13 @@ async function handleVault(request, env, corsHeaders, url) {
   const fileHeaders = (type) => ({
     ...corsHeaders,
     'Content-Type': type,
+    'X-Content-Type-Options': 'nosniff',
     'Cache-Control': 'private, no-store',
   });
+  // Only raster images are served for inline rendering. SVG is excluded on purpose:
+  // it can carry script. Anything not in this set is sent as a download with a
+  // generic type, so a stored file can never execute as a document on this origin.
+  const INLINE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/bmp']);
 
   try {
     if (route === '/list' && request.method === 'GET') {
@@ -1381,8 +1386,12 @@ async function handleVault(request, env, corsHeaders, url) {
       const r = await b2Fetch(env, 'GET', (isThumb ? 'thumb/' : 'photo/') + id);
       if (r.status === 404) return json({ error: 'not_found' }, 404);
       if (!r.ok) return json({ error: 'storage_error' }, 502);
-      const type = isThumb ? 'image/jpeg' : (r.headers.get('content-type') || 'application/octet-stream');
-      return new Response(r.body, { headers: fileHeaders(type) });
+      if (isThumb) return new Response(r.body, { headers: fileHeaders('image/jpeg') });
+      const stored = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+      const inline = INLINE_TYPES.has(stored);
+      const headers = fileHeaders(inline ? stored : 'application/octet-stream');
+      if (!inline) headers['Content-Disposition'] = 'attachment';
+      return new Response(r.body, { headers });
     }
 
     if (route === '/upload' && request.method === 'POST') {
@@ -1391,14 +1400,13 @@ async function handleVault(request, env, corsHeaders, url) {
       const file = form.get('file');
       const thumb = form.get('thumb');
       if (!file || typeof file === 'string') return json({ error: 'no_file' }, 400);
-      if (file.size > 25 * 1024 * 1024) return json({ error: 'too_big', message: 'Max 25 MB per photo' }, 413);
-      if (!String(file.type).startsWith('image/')) return json({ error: 'not_image' }, 400);
+      if (file.size > 50 * 1024 * 1024) return json({ error: 'too_big', message: 'Max 50 MB per file' }, 413);
 
       const rand = crypto.getRandomValues(new Uint8Array(6));
       const id = Date.now().toString(36) + Array.from(rand, (b) => (b % 36).toString(36)).join('');
       const meta = {
         id,
-        name: String(form.get('name') || file.name || 'photo').slice(0, 200),
+        name: String(form.get('name') || file.name || 'file').slice(0, 200),
         type: file.type,
         size: file.size,
         t: Date.now(),
