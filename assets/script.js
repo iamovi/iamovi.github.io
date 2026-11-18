@@ -787,16 +787,38 @@
     } catch (e) { return false; }
   }
 
+  function getAdminSession() {
+    try {
+      const raw = localStorage.getItem('sb-nusyixchzeiplwwmqlbw-auth-token');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      // supabase-js v2 stores the session flat; older shapes nest it.
+      const session = parsed.currentSession || parsed;
+      return session && typeof session === 'object' ? session : null;
+    } catch (e) { return null; }
+  }
+
   function isAdminLoggedIn() {
-    if (!hasAdminSession()) return false;
+    const session = getAdminSession();
+    if (!session) return false;
     const token = getAdminToken();
-    return !!token && isJwtFresh(token);
+    if (token && isJwtFresh(token)) return true;
+    // Access tokens expire after an hour. The session is still valid while a
+    // refresh token is present, so treat it as logged in rather than hiding the
+    // menu until the admin happens to trigger a refresh elsewhere.
+    return !!session.refresh_token;
   }
 
   window.updateAdminMenu = function () {
     const section = document.getElementById('admin-menu-section');
     if (!section) return;
-    section.style.display = isAdminLoggedIn() ? '' : 'none';
+    const loggedIn = isAdminLoggedIn();
+    section.style.display = loggedIn ? '' : 'none';
+    const token = getAdminToken();
+    if (loggedIn && (!token || !isJwtFresh(token))) {
+      getFreshAdminToken().catch(() => {});
+    }
   };
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -828,8 +850,7 @@
   let adminRefreshPromise = null;
   async function getFreshAdminToken() {
     const KEY = 'sb-nusyixchzeiplwwmqlbw-auth-token';
-    let session = null;
-    try { session = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { }
+    let session = getAdminSession();
     const current = getAdminToken();
     if (current && isJwtFresh(current)) return current;
     const refreshToken = session && session.refresh_token;
