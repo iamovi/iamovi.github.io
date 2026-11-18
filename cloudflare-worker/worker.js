@@ -1419,8 +1419,12 @@ async function handleVault(request, env, corsHeaders, url) {
       let body;
       try { body = await request.json(); } catch { return json({ error: 'bad_request' }, 400); }
       if (!validId(body.id)) return json({ error: 'bad_id' }, 400);
-      await b2Fetch(env, 'DELETE', 'photo/' + body.id);
-      await b2Fetch(env, 'DELETE', 'thumb/' + body.id);
+      // A rejected DELETE still resolves, so an unchecked response would drop the
+      // item from index.json while its object stayed in the bucket — invisible in
+      // the UI and unreachable for a retry. Bail before touching the index instead.
+      const photoDel = await b2Fetch(env, 'DELETE', 'photo/' + body.id);
+      const thumbDel = await b2Fetch(env, 'DELETE', 'thumb/' + body.id);
+      if (!photoDel.ok || !thumbDel.ok) return json({ error: 'storage_error' }, 502);
       const items = (await b2ReadIndex(env)).filter((it) => it.id !== body.id);
       await b2WriteIndex(env, items);
       return json({ ok: true });
