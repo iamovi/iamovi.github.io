@@ -279,6 +279,46 @@
       font-style: italic;
     }
 
+    .section-title-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-refresh {
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: var(--ink-mid);
+      background: none;
+      border: 0;
+      padding: 2px 4px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .chat-refresh:hover:not(:disabled) {
+      color: var(--ink);
+    }
+
+    .chat-refresh:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
+
+    .chat-refresh.spinning {
+      display: inline-block;
+      animation: chat-refresh-spin 0.7s linear infinite;
+    }
+
+    @keyframes chat-refresh-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .chat-refresh.spinning { animation: none; }
+    }
+
     .tab-row {
       display: flex;
       gap: 8px;
@@ -459,7 +499,10 @@
         <div class="box">
           <div class="section-title">
             <span>chatguys</span>
-            <span class="comment-count" id="chat-count"></span>
+            <span class="section-title-right">
+              <span class="comment-count" id="chat-count"></span>
+              <button class="chat-refresh" id="chat-refresh" onclick="refreshChat()" aria-label="refresh messages" title="refresh">[ ⟳ ]</button>
+            </span>
           </div>
           <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Messages older than 7 days clear automatically. Deleting here blanks the text and leaves a tombstone in the room.</p>
           <div class="comment-list" id="chat-list">
@@ -1045,6 +1088,28 @@
         chatSyncButton();
       }
     }
+
+    // Re-queries from the top so new messages show without reloading the page.
+    // Resetting the list drops it back to one page, so the page can get shorter
+    // under the reader; the browser clamps scrollY if the old offset is gone.
+    window.refreshChat = async function () {
+      if (chatLoading) return;
+      const btn = document.getElementById('chat-refresh');
+      const y = window.scrollY;
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('spinning');
+      }
+      try {
+        await window.loadChatMessages(true);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('spinning');
+        }
+        window.scrollTo(0, y);
+      }
+    };
 
     window.deleteChatMessage = async function (id) {
       if (!confirm('Delete this chat message? This cannot be undone.')) return;
