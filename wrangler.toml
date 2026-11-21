@@ -23,3 +23,9 @@ id = "52f76bab4a0148e78744a97c777cd175"
 # errors are visible without a Tail Worker. Free plan: 200k events/day, 3-day retention.
 [observability]
 enabled = true
+
+# Groups uncaught exceptions, failed invocations, and 5xx responses into issues.
+# This has to live in config, not only in the dashboard: a deploy without the key
+# turns Issues back off. Free during open beta; needs Wrangler 4.134.0+.
+[observability.issues]
+enabled = true
