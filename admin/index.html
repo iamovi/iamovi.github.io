@@ -274,6 +274,11 @@
       margin-top: 4px;
     }
 
+    .chat-deleted .comment-text {
+      color: var(--ink-mid);
+      font-style: italic;
+    }
+
     .tab-row {
       display: flex;
       gap: 8px;
@@ -456,7 +461,7 @@
             <span>chatguys</span>
             <span class="comment-count" id="chat-count"></span>
           </div>
-          <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Messages older than 7 days clear automatically. Deleting here is immediate.</p>
+          <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Messages older than 7 days clear automatically. Deleting here blanks the text and leaves a tombstone in the room.</p>
           <div class="comment-list" id="chat-list">
             <div class="gb-loading-admin">[ loading messages... ]</div>
           </div>
@@ -954,15 +959,19 @@
     let chatLoading = false;
 
     function chatRow(m) {
-      return '<div class="comment-item" id="admin-chat-' + m.id + '">' +
+      const deleted = !!m.deleted_at;
+      const action = deleted
+        ? '<span class="comment-count">[ deleted ]</span>'
+        : '<button class="btn-danger" onclick="deleteChatMessage(' + m.id + ')">[ delete ]</button>';
+      return '<div class="comment-item' + (deleted ? ' chat-deleted' : '') + '" id="admin-chat-' + m.id + '">' +
         '<div class="comment-body">' +
         '<div class="comment-meta">' +
         '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + window.getAdminBadge(m.name) + '</span>' +
         '<span>' + window.timeAgo(m.created_at) + '</span>' +
         '</div>' +
-        '<div class="comment-text">' + window.escapeHtml(m.message) + '</div>' +
+        '<div class="comment-text">' + (deleted ? '[ admin deleted this message ]' : window.escapeHtml(m.message)) + '</div>' +
         '</div>' +
-        '<button class="btn-danger" onclick="deleteChatMessage(' + m.id + ')">[ delete ]</button>' +
+        action +
         '</div>';
     }
 
@@ -1038,20 +1047,26 @@
     }
 
     window.deleteChatMessage = async function (id) {
-      if (!confirm('Delete this chat message?')) return;
+      if (!confirm('Delete this chat message? This cannot be undone.')) return;
 
       const row = document.getElementById('admin-chat-' + id);
       const btn = row ? row.querySelector('.btn-danger') : null;
       if (btn) btn.disabled = true;
 
       try {
+        // Soft delete: keep the row so the room can show a tombstone in place.
+        // The text is blanked, so the original content is no longer readable.
         const res = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?id=eq.' + id, {
-          method: 'DELETE',
-          headers: window.authHeaders()
+          method: 'PATCH',
+          headers: { ...window.authHeaders(), 'Prefer': 'return=representation' },
+          body: JSON.stringify({ message: '', deleted_at: new Date().toISOString() })
         });
         if (!res.ok) throw new Error('failed');
-        if (row) row.remove();
-        chatUpdateCount();
+        const updated = await res.json();
+        // RLS silently filters rows the policy rejects; an empty array means the
+        // update did not apply (e.g. the row was already deleted).
+        if (!Array.isArray(updated) || updated.length === 0) throw new Error('not applied');
+        if (row) row.outerHTML = chatRow(updated[0]);
       } catch {
         if (btn) btn.disabled = false;
         alert('Failed to delete. Try again.');
