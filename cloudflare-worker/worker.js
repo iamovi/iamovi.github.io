@@ -27,7 +27,6 @@ export default {
     // Get the path after /proxy (e.g. /rest/v1/guestbook)
     const url = new URL(request.url);
     if (url.pathname === '/notify') { return handleNotify(request, env, corsHeaders); }
-    if (url.pathname === '/issues-hook') { return handleIssuesHook(request, env, corsHeaders); }
     if (url.pathname === '/contact-file') { return handleContactFile(request, env, corsHeaders); }
     if (url.pathname === '/webhook') { return handleWebhook(request, env, corsHeaders); }
     if (url.pathname === '/link-preview') { return handleLinkPreview(request, env, corsHeaders); }
@@ -693,55 +692,6 @@ async function handleNotify(request, env, corsHeaders) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
-    }
-  );
-  return json({ ok: res.ok }, res.ok ? 200 : 502);
-}
-
-// Cloudflare Workers Issues has no native Telegram destination, so an automation
-// points a generic webhook at this route and the alert is relayed to the bot.
-// Payload shape: notifications/reference/webhook-payload-schema (workers_observability_alert).
-async function handleIssuesHook(request, env, corsHeaders) {
-  const json = (obj, status = 200) =>
-    new Response(JSON.stringify(obj), {
-      status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  if (request.method !== 'POST') return json({ ok: false }, 405);
-
-  // Cloudflare sends the configured secret verbatim in cf-webhook-auth. Without a
-  // secret set, anyone could post arbitrary text to the bot, so fail closed.
-  const secret = env.ISSUES_WEBHOOK_SECRET;
-  if (!secret || request.headers.get('cf-webhook-auth') !== secret) {
-    return json({ ok: false }, 403);
-  }
-
-  let body;
-  try { body = await request.json(); } catch { return json({ ok: false }, 400); }
-
-  const clip = (v, n) => String(v ?? '').slice(0, n);
-  const episode = body?.data?.episode ?? {};
-  const status = clip(body?.data?.status, 20);
-  const summary = clip(episode.summary, 300) || clip(body?.text, 300) || 'no summary';
-  const resolved = body?.alert_event === 'ALERT_STATE_EVENT_END';
-
-  const lines = [
-    `${resolved ? '✅' : '🚨'} Worker issue${status ? ' (' + status + ')' : ''}`,
-    summary,
-  ];
-  if (episode.first_failed) lines.push(`First failed: ${clip(episode.first_failed, 40)}`);
-  if (episode.last_failed) lines.push(`Last failed: ${clip(episode.last_failed, 40)}`);
-  if (episode.id) lines.push(`ID: ${clip(episode.id, 60)}`);
-
-  if (!(await allowErrorReport(env))) return json({ ok: false, throttled: true }, 429);
-
-  const res = await fetch(
-    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text: lines.join('\n') }),
     }
   );
   return json({ ok: res.ok }, res.ok ? 200 : 502);
