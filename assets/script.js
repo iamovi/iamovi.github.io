@@ -379,7 +379,7 @@
   window.filterProjects = function (query) {
     searchQuery = query.toLowerCase().trim();
     currentPage = 1;
-    renderProjects(0);
+    renderProjects();
   };
 
   function getFilteredProjects() {
@@ -391,10 +391,7 @@
   }
 
   // PROJECTS — loaded from projects.json
-  // `animate` is false for the first paint: scripts/build.py already baked the
-  // same markup into the HTML, so fading in would flash content that is
-  // already on screen.
-  function renderProjects(direction = 0, animate = true) {
+  function renderProjects() {
     const list = document.getElementById('projects-list');
     if (!list) return;
 
@@ -428,35 +425,12 @@
       if (next) next.disabled = currentPage === totalPages;
     };
 
-    if (!animate) {
-      paint();
-      return;
-    }
-
-    list.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
-    list.style.opacity = '0';
-    list.style.transform = `translateX(${direction > 0 ? '-60px' : direction < 0 ? '60px' : '0'})`;
-
-    setTimeout(() => {
-      paint();
-
-      list.style.transition = 'none';
-      list.style.opacity = '0';
-      list.style.transform = `translateX(${direction > 0 ? '60px' : direction < 0 ? '-60px' : '0'})`;
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          list.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-          list.style.opacity = '1';
-          list.style.transform = 'translateX(0)';
-        });
-      });
-    }, 200);
+    paint();
   }
 
   window.changePage = function (dir) {
     currentPage = Math.min(Math.max(currentPage + dir, 1), totalPages);
-    renderProjects(dir);
+    renderProjects();
   };
 
   fetch('./projects.json')
@@ -464,7 +438,7 @@
     .then(data => {
       projects = data.reverse();
       totalPages = Math.ceil(projects.length / PER_PAGE);
-      renderProjects(0, false);
+      renderProjects();
     })
     .catch(err => console.error('Failed to load projects.json', err));
 
