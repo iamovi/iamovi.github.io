@@ -376,16 +376,6 @@
     color: var(--paper);
 }
 
-[data-theme="space"] .vault-thumb-cell {
-    border-color: var(--border-soft);
-    box-shadow: 2px 2px 0 var(--card-shadow);
-}
-
-[data-theme="space"] .vault-thumb-del {
-    border-color: var(--border-soft);
-    box-shadow: 1.5px 1.5px 0 var(--card-shadow);
-}
-
 [data-theme="space"] .card {
     border-color: var(--border-soft);
     box-shadow: 6px 6px 0 var(--card-shadow);
@@ -727,17 +717,6 @@
 [data-theme="midnight"] .cursor-card:hover {
     border-color: var(--ink);
     box-shadow: 4px 4px 0 var(--card-shadow);
-}
-
-/* Vault thumbnails */
-[data-theme="midnight"] .vault-thumb-cell {
-    border-color: var(--border-soft);
-    box-shadow: 2px 2px 0 var(--card-shadow);
-}
-
-[data-theme="midnight"] .vault-thumb-del {
-    border-color: var(--border-soft);
-    box-shadow: 1.5px 1.5px 0 var(--card-shadow);
 }
 
 [data-theme="midnight"] .cursor-card.active {
