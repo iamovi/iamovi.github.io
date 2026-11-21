@@ -15,8 +15,7 @@ button, input, select, textarea {
 
 /* Variables are now loaded from theme.css */
 /* The scrolling element is <html>, so clipping only <body> still lets a child
-   that transiently overflows (the projects list slides ±60px while paginating)
-   flash a horizontal scrollbar. Clip both. */
+   that transiently overflows flash a horizontal scrollbar. Clip both. */
 html, body { overflow-x: clip; }
 
 body {
@@ -1478,14 +1477,12 @@ input[type="file"]::file-selector-button:hover {
     text-transform: uppercase;
 }
 
-/* ── PROJECTS — SMOOTH MOTION ──
-   Project rows glide up into place whenever the list appears or is re-rendered
-   (entering the projects section, changing page, or searching), nudge on hover,
-   and the controls give press feedback. Motion is transform-only, and the whole
-   block is skipped when the visitor asks for reduced motion. The rows are inside
-   #projects-section, which is display:none until active, so nothing animates
-   while the section is hidden and the baked first paint is covered by the
-   skeleton overlay rather than flashing. */
+/* ── PROJECTS — MOTION ──
+   Project rows glide up into place when the section appears, and the controls
+   give press feedback. Pagination and search re-render without motion. The rows
+   are inside #projects-section, which is display:none until active, so nothing
+   animates while the section is hidden and the baked first paint is covered by
+   the skeleton overlay rather than flashing. */
 @keyframes proj-item-in {
     from { transform: translateY(14px); }
     to   { transform: translateY(0); }
@@ -1498,9 +1495,9 @@ input[type="file"]::file-selector-button:hover {
 #projects-section.active #projects-list > li:nth-child(3) { animation-delay: 0.12s; }
 
 #projects-list > li {
-    transition: transform var(--speed) ease, border-color var(--speed) ease;
+    transition: border-color var(--speed) ease;
 }
-#projects-list > li:hover { transform: translateX(4px); border-bottom-color: var(--ink-mid); }
+#projects-list > li:hover { border-bottom-color: var(--ink-mid); }
 
 @keyframes reaction-pop {
     0%   { transform: scale(1); }
@@ -1514,7 +1511,6 @@ input[type="file"]::file-selector-button:hover {
 
 @media (prefers-reduced-motion: reduce) {
     #projects-section.active #projects-list > li { animation: none; }
-    #projects-list > li:hover { transform: none; }
     #projects-list .reaction-btn.reaction-pop { animation: none; }
     .page-btn:active:not(:disabled) { transform: none; }
 }
