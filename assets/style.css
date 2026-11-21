@@ -15,7 +15,8 @@ button, input, select, textarea {
 
 /* Variables are now loaded from theme.css */
 /* The scrolling element is <html>, so clipping only <body> still lets a child
-   that transiently overflows flash a horizontal scrollbar. Clip both. */
+   that transiently overflows (the projects list slides ±60px while paginating)
+   flash a horizontal scrollbar. Clip both. */
 html, body { overflow-x: clip; }
 
 body {
@@ -1478,22 +1479,8 @@ input[type="file"]::file-selector-button:hover {
 }
 
 /* ── PROJECTS — MOTION ──
-   Project rows glide up into place when the section appears, and the controls
-   give press feedback. Pagination and search re-render without motion. The rows
-   are inside #projects-section, which is display:none until active, so nothing
-   animates while the section is hidden and the baked first paint is covered by
-   the skeleton overlay rather than flashing. */
-@keyframes proj-item-in {
-    from { transform: translateY(14px); }
-    to   { transform: translateY(0); }
-}
-
-#projects-section.active #projects-list > li {
-    animation: proj-item-in 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-}
-#projects-section.active #projects-list > li:nth-child(2) { animation-delay: 0.06s; }
-#projects-section.active #projects-list > li:nth-child(3) { animation-delay: 0.12s; }
-
+   Rows do not animate in. Pagination slides the list horizontally (see
+   renderProjects in script.js), and the controls give press feedback. */
 #projects-list > li {
     transition: border-color var(--speed) ease;
 }
@@ -1510,7 +1497,6 @@ input[type="file"]::file-selector-button:hover {
 .page-btn:active:not(:disabled) { transform: translateY(1px) scale(0.94); }
 
 @media (prefers-reduced-motion: reduce) {
-    #projects-section.active #projects-list > li { animation: none; }
     #projects-list .reaction-btn.reaction-pop { animation: none; }
     .page-btn:active:not(:disabled) { transform: none; }
 }
