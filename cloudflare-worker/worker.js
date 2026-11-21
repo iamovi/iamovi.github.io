@@ -285,10 +285,12 @@ async function aiReplyFor(message, senderName, env, sessionId) {
 
 // Recent room messages (oldest-first) used as chat context, minus the triggering
 // message. Best-effort: any failure just means the AI answers with no memory.
+// Deleted rows are filtered out: their text is blanked, so they would only add
+// empty turns, and the room shows a tombstone there instead.
 async function fetchAiMemory(env, senderName, triggerText) {
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
   try {
-    const url = SUPABASE_ORIGIN + '/rest/v1/chat_messages?select=name,message&order=id.desc&limit='
+    const url = SUPABASE_ORIGIN + '/rest/v1/chat_messages?select=name,message&deleted_at=is.null&order=id.desc&limit='
       + (AI_MEMORY_TURNS + 2);
     const res = await fetch(url, { headers: { 'apikey': key, 'Authorization': 'Bearer ' + key } });
     if (!res.ok) return [];

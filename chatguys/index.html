@@ -306,6 +306,16 @@
             margin-right: auto;
         }
 
+        .chat-msg-item.deleted-msg {
+            border-style: dashed;
+            background: transparent;
+        }
+
+        .chat-deleted-text {
+            color: var(--ink-mid);
+            font-style: italic;
+        }
+
         .chat-msg-item.own-msg {
             align-self: flex-end;
             margin-left: auto;
@@ -953,6 +963,7 @@
             const BOT_TYPING_SHOW_DELAY = 150;
 
             let chatPollTimer = null;
+            let chatTombstoneTimer = null;
             let isFetchingChat = false;
             let lastChatSnapshot = '';
 
@@ -1370,12 +1381,19 @@
             function startChatPolling() {
                 stopChatPolling();
                 chatPollTimer = setInterval(loadChatMessages, 3500);
+                // Tombstone sweep on its own slower clock: deletions are rare, and this
+                // is one extra query per tick on a table filtered to a tiny result set.
+                chatTombstoneTimer = setInterval(syncChatTombstones, 15000);
             }
 
             function stopChatPolling() {
                 if (chatPollTimer) {
                     clearInterval(chatPollTimer);
                     chatPollTimer = null;
+                }
+                if (chatTombstoneTimer) {
+                    clearInterval(chatTombstoneTimer);
+                    chatTombstoneTimer = null;
                 }
             }
 
@@ -1570,16 +1588,23 @@
                     const isMe = m.name === myName && (isAdmin || !m.session_id || m.session_id === mySessionId);
                     const isBot = m.name === BOT_NAME;
                     const isAi = m.name === AI_NAME;
+                    const isDeleted = !!m.deleted_at;
                     const badgeHtml = getChatAdminBadge(m.name);
-                    const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '') + (isAi ? ' ai-msg' : '');
+                    const cls = 'chat-msg-item' + (isMe ? ' own-msg' : '') + (isBot ? ' bot-msg' : '') +
+                        (isAi ? ' ai-msg' : '') + (isDeleted ? ' deleted-msg' : '');
+                    // Keyed on deleted_at, not the name: the reserved-name guard is in the
+                    // Worker, so an anon client can insert any name straight to Supabase.
+                    const text = isDeleted
+                        ? '<span class="chat-deleted-text">[ admin deleted this message ]</span>'
+                        : formatMessageText(m.message);
                     return `
                         <div class="${cls}">
                             <div class="chat-msg-meta">
                                 <span class="chat-msg-name">${badgeHtml}${escapeHtml(m.name)}</span>
                                 <span class="chat-msg-date">${timeAgo(m.created_at)}</span>
                             </div>
-                            <div class="chat-msg-text">${formatMessageText(m.message)}</div>
-                            ${previewSlotHtml(m.message)}
+                            <div class="chat-msg-text">${text}</div>
+                            ${isDeleted ? '' : previewSlotHtml(m.message)}
                         </div>
                     `;
                 }).join('');
@@ -1588,16 +1613,27 @@
             }
 
             // Merges incoming rows into chatMessages by id, keeping the list sorted
-            // oldest-first and de-duplicated. Returns true if anything was added.
+            // oldest-first and de-duplicated. Returns true if anything was added or
+            // changed — an existing row can change now that moderation blanks a
+            // message and stamps deleted_at, and the poll only re-sends new ids.
             function mergeChatMessages(incoming) {
                 if (!Array.isArray(incoming) || !incoming.length) return false;
-                const seen = new Set(chatMessages.map(m => m.id));
-                let added = false;
+                const index = new Map(chatMessages.map((m, i) => [m.id, i]));
+                let changed = false;
                 for (const m of incoming) {
-                    if (!seen.has(m.id)) { chatMessages.push(m); seen.add(m.id); added = true; }
+                    const at = index.get(m.id);
+                    if (at === undefined) {
+                        index.set(m.id, chatMessages.length);
+                        chatMessages.push(m);
+                        changed = true;
+                    } else if (chatMessages[at].message !== m.message ||
+                               !!chatMessages[at].deleted_at !== !!m.deleted_at) {
+                        chatMessages[at] = m;
+                        changed = true;
+                    }
                 }
-                if (added) chatMessages.sort((a, b) => a.id - b.id);
-                return added;
+                if (changed) chatMessages.sort((a, b) => a.id - b.id);
+                return changed;
             }
 
             function syncChatBounds() {
@@ -1670,6 +1706,29 @@
                         isFetchingChat = false;
                         if (onDone) onDone();
                     });
+            }
+
+            // The poll only asks for ids newer than the newest one held, so a message
+            // deleted further back never comes back through it. This pulls the current
+            // tombstones in the loaded window and merges them, so a delete shows up in an
+            // open tab without a reload. select=* matters: mergeChatMessages replaces the
+            // whole row, and a partial select would drop name/created_at/session_id.
+            function syncChatTombstones() {
+                if (!chatMessages.length || isFetchingChat || isLoadingOlder || chatOldestId === null) {
+                    return Promise.resolve();
+                }
+                const query = `id=gte.${chatOldestId}&deleted_at=not.is.null&order=id.desc&limit=${CHAT_PAGE_SIZE}`;
+                return fetch(chatMessagesUrl(query), { headers: gbHeaders() })
+                    .then(r => (r.ok ? r.json() : []))
+                    .then(rows => {
+                        if (!Array.isArray(rows) || !rows.length) return;
+                        const container = document.getElementById('chatguys-messages');
+                        if (!container) return;
+                        const wasAtBottom = isChatScrolledToBottom();
+                        if (!mergeChatMessages(rows)) return;
+                        if (renderChatMessages(container) && wasAtBottom) scrollChatToBottom();
+                    })
+                    .catch(() => { });
             }
 
             // Prepends the next older page when the user scrolls to the top. Keeps the

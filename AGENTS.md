@@ -71,6 +71,17 @@ Repository-specific notes for AI agents working in this repo.
   `/link-preview?url=` route fetches the page, parses the tags, and caches the result;
   the browser cannot (CORS, no HTML parser). The SSRF guard in `normalizePreviewUrl()`
   re-checks every redirect hop, so keep it in place when touching that path.
+- Admin deletes are **soft**: `admin/index.html` PATCHes `message: ''` and
+  `deleted_at`, and the row stays so the room can show
+  `[ admin deleted this message ]` in place. Detect a tombstone by `deleted_at`,
+  never by the name — the reserved-name guard is in the Worker while RLS only
+  blocks `bot`, so an anon client can insert any other name directly. The text is
+  blanked deliberately; keeping it would leave the content readable through the
+  public read policy. No undo.
+- The room's poll asks for `id=gt.<newest>`, so it can never see a row that was
+  edited behind it. `syncChatTombstones()` covers that on a slower timer, and
+  `mergeChatMessages()` replaces changed rows by id instead of skipping known ids.
+  Anything that edits an existing message has to account for both.
 
 ## Error reporting
 

@@ -274,6 +274,21 @@
       margin-top: 4px;
     }
 
+    .chat-deleted .comment-text {
+      color: var(--ink-mid);
+      font-style: italic;
+    }
+
+    .tab-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .tab-row .btn {
+      padding: 10px 8px;
+    }
+
     .comment-item {
       padding: 12px 0;
       border-bottom: 1px solid var(--ink-faint);
@@ -409,8 +424,9 @@
     <div id="admin-view">
 
       <!-- ADMIN TABS -->
-      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+      <div class="tab-row">
         <button class="btn" style="flex:1; margin:0;" id="tab-btn-content" onclick="switchAdminTab('content')">[ content ]</button>
+        <button class="btn btn-ghost" style="flex:1; margin:0;" id="tab-btn-chat" onclick="switchAdminTab('chat')">[ chat ]</button>
         <button class="btn btn-ghost" style="flex:1; margin:0;" id="tab-btn-security" onclick="switchAdminTab('security')">[ security ]</button>
       </div>
 
@@ -435,6 +451,21 @@
           <div class="comment-list" id="comment-list">
             <div class="gb-loading-admin">[ loading comments... ]</div>
           </div>
+        </div>
+      </div>
+
+      <!-- CHAT TAB -->
+      <div id="admin-tab-chat" style="display: none;">
+        <div class="box">
+          <div class="section-title">
+            <span>chatguys</span>
+            <span class="comment-count" id="chat-count"></span>
+          </div>
+          <p style="font-size:12px; margin-bottom:12px; color:var(--ink-mid);">Messages older than 7 days clear automatically. Deleting here blanks the text and leaves a tombstone in the room.</p>
+          <div class="comment-list" id="chat-list">
+            <div class="gb-loading-admin">[ loading messages... ]</div>
+          </div>
+          <button class="btn btn-ghost" id="chat-more" onclick="loadChatMessages(false)" style="display:none;">[ load more ]</button>
         </div>
       </div>
 
@@ -545,10 +576,11 @@
     }
 
     window.switchAdminTab = function (tab) {
-      ['content', 'security'].forEach(t => {
+      ['content', 'chat', 'security'].forEach(t => {
         document.getElementById('admin-tab-' + t).style.display = t === tab ? 'block' : 'none';
         document.getElementById('tab-btn-' + t).className = t === tab ? 'btn' : 'btn btn-ghost';
       });
+      if (tab === 'chat') window.loadChatMessages(true);
     }
 
     // LOGIN
@@ -914,6 +946,127 @@
           const cur = parseInt(countEl.textContent) || 1;
           countEl.textContent = (cur - 1) + ' total';
         }
+      } catch {
+        if (btn) btn.disabled = false;
+        alert('Failed to delete. Try again.');
+      }
+    }
+
+    // CHAT MODERATION
+    const CHAT_PAGE = 25;
+    let chatCursor = null;
+    let chatDone = false;
+    let chatLoading = false;
+
+    function chatRow(m) {
+      const deleted = !!m.deleted_at;
+      const action = deleted
+        ? '<span class="comment-count">[ deleted ]</span>'
+        : '<button class="btn-danger" onclick="deleteChatMessage(' + m.id + ')">[ delete ]</button>';
+      return '<div class="comment-item' + (deleted ? ' chat-deleted' : '') + '" id="admin-chat-' + m.id + '">' +
+        '<div class="comment-body">' +
+        '<div class="comment-meta">' +
+        '<span class="comment-name">' + window.escapeHtml(m.name || 'anon') + window.getAdminBadge(m.name) + '</span>' +
+        '<span>' + window.timeAgo(m.created_at) + '</span>' +
+        '</div>' +
+        '<div class="comment-text">' + (deleted ? '[ admin deleted this message ]' : window.escapeHtml(m.message)) + '</div>' +
+        '</div>' +
+        action +
+        '</div>';
+    }
+
+    function chatSyncButton() {
+      const btn = document.getElementById('chat-more');
+      if (btn) btn.style.display = chatDone ? 'none' : 'block';
+    }
+
+    function chatUpdateCount() {
+      const list = document.getElementById('chat-list');
+      const countEl = document.getElementById('chat-count');
+      if (list && countEl) countEl.textContent = list.querySelectorAll('.comment-item').length + ' shown';
+    }
+
+    // Keyset pagination, not offset: deleting a row between loads would shift an
+    // offset and silently skip messages. (created_at, id) is the stable cursor.
+    window.loadChatMessages = async function (reset) {
+      const list = document.getElementById('chat-list');
+      if (!list || chatLoading) return;
+
+      if (reset) {
+        chatCursor = null;
+        chatDone = false;
+        list.innerHTML = '<div class="gb-loading-admin">[ loading messages... ]</div>';
+      }
+
+      chatLoading = true;
+      const moreBtn = document.getElementById('chat-more');
+      if (moreBtn) moreBtn.disabled = true;
+
+      try {
+        // Ask for one extra row: its presence proves another page exists, so the
+        // button is never shown for a page that would come back empty.
+        let q = '/rest/v1/chat_messages?select=*&order=created_at.desc,id.desc&limit=' + (CHAT_PAGE + 1);
+        if (chatCursor) {
+          q += '&or=(created_at.lt.' + encodeURIComponent(chatCursor.created_at) +
+               ',and(created_at.eq.' + encodeURIComponent(chatCursor.created_at) +
+               ',id.lt.' + chatCursor.id + '))';
+        }
+        const res = await fetch(SUPABASE_URL + q, { headers: window.anonHeaders() });
+        if (!res.ok) throw new Error('failed');
+        const data = await res.json();
+
+        if (!Array.isArray(data)) throw new Error('failed');
+
+        if (reset && data.length === 0) {
+          list.innerHTML = '<p class="comment-empty">[ no messages yet ]</p>';
+          document.getElementById('chat-count').textContent = '';
+          chatDone = true;
+          return;
+        }
+
+        chatDone = data.length <= CHAT_PAGE;
+        if (data.length > CHAT_PAGE) data.length = CHAT_PAGE;
+
+        const rows = data.map(chatRow).join('');
+        if (reset) list.innerHTML = rows;
+        else list.insertAdjacentHTML('beforeend', rows);
+
+        if (data.length > 0) {
+          const last = data[data.length - 1];
+          chatCursor = { created_at: last.created_at, id: last.id };
+        }
+        chatUpdateCount();
+      } catch {
+        if (reset) list.innerHTML = '<p class="comment-empty">[ failed to load ]</p>';
+        else alert('Failed to load more. Try again.');
+      } finally {
+        chatLoading = false;
+        if (moreBtn) moreBtn.disabled = false;
+        chatSyncButton();
+      }
+    }
+
+    window.deleteChatMessage = async function (id) {
+      if (!confirm('Delete this chat message? This cannot be undone.')) return;
+
+      const row = document.getElementById('admin-chat-' + id);
+      const btn = row ? row.querySelector('.btn-danger') : null;
+      if (btn) btn.disabled = true;
+
+      try {
+        // Soft delete: keep the row so the room can show a tombstone in place.
+        // The text is blanked, so the original content is no longer readable.
+        const res = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?id=eq.' + id, {
+          method: 'PATCH',
+          headers: { ...window.authHeaders(), 'Prefer': 'return=representation' },
+          body: JSON.stringify({ message: '', deleted_at: new Date().toISOString() })
+        });
+        if (!res.ok) throw new Error('failed');
+        const updated = await res.json();
+        // RLS silently filters rows the policy rejects; an empty array means the
+        // update did not apply (e.g. the row was already deleted).
+        if (!Array.isArray(updated) || updated.length === 0) throw new Error('not applied');
+        if (row) row.outerHTML = chatRow(updated[0]);
       } catch {
         if (btn) btn.disabled = false;
         alert('Failed to delete. Try again.');
