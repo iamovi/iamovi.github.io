@@ -33,9 +33,20 @@
         catch (e) { return ''; }
     }
 
+    // In-app browsers (iabjs://) and extensions inject their own scripts into the
+    // page. Their errors are not ours to fix, and forwarding them burns the
+    // Worker's shared daily error budget. Keep sourceless errors: cross-origin
+    // scripts report without a filename, and those may still be ours.
+    function isOwnSource(source) {
+        if (!source) return true;
+        try { return new URL(source, location.href).origin === location.origin; }
+        catch (e) { return true; }
+    }
+
     window.addEventListener('error', function (event) {
         // Resource load failures (img/script) have no message; skip them.
         if (!event.message && !event.error) return;
+        if (!isOwnSource(event.filename)) return;
         report({
             type: 'error',
             page: location.pathname,
