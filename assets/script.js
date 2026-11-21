@@ -390,6 +390,10 @@
     );
   }
 
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
   // PROJECTS — loaded from projects.json
   // `animate` is false for the first paint: scripts/build.py already baked the
   // same markup into the HTML, so fading in would flash content that is
@@ -428,7 +432,7 @@
       if (next) next.disabled = currentPage === totalPages;
     };
 
-    if (!animate) {
+    if (!animate || prefersReducedMotion()) {
       paint();
       return;
     }
